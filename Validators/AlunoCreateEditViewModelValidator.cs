@@ -25,6 +25,11 @@ namespace form_API.Validators
 
             RuleFor(aluno => aluno.ProfessorId)
                 .GreaterThan(0).WithMessage("Informe um professor valido.");
+
+            RuleFor(aluno => aluno.IdUsuario)
+                .GreaterThan(0)
+                .When(aluno => aluno.IdUsuario.HasValue)
+                .WithMessage("Informe um usuario valido.");
         }
 
         private static bool BeValidBirthDate(string value)

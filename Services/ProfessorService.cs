@@ -44,6 +44,7 @@ namespace form_API.Services
             }
 
             professor.Nome = viewModel.Nome;
+            professor.IdUsuario = viewModel.IdUsuario;
             _repo.Update(professor);
             await _repo.SaveChangesAsync();
             var updated = await _repo.GetProfessorAsyncById(professorId, true);

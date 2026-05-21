@@ -1,0 +1,18 @@
+using System.Collections.Generic;
+
+namespace form_API.Models
+{
+    public class Usuario
+    {
+        public int IdUsuario { get; set; }
+        public string Nome { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Telefone { get; set; } = string.Empty;
+        public string Senha { get; set; } = string.Empty;
+        public int IdPerfil { get; set; }
+        public Perfil? Perfil { get; set; }
+        public List<Aluno> Alunos { get; set; } = new();
+        public List<Professor> Professores { get; set; } = new();
+        public List<Diretoria> Diretorias { get; set; } = new();
+    }
+}

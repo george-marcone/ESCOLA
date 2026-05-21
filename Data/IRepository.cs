@@ -25,5 +25,9 @@ namespace form_API.Data
         // Professor
         Task<Professor[]> GetAllProfessoresAsync(bool includeAluno);
         Task<Professor?> GetProfessorAsyncById(int ProfessorId, bool includeAluno);
+
+        // Diretoria
+        Task<Diretoria[]> GetAllDiretoriasAsync(bool includeUsuario);
+        Task<Diretoria?> GetDiretoriaAsyncById(int DiretoriaId, bool includeUsuario);
     }
 }

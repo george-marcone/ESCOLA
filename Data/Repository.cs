@@ -41,7 +41,9 @@ namespace form_API.Data
             if (includeProfessor)
             {
                 query = query
-                .Include(a => a.Professor);
+                .Include(a => a.Professor)
+                .Include(a => a.Usuario)
+                .ThenInclude(u => u!.Perfil);
             }
 
             query = query
@@ -57,7 +59,9 @@ namespace form_API.Data
             if (includeProfessor)
             {
                 query = query
-                .Include(a => a.Professor);
+                .Include(a => a.Professor)
+                .Include(a => a.Usuario)
+                .ThenInclude(u => u!.Perfil);
             }
 
             query = query
@@ -74,7 +78,9 @@ namespace form_API.Data
             if (includeProfessor)
             {
                 query = query
-                .Include(a => a.Professor);
+                .Include(a => a.Professor)
+                .Include(a => a.Usuario)
+                .ThenInclude(u => u!.Perfil);
             }
 
             query = query
@@ -92,7 +98,9 @@ namespace form_API.Data
             if (includeAluno)
             {
                 query = query
-                .Include(a => a.Alunos);
+                .Include(a => a.Alunos)
+                .Include(a => a.Usuario)
+                .ThenInclude(u => u!.Perfil);
             }
 
             query = query
@@ -108,13 +116,51 @@ namespace form_API.Data
             if (includeAluno)
             {
                 query = query
-                .Include(a => a.Alunos);
+                .Include(a => a.Alunos)
+                .Include(a => a.Usuario)
+                .ThenInclude(u => u!.Perfil);
             }
 
             query = query
             .AsNoTracking()
             .OrderBy(a => a.Id)
             .Where(Professor => Professor.Id == ProfessorId);
+
+            return await query.FirstOrDefaultAsync();
+        }
+
+        // Diretoria
+        public async Task<Diretoria[]> GetAllDiretoriasAsync(bool includeUsuario = false)
+        {
+            IQueryable<Diretoria> query = _context.Diretorias;
+            if (includeUsuario)
+            {
+                query = query
+                .Include(d => d.Usuario)
+                .ThenInclude(u => u!.Perfil);
+            }
+
+            query = query
+            .AsNoTracking()
+            .OrderBy(d => d.Id);
+
+            return await query.ToArrayAsync();
+        }
+
+        public async Task<Diretoria?> GetDiretoriaAsyncById(int DiretoriaId, bool includeUsuario)
+        {
+            IQueryable<Diretoria> query = _context.Diretorias;
+            if (includeUsuario)
+            {
+                query = query
+                .Include(d => d.Usuario)
+                .ThenInclude(u => u!.Perfil);
+            }
+
+            query = query
+            .AsNoTracking()
+            .OrderBy(d => d.Id)
+            .Where(diretoria => diretoria.Id == DiretoriaId);
 
             return await query.FirstOrDefaultAsync();
         }

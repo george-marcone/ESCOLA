@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using form_API.Services;
 using form_API.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -9,6 +10,7 @@ namespace form_API.Controllers
     /// <summary>
     /// Operacoes para consulta e manutencao de alunos.
     /// </summary>
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     [Produces("application/json")]
@@ -96,6 +98,7 @@ namespace form_API.Controllers
         /// <param name="model">Dados do aluno.</param>
         /// <returns>Aluno criado.</returns>
         [HttpPost]
+        [Authorize(Roles = "Administrador,Contribuinte")]
         [ProducesResponseType(typeof(AlunoViewModel), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -120,6 +123,7 @@ namespace form_API.Controllers
         /// <param name="model">Dados atualizados do aluno.</param>
         /// <returns>Aluno atualizado.</returns>
         [HttpPut("{AlunoId}")]
+        [Authorize(Roles = "Administrador,Contribuinte")]
         [ProducesResponseType(typeof(AlunoViewModel), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -144,6 +148,7 @@ namespace form_API.Controllers
         /// </summary>
         /// <param name="AlunoId">Identificador do aluno.</param>
         [HttpDelete("{AlunoId}")]
+        [Authorize(Roles = "Administrador")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]

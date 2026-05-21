@@ -6,5 +6,6 @@ namespace form_API.ViewModels
         public string Sobrenome { get; set; } = string.Empty;
         public string DataNasc { get; set; } = string.Empty;
         public int ProfessorId { get; set; }
+        public int? IdUsuario { get; set; }
     }
 }

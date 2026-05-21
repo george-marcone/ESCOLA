@@ -17,8 +17,11 @@ namespace form_API.ViewModels
                 Professor = entity.Professor == null ? null : new ProfessorSummaryViewModel
                 {
                     Id = entity.Professor.Id,
-                    Nome = entity.Professor.Nome
-                }
+                    Nome = entity.Professor.Nome,
+                    IdUsuario = entity.Professor.IdUsuario
+                },
+                IdUsuario = entity.IdUsuario,
+                Usuario = entity.Usuario.ToSummary()
             };
         }
 
@@ -29,7 +32,8 @@ namespace form_API.ViewModels
                 Id = entity.Id,
                 Nome = entity.Nome,
                 Sobrenome = entity.Sobrenome,
-                ProfessorId = entity.ProfessorId
+                ProfessorId = entity.ProfessorId,
+                IdUsuario = entity.IdUsuario
             };
         }
 
@@ -39,7 +43,38 @@ namespace form_API.ViewModels
             {
                 Id = entity.Id,
                 Nome = entity.Nome,
+                IdUsuario = entity.IdUsuario,
+                Usuario = entity.Usuario.ToSummary(),
                 Alunos = entity.Alunos?.Select(a => a.ToSummary()).ToArray() ?? new AlunoSummaryViewModel[0]
+            };
+        }
+
+        public static DiretoriaViewModel ToViewModel(this Diretoria entity)
+        {
+            return new DiretoriaViewModel
+            {
+                Id = entity.Id,
+                Nome = entity.Nome,
+                IdUsuario = entity.IdUsuario,
+                Usuario = entity.Usuario.ToSummary()
+            };
+        }
+
+        public static UsuarioSummaryViewModel? ToSummary(this Usuario? entity)
+        {
+            if (entity == null)
+            {
+                return null;
+            }
+
+            return new UsuarioSummaryViewModel
+            {
+                IdUsuario = entity.IdUsuario,
+                Nome = entity.Nome,
+                Email = entity.Email,
+                Telefone = entity.Telefone,
+                IdPerfil = entity.IdPerfil,
+                DescricaoPerfil = entity.Perfil?.DescricaoPerfil ?? string.Empty
             };
         }
 
@@ -50,7 +85,8 @@ namespace form_API.ViewModels
                 Nome = viewModel.Nome,
                 Sobrenome = viewModel.Sobrenome,
                 DataNasc = viewModel.DataNasc,
-                ProfessorId = viewModel.ProfessorId
+                ProfessorId = viewModel.ProfessorId,
+                IdUsuario = viewModel.IdUsuario
             };
         }
 
@@ -60,14 +96,31 @@ namespace form_API.ViewModels
             entity.Sobrenome = viewModel.Sobrenome;
             entity.DataNasc = viewModel.DataNasc;
             entity.ProfessorId = viewModel.ProfessorId;
+            entity.IdUsuario = viewModel.IdUsuario;
         }
 
         public static Professor ToModel(this ProfessorCreateEditViewModel viewModel)
         {
             return new Professor
             {
-                Nome = viewModel.Nome
+                Nome = viewModel.Nome,
+                IdUsuario = viewModel.IdUsuario
             };
+        }
+
+        public static Diretoria ToModel(this DiretoriaCreateEditViewModel viewModel)
+        {
+            return new Diretoria
+            {
+                Nome = viewModel.Nome,
+                IdUsuario = viewModel.IdUsuario
+            };
+        }
+
+        public static void UpdateFrom(this Diretoria entity, DiretoriaCreateEditViewModel viewModel)
+        {
+            entity.Nome = viewModel.Nome;
+            entity.IdUsuario = viewModel.IdUsuario;
         }
     }
 }
