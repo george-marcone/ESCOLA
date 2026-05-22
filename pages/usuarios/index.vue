@@ -1,8 +1,8 @@
 <template>
-  <section class="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
+  <section class="grid gap-5 xl:grid-cols-[minmax(280px,360px)_minmax(0,1fr)]">
     <form
       v-if="auth.isAdmin"
-      class="rounded-lg border border-[#d4dee9] bg-white p-6 shadow-[0_22px_55px_rgba(14,30,53,0.08)]"
+      class="rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6"
       @submit.prevent="salvar"
     >
       <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Cadastro</p>
@@ -69,7 +69,7 @@
 
     <aside
       v-else
-      class="rounded-lg border border-[#d4dee9] bg-white p-6 shadow-[0_22px_55px_rgba(14,30,53,0.08)]"
+      class="rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6"
     >
       <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Consulta</p>
       <h2 class="mb-3 mt-2 text-xl font-normal text-[#071d3b]">Usuarios</h2>
@@ -78,7 +78,7 @@
       </p>
     </aside>
 
-    <article class="min-w-0 rounded-lg border border-[#d4dee9] bg-white p-6 shadow-[0_22px_55px_rgba(14,30,53,0.08)]">
+    <article class="min-w-0 rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6">
       <div class="flex items-start justify-between gap-4">
         <div>
           <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">{{ usuarios.length }} usuario(s)</p>
@@ -102,8 +102,8 @@
 
       <p v-if="erroLista" class="alert alert-error mt-4">{{ erroLista }}</p>
 
-      <div class="mt-4 max-h-[520px] overflow-auto rounded-lg border border-[#d4dee9]">
-        <table class="min-w-[820px] border-collapse text-left">
+      <div class="mt-4 hidden max-h-[520px] overflow-auto rounded-lg border border-[#d4dee9] md:block">
+        <table class="min-w-[720px] border-collapse text-left lg:min-w-full">
           <thead class="sticky top-0 bg-[#f5f8fb] text-xs uppercase text-[#51627a]">
             <tr>
               <th class="px-4 py-4">Nome</th>
@@ -160,6 +160,64 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <div class="mt-4 grid gap-3 md:hidden">
+        <article
+          v-for="usuario in usuariosPaginados"
+          :key="usuario.idUsuario"
+          class="rounded-lg border border-[#d4dee9] bg-white p-4"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <h3 class="m-0 truncate text-base font-extrabold text-[#071d3b]">{{ usuario.nome }}</h3>
+              <p class="m-0 mt-1 break-all text-sm text-[#51627a]">{{ usuario.email }}</p>
+            </div>
+            <span class="rounded-md bg-[#eaf4f1] px-2 py-1 text-xs font-extrabold text-[#006b61]">
+              {{ usuario.descricaoPerfil }}
+            </span>
+          </div>
+          <p class="m-0 mt-3 text-sm text-[#243044]">
+            <strong>Telefone:</strong> {{ usuario.telefone || '-' }}
+          </p>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <NuxtLink
+              class="inline-flex h-10 flex-1 items-center justify-center rounded-md bg-[#edf3f8] text-[#071d3b] no-underline transition hover:bg-[#dfe8f1]"
+              :to="`/usuarios/${usuario.idUsuario}`"
+              title="Visualizar usuario"
+              aria-label="Visualizar usuario"
+            >
+              <Eye class="h-5 w-5" aria-hidden="true" />
+            </NuxtLink>
+            <button
+              v-if="auth.isAdmin"
+              class="inline-flex h-10 flex-1 items-center justify-center rounded-md bg-[#edf3f8] text-[#071d3b] transition hover:bg-[#dfe8f1]"
+              type="button"
+              title="Editar usuario"
+              aria-label="Editar usuario"
+              @click="editar(usuario)"
+            >
+              <Pencil class="h-5 w-5" aria-hidden="true" />
+            </button>
+            <button
+              v-if="auth.isAdmin"
+              class="inline-flex h-10 flex-1 items-center justify-center rounded-md bg-[#ffe1e3] text-[#dc2626] transition hover:bg-[#ffd4d7]"
+              type="button"
+              title="Excluir usuario"
+              aria-label="Excluir usuario"
+              @click="excluir(usuario)"
+            >
+              <Trash2 class="h-5 w-5" aria-hidden="true" />
+            </button>
+          </div>
+        </article>
+
+        <p v-if="!carregando && !usuariosFiltrados.length" class="m-0 rounded-lg border border-[#d4dee9] bg-white p-4 text-[#62728a]">
+          Nenhum usuario encontrado.
+        </p>
+        <p v-if="carregando && !usuarios.length" class="m-0 rounded-lg border border-[#d4dee9] bg-white p-4 text-[#62728a]">
+          Carregando usuarios...
+        </p>
       </div>
 
       <div class="mt-4 flex flex-col gap-3 text-sm font-extrabold text-[#62728a] sm:flex-row sm:items-center sm:justify-between">

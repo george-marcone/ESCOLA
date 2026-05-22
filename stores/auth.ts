@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { useNuxtApp } from '#app'
-import type { AlterarSenhaPayload, AuthResponse, LoginCredentials, UsuarioSummary } from '~/types/api'
+import type { AlterarSenhaPayload, AuthResponse, EsqueciSenhaPayload, EsqueciSenhaResponse, LoginCredentials, UsuarioSummary } from '~/types/api'
 import { normalizeApiError } from '~/utils/api-client'
 
 const STORAGE_KEY = 'form-escola-auth'
@@ -71,6 +71,24 @@ export const useAuthStore = defineStore('auth', () => {
       deveAlterarSenhaPadrao.value = false
       persist()
       return usuario.value
+    } catch (err) {
+      error.value = normalizeApiError(err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function resetarSenhaPadrao(payload: EsqueciSenhaPayload) {
+    loading.value = true
+    error.value = null
+
+    try {
+      const { $api } = useNuxtApp()
+      return await $api<EsqueciSenhaResponse>('/auth/esqueci-senha', {
+        method: 'POST',
+        body: payload
+      })
     } catch (err) {
       error.value = normalizeApiError(err)
       throw err
@@ -152,6 +170,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     fetchMe,
     alterarSenha,
+    resetarSenhaPadrao,
     setSession,
     logout,
     loadFromStorage

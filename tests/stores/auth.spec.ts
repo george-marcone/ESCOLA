@@ -114,4 +114,19 @@ describe('auth store', () => {
     })
     expect(auth.deveAlterarSenhaPadrao).toBe(false)
   })
+
+  it('requests default password reset by email', async () => {
+    apiMock.mockResolvedValue({
+      mensagem: 'Se o email informado estiver cadastrado, a senha foi redefinida para a senha padrao.'
+    })
+
+    const auth = useAuthStore()
+    const response = await auth.resetarSenhaPadrao({ email: 'admin@escola.com' })
+
+    expect(apiMock).toHaveBeenCalledWith('/auth/esqueci-senha', {
+      method: 'POST',
+      body: { email: 'admin@escola.com' }
+    })
+    expect(response.mensagem).toContain('senha foi redefinida')
+  })
 })

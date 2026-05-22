@@ -39,6 +39,14 @@ export interface AlterarSenhaPayload {
   confirmacaoSenha: string
 }
 
+export interface EsqueciSenhaPayload {
+  email: string
+}
+
+export interface EsqueciSenhaResponse {
+  mensagem: string
+}
+
 export interface Diretoria {
   id: number
   nome: string

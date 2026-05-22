@@ -11,22 +11,13 @@
           Troque a senha padrao para liberar o acesso ao sistema.
         </p>
 
-        <label>
-          <span>Senha atual</span>
-          <input v-model="form.senhaAtual" type="password" autocomplete="current-password" required />
-        </label>
+        <PasswordInput v-model="form.senhaAtual" label="Senha atual" autocomplete="current-password" required />
 
-        <label>
-          <span>Nova senha</span>
-          <input v-model="form.novaSenha" type="password" autocomplete="new-password" required />
-        </label>
+        <PasswordInput v-model="form.novaSenha" label="Nova senha" autocomplete="new-password" required />
 
         <PasswordStrengthMeter :password="form.novaSenha" />
 
-        <label>
-          <span>Confirmar nova senha</span>
-          <input v-model="form.confirmacaoSenha" type="password" autocomplete="new-password" required />
-        </label>
+        <PasswordInput v-model="form.confirmacaoSenha" label="Confirmar nova senha" autocomplete="new-password" required />
       </div>
 
       <p v-if="mensagem" class="alert alert-success">{{ mensagem }}</p>

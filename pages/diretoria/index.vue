@@ -1,8 +1,8 @@
 <template>
-  <section class="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
+  <section class="grid gap-5 xl:grid-cols-[minmax(280px,360px)_minmax(0,1fr)]">
     <form
       v-if="auth.canWrite"
-      class="rounded-lg border border-[#d4dee9] bg-white p-6 shadow-[0_22px_55px_rgba(14,30,53,0.08)]"
+      class="rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6"
       @submit.prevent="salvar"
     >
       <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Cadastro</p>
@@ -53,7 +53,7 @@
 
     <aside
       v-else
-      class="rounded-lg border border-[#d4dee9] bg-white p-6 shadow-[0_22px_55px_rgba(14,30,53,0.08)]"
+      class="rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6"
     >
       <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Consulta</p>
       <h2 class="mb-3 mt-2 text-xl font-normal text-[#071d3b]">Diretoria</h2>
@@ -62,7 +62,7 @@
       </p>
     </aside>
 
-    <article class="min-w-0 rounded-lg border border-[#d4dee9] bg-white p-6 shadow-[0_22px_55px_rgba(14,30,53,0.08)]">
+    <article class="min-w-0 rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6">
       <div class="flex items-start justify-between gap-4">
         <div>
           <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">{{ diretorias.length }} integrante(s)</p>
@@ -87,7 +87,7 @@
       <p v-if="erroLista" class="alert alert-error mt-4">{{ erroLista }}</p>
 
       <div class="mt-4 max-h-[520px] overflow-auto rounded-lg border border-[#d4dee9]">
-        <table class="min-w-[760px] border-collapse text-left">
+        <table class="min-w-[680px] border-collapse text-left lg:min-w-full">
           <thead class="sticky top-0 bg-[#f5f8fb] text-xs uppercase text-[#51627a]">
             <tr>
               <th class="px-4 py-4">Nome</th>

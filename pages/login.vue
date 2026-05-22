@@ -1,8 +1,8 @@
 <template>
-  <section class="w-[min(420px,100%)] rounded-lg border border-[#d4dee9] bg-white p-8 shadow-[0_22px_55px_rgba(14,30,53,0.12)]">
+  <section class="w-[min(420px,100%)] rounded-lg border border-[#d4dee9] bg-white p-5 shadow-[0_22px_55px_rgba(14,30,53,0.12)] sm:p-8">
     <div>
       <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">GM Tech Solutions</p>
-      <h1 class="mb-2 mt-2 text-4xl font-normal leading-tight text-[#071d3b]">Escola High Tech</h1>
+      <h1 class="mb-2 mt-2 text-3xl font-normal leading-tight text-[#071d3b] sm:text-4xl">Escola High Tech</h1>
       <p class="m-0 text-sm font-bold uppercase text-[#147f72]">Acesso seguro</p>
     </div>
 
@@ -12,15 +12,18 @@
         <input v-model.trim="form.email" class="min-h-11 rounded-md border border-[#ccd8e5] px-3 text-[#071d3b] outline-none focus:border-[#147f72] focus:ring-4 focus:ring-[#147f72]/10" type="email" autocomplete="email" required />
       </label>
 
-      <label class="grid gap-2 text-sm font-extrabold text-[#071d3b]">
-        <span>Senha</span>
-        <input v-model="form.senha" class="min-h-11 rounded-md border border-[#ccd8e5] px-3 text-[#071d3b] outline-none focus:border-[#147f72] focus:ring-4 focus:ring-[#147f72]/10" type="password" autocomplete="current-password" required />
-      </label>
+      <PasswordInput v-model="form.senha" label="Senha" autocomplete="current-password" required />
 
       <p v-if="auth.error" class="alert alert-error">{{ auth.error }}</p>
+      <p v-if="mensagemReset" class="alert alert-success">{{ mensagemReset }}</p>
+      <p v-if="erroReset" class="alert alert-error">{{ erroReset }}</p>
 
       <button class="inline-flex min-h-12 items-center justify-center rounded-md bg-[#147f72] px-4 text-sm font-extrabold text-white transition hover:bg-[#0f6c61] disabled:cursor-wait disabled:opacity-70" type="submit" :disabled="auth.loading">
         {{ auth.loading ? 'Entrando...' : 'Entrar' }}
+      </button>
+
+      <button class="inline-flex min-h-10 items-center justify-center rounded-md border border-[#147f72] bg-white px-4 text-sm font-extrabold text-[#147f72] transition hover:bg-[#e9f7f5] disabled:cursor-wait disabled:opacity-70" type="button" :disabled="auth.loading" @click="resetarSenhaPadrao">
+        Esqueceu a senha?
       </button>
     </form>
 
@@ -29,17 +32,11 @@
         Sua conta ainda usa a senha padrao. Defina uma nova senha para continuar.
       </p>
 
-      <label class="grid gap-2 text-sm font-extrabold text-[#071d3b]">
-        <span>Nova senha</span>
-        <input v-model="senhaForm.novaSenha" class="min-h-11 rounded-md border border-[#ccd8e5] px-3 text-[#071d3b] outline-none focus:border-[#147f72] focus:ring-4 focus:ring-[#147f72]/10" type="password" autocomplete="new-password" required />
-      </label>
+      <PasswordInput v-model="senhaForm.novaSenha" label="Nova senha" autocomplete="new-password" required />
 
       <PasswordStrengthMeter :password="senhaForm.novaSenha" />
 
-      <label class="grid gap-2 text-sm font-extrabold text-[#071d3b]">
-        <span>Confirmar nova senha</span>
-        <input v-model="senhaForm.confirmacaoSenha" class="min-h-11 rounded-md border border-[#ccd8e5] px-3 text-[#071d3b] outline-none focus:border-[#147f72] focus:ring-4 focus:ring-[#147f72]/10" type="password" autocomplete="new-password" required />
-      </label>
+      <PasswordInput v-model="senhaForm.confirmacaoSenha" label="Confirmar nova senha" autocomplete="new-password" required />
 
       <p v-if="erroAlteracao" class="alert alert-error">{{ erroAlteracao }}</p>
 
@@ -69,8 +66,13 @@ const senhaForm = reactive({
 })
 const mostrarAlteracaoSenha = ref(false)
 const erroAlteracao = ref('')
+const mensagemReset = ref('')
+const erroReset = ref('')
 
 async function entrar() {
+  mensagemReset.value = ''
+  erroReset.value = ''
+
   const response = await auth.login(form)
   if (response.deveAlterarSenhaPadrao) {
     mostrarAlteracaoSenha.value = true
@@ -78,6 +80,24 @@ async function entrar() {
   }
 
   await navigateTo('/')
+}
+
+async function resetarSenhaPadrao() {
+  mensagemReset.value = ''
+  erroReset.value = ''
+
+  if (!form.email) {
+    erroReset.value = 'Informe o email para redefinir a senha.'
+    return
+  }
+
+  try {
+    const response = await auth.resetarSenhaPadrao({ email: form.email })
+    mensagemReset.value = response.mensagem
+    form.senha = ''
+  } catch (err) {
+    erroReset.value = normalizeApiError(err)
+  }
 }
 
 async function alterarSenha() {
