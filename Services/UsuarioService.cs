@@ -45,7 +45,7 @@ namespace form_API.Services
 
         public async Task<UsuarioSummaryViewModel> AddAsync(UsuarioCreateViewModel viewModel)
         {
-            var email = viewModel.Email.Trim().ToLowerInvariant();
+            var email = NormalizeEmail(viewModel.Email);
             var emailJaCadastrado = await _context.Usuarios
                 .AnyAsync(usuario => usuario.Email.ToLower() == email);
 
@@ -92,7 +92,7 @@ namespace form_API.Services
                 return null;
             }
 
-            var email = viewModel.Email.Trim().ToLowerInvariant();
+            var email = NormalizeEmail(viewModel.Email);
             var emailJaCadastrado = await _context.Usuarios
                 .AnyAsync(u => u.IdUsuario != usuarioId && u.Email.ToLower() == email);
 
@@ -150,6 +150,11 @@ namespace form_API.Services
                     DescricaoPerfil = perfil.DescricaoPerfil
                 })
                 .ToArrayAsync();
+        }
+
+        private static string NormalizeEmail(string email)
+        {
+            return email.Trim().ToLowerInvariant();
         }
     }
 }

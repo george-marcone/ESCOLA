@@ -50,12 +50,36 @@ namespace form_API.Tests.Services
             var model = new UsuarioCreateViewModel
             {
                 Nome = "Outro Admin",
-                Email = "admin@escola.com",
+                Email = " ADMIN@ESCOLA.COM ",
                 Telefone = "11999990000",
                 IdPerfil = 1
             };
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => service.AddAsync(model));
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => service.AddAsync(model));
+
+            Assert.Equal("Email ja cadastrado.", exception.Message);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_WhenEmailBelongsToAnotherUsuario_ThrowsInvalidOperationException()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var service = new UsuarioService(context);
+            var model = new UsuarioCreateViewModel
+            {
+                Nome = "Professor Atualizado",
+                Email = " ADMIN@ESCOLA.COM ",
+                Telefone = "11999991111",
+                IdPerfil = 2
+            };
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => service.UpdateAsync(2, model));
+
+            Assert.Equal("Email ja cadastrado.", exception.Message);
         }
 
         private static DataContext CreateContext(SqliteConnection connection)
