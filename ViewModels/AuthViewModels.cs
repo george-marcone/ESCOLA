@@ -62,4 +62,15 @@ namespace form_API.ViewModels
         /// </summary>
         public string ConfirmacaoSenha { get; set; } = string.Empty;
     }
+
+    /// <summary>
+    /// Dados enviados para redefinir a senha esquecida para a senha padrao do sistema.
+    /// </summary>
+    public class EsqueciSenhaViewModel
+    {
+        /// <summary>
+        /// Email cadastrado do usuario que solicitou o reset da senha.
+        /// </summary>
+        public string Email { get; set; } = string.Empty;
+    }
 }

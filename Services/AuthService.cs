@@ -93,6 +93,22 @@ namespace form_API.Services
             return usuario.ToSummary();
         }
 
+        public async Task<bool> ResetarSenhaPadraoAsync(EsqueciSenhaViewModel viewModel)
+        {
+            var email = viewModel.Email.Trim().ToLowerInvariant();
+            var usuario = await _context.Usuarios
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == email);
+
+            if (usuario == null)
+            {
+                return false;
+            }
+
+            usuario.Senha = PasswordHasher.HashPassword(DefaultPasswordPolicy.DefaultPassword);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         private string GenerateToken(Usuario usuario, DateTime expires)
         {
             var key = _configuration["Jwt:Key"];

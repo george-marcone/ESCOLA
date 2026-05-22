@@ -59,6 +59,46 @@ namespace form_API.Tests.Services
             Assert.True(PasswordHasher.VerifyPassword("Senha@252526", stored.Senha));
         }
 
+        [Fact]
+        public async Task ResetarSenhaPadraoAsync_WhenEmailExists_SetsDefaultPassword()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var usuario = await CreateCustomPasswordUserAsync(context);
+            var service = new AuthService(context, CreateConfiguration());
+
+            var result = await service.ResetarSenhaPadraoAsync(new EsqueciSenhaViewModel
+            {
+                Email = " RESET@ESCOLA.COM "
+            });
+
+            var stored = await context.Usuarios.FirstAsync(u => u.IdUsuario == usuario.IdUsuario);
+
+            Assert.True(result);
+            Assert.True(DefaultPasswordPolicy.UsesDefaultPassword(stored.Senha));
+        }
+
+        [Fact]
+        public async Task ResetarSenhaPadraoAsync_WhenEmailDoesNotExist_ReturnsFalse()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var service = new AuthService(context, CreateConfiguration());
+
+            var result = await service.ResetarSenhaPadraoAsync(new EsqueciSenhaViewModel
+            {
+                Email = "inexistente@escola.com"
+            });
+
+            Assert.False(result);
+        }
+
         private static async Task<form_API.Models.Usuario> CreateDefaultPasswordUserAsync(DataContext context)
         {
             var usuario = new form_API.Models.Usuario
@@ -67,6 +107,22 @@ namespace form_API.Tests.Services
                 Email = "padrao@escola.com",
                 Telefone = "11999990000",
                 Senha = PasswordHasher.HashPassword(DefaultPasswordPolicy.DefaultPassword),
+                IdPerfil = 2
+            };
+
+            context.Usuarios.Add(usuario);
+            await context.SaveChangesAsync();
+            return usuario;
+        }
+
+        private static async Task<form_API.Models.Usuario> CreateCustomPasswordUserAsync(DataContext context)
+        {
+            var usuario = new form_API.Models.Usuario
+            {
+                Nome = "Usuario Reset",
+                Email = "reset@escola.com",
+                Telefone = "11999990001",
+                Senha = PasswordHasher.HashPassword("Senha@252526"),
                 IdPerfil = 2
             };
 

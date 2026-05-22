@@ -117,5 +117,31 @@ namespace form_API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        /// <summary>
+        /// Redefine a senha do usuario para a senha padrao do sistema.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("esqueci-senha")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> EsqueciSenha(EsqueciSenhaViewModel model)
+        {
+            var senhaRedefinida = await _authService.ResetarSenhaPadraoAsync(model);
+
+            if (senhaRedefinida)
+            {
+                _logger.LogInformation("Senha redefinida para a senha padrao no fluxo de esqueci senha.");
+            }
+            else
+            {
+                _logger.LogWarning("Solicitacao de esqueci senha recebida para email nao cadastrado.");
+            }
+
+            return Ok(new
+            {
+                mensagem = "Se o email informado estiver cadastrado, a senha foi redefinida para a senha padrao."
+            });
+        }
     }
 }
