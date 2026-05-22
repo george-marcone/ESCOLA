@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using form_API.Models;
+using ESCOLA_API.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace form_API.Data
+namespace ESCOLA_API.Data
 {
     public class Repository : IRepository
     {

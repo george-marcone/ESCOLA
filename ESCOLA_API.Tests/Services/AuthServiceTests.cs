@@ -1,13 +1,13 @@
 using System.Security.Claims;
-using form_API.Data;
-using form_API.Security;
-using form_API.Services;
-using form_API.ViewModels;
+using ESCOLA_API.Data;
+using ESCOLA_API.Security;
+using ESCOLA_API.Services;
+using ESCOLA_API.ViewModels;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
-namespace form_API.Tests.Services
+namespace ESCOLA_API.Tests.Services
 {
     public class AuthServiceTests
     {
@@ -99,9 +99,9 @@ namespace form_API.Tests.Services
             Assert.False(result);
         }
 
-        private static async Task<form_API.Models.Usuario> CreateDefaultPasswordUserAsync(DataContext context)
+        private static async Task<ESCOLA_API.Models.Usuario> CreateDefaultPasswordUserAsync(DataContext context)
         {
-            var usuario = new form_API.Models.Usuario
+            var usuario = new ESCOLA_API.Models.Usuario
             {
                 Nome = "Usuario Padrao",
                 Email = "padrao@escola.com",
@@ -115,9 +115,9 @@ namespace form_API.Tests.Services
             return usuario;
         }
 
-        private static async Task<form_API.Models.Usuario> CreateCustomPasswordUserAsync(DataContext context)
+        private static async Task<ESCOLA_API.Models.Usuario> CreateCustomPasswordUserAsync(DataContext context)
         {
-            var usuario = new form_API.Models.Usuario
+            var usuario = new ESCOLA_API.Models.Usuario
             {
                 Nome = "Usuario Reset",
                 Email = "reset@escola.com",
@@ -147,8 +147,8 @@ namespace form_API.Tests.Services
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {
                     ["Jwt:Key"] = "TestJwtKeyForUnitTestsOnly_1234567890_Secret",
-                    ["Jwt:Issuer"] = "form-api",
-                    ["Jwt:Audience"] = "form-client",
+                    ["Jwt:Issuer"] = "escola-api",
+                    ["Jwt:Audience"] = "escola-client",
                     ["Jwt:ExpirationMinutes"] = "120"
                 })
                 .Build();

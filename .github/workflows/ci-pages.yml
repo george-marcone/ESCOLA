@@ -1,4 +1,4 @@
-name: Backend - CI/CD GitHub Pages
+name: ESCOLA_API - CI/CD GitHub Pages
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: backend-pages
+  group: escola-api-pages
   cancel-in-progress: true
 
 jobs:
@@ -27,13 +27,13 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore form_API.Tests/form_API.Tests.csproj
+        run: dotnet restore ESCOLA_API.Tests/ESCOLA_API.Tests.csproj
 
       - name: Build backend
-        run: dotnet build form_API.csproj --configuration Release --no-restore
+        run: dotnet build ESCOLA_API.csproj --configuration Release --no-restore
 
       - name: Run tests
-        run: dotnet test form_API.Tests/form_API.Tests.csproj --configuration Release --no-restore
+        run: dotnet test ESCOLA_API.Tests/ESCOLA_API.Tests.csproj --configuration Release --no-restore
 
       - name: Prepare GitHub Pages artifact
         if: github.event_name != 'pull_request'

@@ -1,8 +1,8 @@
 using FluentValidation.TestHelper;
-using form_API.Validators;
-using form_API.ViewModels;
+using ESCOLA_API.Validators;
+using ESCOLA_API.ViewModels;
 
-namespace form_API.Tests.Validators
+namespace ESCOLA_API.Tests.Validators
 {
     public class ProfessorCreateEditViewModelValidatorTests
     {

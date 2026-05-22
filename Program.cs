@@ -3,11 +3,11 @@ using System.Text;
 using System.Text.Json.Serialization;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using form_API.Data;
-using form_API.Logging;
-using form_API.Services;
-using form_API.Swagger;
-using form_API.Validators;
+using ESCOLA_API.Data;
+using ESCOLA_API.Logging;
+using ESCOLA_API.Services;
+using ESCOLA_API.Swagger;
+using ESCOLA_API.Validators;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -20,7 +20,7 @@ Directory.CreateDirectory(logDirectory);
 builder.Logging.AddDailyFileLogger(options =>
 {
     options.DirectoryPath = logDirectory;
-    options.FileNamePrefix = "backend-api";
+    options.FileNamePrefix = "escola-api";
     options.MinimumLevel = LogLevel.Information;
 });
 
@@ -112,7 +112,7 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 var app = builder.Build();
 app.Logger.LogInformation(
-    "Backend API iniciado. Ambiente: {Environment}. Diretorio de logs: {LogDirectory}",
+    "ESCOLA_API iniciado. Ambiente: {Environment}. Diretorio de logs: {LogDirectory}",
     app.Environment.EnvironmentName,
     logDirectory);
 
@@ -120,7 +120,7 @@ app.Logger.LogInformation(
 using (var scope = app.Services.CreateScope())
 {
     var migrationLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>()
-        .CreateLogger("form_API.Migrations");
+        .CreateLogger("ESCOLA_API.Migrations");
 
     try
     {
@@ -161,7 +161,7 @@ app.Use(async (context, next) =>
 {
     var requestLogger = context.RequestServices
         .GetRequiredService<ILoggerFactory>()
-        .CreateLogger("form_API.Requests");
+        .CreateLogger("ESCOLA_API.Requests");
     var startedAt = DateTimeOffset.UtcNow;
     var path = context.Request.Path.HasValue ? context.Request.Path.Value : "/";
     var userName = context.User.Identity?.IsAuthenticated == true

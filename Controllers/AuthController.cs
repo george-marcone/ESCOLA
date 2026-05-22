@@ -1,9 +1,9 @@
-using form_API.Services;
-using form_API.ViewModels;
+using ESCOLA_API.Services;
+using ESCOLA_API.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace form_API.Controllers
+namespace ESCOLA_API.Controllers
 {
     /// <summary>
     /// Operacoes de autenticacao e autorizacao.

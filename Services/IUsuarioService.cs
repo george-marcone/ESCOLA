@@ -1,6 +1,6 @@
-using form_API.ViewModels;
+using ESCOLA_API.ViewModels;
 
-namespace form_API.Services
+namespace ESCOLA_API.Services
 {
     public interface IUsuarioService
     {

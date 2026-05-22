@@ -14,7 +14,7 @@ obj/
 .local/
 
 # Local SQLite development database
-form-dev.db*
+escola-dev.db*
 
 # Logs
 logs/*

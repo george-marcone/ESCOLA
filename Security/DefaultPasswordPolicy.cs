@@ -1,4 +1,4 @@
-namespace form_API.Security
+namespace ESCOLA_API.Security
 {
     public static class DefaultPasswordPolicy
     {

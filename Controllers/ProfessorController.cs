@@ -1,11 +1,11 @@
 using System.Threading.Tasks;
-using form_API.Services;
-using form_API.ViewModels;
+using ESCOLA_API.Services;
+using ESCOLA_API.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace form_API.Controllers
+namespace ESCOLA_API.Controllers
 {
     /// <summary>
     /// Operacoes para consulta e manutencao de professores.

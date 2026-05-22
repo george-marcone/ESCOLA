@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text;
 using Microsoft.Extensions.Logging;
 
-namespace form_API.Logging
+namespace ESCOLA_API.Logging
 {
     public sealed class DailyFileLoggerProvider : ILoggerProvider, ISupportExternalScope
     {

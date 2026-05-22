@@ -1,14 +1,14 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using form_API.Data;
-using form_API.Models;
-using form_API.Security;
-using form_API.ViewModels;
+using ESCOLA_API.Data;
+using ESCOLA_API.Models;
+using ESCOLA_API.Security;
+using ESCOLA_API.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
-namespace form_API.Services
+namespace ESCOLA_API.Services
 {
     public class AuthService : IAuthService
     {

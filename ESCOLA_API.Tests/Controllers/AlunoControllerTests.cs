@@ -1,13 +1,13 @@
 using System.Threading.Tasks;
-using form_API.Controllers;
-using form_API.Services;
-using form_API.ViewModels;
+using ESCOLA_API.Controllers;
+using ESCOLA_API.Services;
+using ESCOLA_API.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
-namespace form_API.Tests.Controllers
+namespace ESCOLA_API.Tests.Controllers
 {
     public class AlunoControllerTests
     {

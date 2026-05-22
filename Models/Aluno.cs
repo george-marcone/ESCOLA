@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace form_API.Models
+namespace ESCOLA_API.Models
 {
     public class Aluno
     {

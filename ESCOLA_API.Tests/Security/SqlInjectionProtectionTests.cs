@@ -1,4 +1,4 @@
-namespace form_API.Tests.Security
+namespace ESCOLA_API.Tests.Security
 {
     public class SqlInjectionProtectionTests
     {
@@ -18,7 +18,7 @@ namespace form_API.Tests.Security
             var offenders = Directory
                 .GetFiles(backendPath, "*.cs", SearchOption.AllDirectories)
                 .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}Migrations{Path.DirectorySeparatorChar}"))
-                .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}form_API.Tests{Path.DirectorySeparatorChar}"))
+                .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}ESCOLA_API.Tests{Path.DirectorySeparatorChar}"))
                 .SelectMany(path =>
                 {
                     var text = File.ReadAllText(path);
@@ -39,8 +39,13 @@ namespace form_API.Tests.Security
 
             while (current != null)
             {
-                var backend = Path.Combine(current.FullName, "Backend_API");
-                if (File.Exists(Path.Combine(backend, "form_API.csproj")))
+                if (File.Exists(Path.Combine(current.FullName, "ESCOLA_API.csproj")))
+                {
+                    return current.FullName;
+                }
+
+                var backend = Path.Combine(current.FullName, "ESCOLA_API");
+                if (File.Exists(Path.Combine(backend, "ESCOLA_API.csproj")))
                 {
                     return backend;
                 }
@@ -48,7 +53,7 @@ namespace form_API.Tests.Security
                 current = current.Parent;
             }
 
-            throw new DirectoryNotFoundException("Nao foi possivel localizar Backend_API.");
+            throw new DirectoryNotFoundException("Nao foi possivel localizar ESCOLA_API.");
         }
     }
 }

@@ -274,21 +274,21 @@
 </head>
 <body>
   <section class="cover">
-    <p class="eyebrow">Backend API</p>
+    <p class="eyebrow">ESCOLA_API</p>
     <h1>Documentacao Tecnica do Backend</h1>
     <p class="subtitle">
       Projeto Escola High Tech: API REST em ASP.NET Core para autenticacao JWT, autorizacao por perfis,
       CRUD escolar, persistencia com Entity Framework Core, validacao, Swagger, logs e testes.
     </p>
     <div class="cover-box">
-      <p><strong>Escopo:</strong> todo o backend localizado em <code>Backend_API</code>, incluindo arquitetura, camadas, classes, regras de negocio, diagramas e tecnologias.</p>
+      <p><strong>Escopo:</strong> todo o backend localizado em <code>ESCOLA_API</code>, incluindo arquitetura, camadas, classes, regras de negocio, diagramas e tecnologias.</p>
       <p><strong>Formato:</strong> documentacao tecnica em PDF gerada a partir deste HTML.</p>
     </div>
     <div class="meta">
-      <span>Projeto: <strong>form_API</strong></span>
-      <span>Repositorio: <strong>SPA-Vue / Backend_API</strong></span>
+      <span>Projeto: <strong>ESCOLA_API</strong></span>
+      <span>Repositorio: <strong>SPA-Vue / ESCOLA_API</strong></span>
       <span>Data: <strong>22/05/2026</strong></span>
-      <span>Documento: <strong>Backend_API/docs/documentacao-tecnica-backend.pdf</strong></span>
+      <span>Documento: <strong>ESCOLA_API/docs/documentacao-tecnica-backend.pdf</strong></span>
     </div>
   </section>
 
@@ -311,7 +311,7 @@
 
   <h2>1. Visao Geral do Backend</h2>
   <p>
-    O backend <code>form_API</code> e uma API REST para uma aplicacao escolar. Ele centraliza o cadastro
+    O backend <code>ESCOLA_API</code> e uma API REST para uma aplicacao escolar. Ele centraliza o cadastro
     de alunos, professores, usuarios e diretoria, alem de cuidar da autenticacao e da autorizacao por perfis.
   </p>
   <div class="grid-3">
@@ -320,7 +320,7 @@
     <div class="card"><strong>Persistencia</strong>EF Core com SQL Server em container e SQLite para desenvolvimento/testes.</div>
     <div class="card"><strong>Seguranca</strong>JWT Bearer, roles, hash de senha e troca obrigatoria da senha padrao.</div>
     <div class="card"><strong>Qualidade</strong>FluentValidation, testes unitarios e teste contra SQL bruto.</div>
-    <div class="card"><strong>Observabilidade</strong>Logs diarios gravados em <code>Backend_API/logs</code>.</div>
+    <div class="card"><strong>Observabilidade</strong>Logs diarios gravados em <code>ESCOLA_API/logs</code>.</div>
   </div>
 
   <h2>2. Tecnologias Usadas e Versoes</h2>
@@ -419,7 +419,7 @@
       <span class="node wide">Pipeline</span><span class="arrow">-></span>
       <span class="node wide">ILogger</span><span class="arrow">-></span>
       <span class="node wide">DailyFileLogger</span><span class="arrow">-></span>
-      <span class="node wide">Backend_API/logs</span>
+      <span class="node wide">ESCOLA_API/logs</span>
     </div>
   </div>
 
@@ -612,8 +612,8 @@
 
   <h2>14. Logging</h2>
   <p>
-    Logs ficam em <code>Backend_API/logs/backend-api-YYYYMMDD.log</code>. No Docker Compose, o volume
-    <code>../Backend_API/logs:/app/logs</code> grava os logs do container na pasta do projeto.
+    Logs ficam em <code>ESCOLA_API/logs/escola-api-YYYYMMDD.log</code>. No Docker Compose, o volume
+    <code>../ESCOLA_API/logs:/app/logs</code> grava os logs do container na pasta do projeto.
   </p>
   <table>
     <tr><th>Origem</th><th>Evento</th></tr>
@@ -636,7 +636,7 @@
   </ol>
 
   <h2>16. Testes Unitarios</h2>
-  <p>Os testes ficam em <code>Backend_API/form_API.Tests</code>.</p>
+  <p>Os testes ficam em <code>ESCOLA_API/ESCOLA_API.Tests</code>.</p>
   <table>
     <tr><th>Grupo</th><th>O que valida</th></tr>
     <tr><td>Controllers</td><td>Respostas principais de Aluno e Usuarios.</td></tr>
@@ -644,14 +644,14 @@
     <tr><td>Validators</td><td>Regras de entrada de aluno, professor, usuario e senha.</td></tr>
     <tr><td>Security</td><td>Protecao contra uso de SQL bruto.</td></tr>
   </table>
-  <p>Comando: <code>dotnet test form_API.Tests/form_API.Tests.csproj</code>.</p>
+  <p>Comando: <code>dotnet test ESCOLA_API.Tests/ESCOLA_API.Tests.csproj</code>.</p>
 
   <h2>17. Execucao e Deploy Local</h2>
   <table>
     <tr><th>Acao</th><th>Comando</th></tr>
-    <tr><td>Rodar API local</td><td><code>cd Backend_API && dotnet run</code></td></tr>
-    <tr><td>Build</td><td><code>dotnet build form_API.csproj</code></td></tr>
-    <tr><td>Testes</td><td><code>dotnet test form_API.Tests/form_API.Tests.csproj</code></td></tr>
+    <tr><td>Rodar API local</td><td><code>cd ESCOLA_API && dotnet run</code></td></tr>
+    <tr><td>Build</td><td><code>dotnet build ESCOLA_API.csproj</code></td></tr>
+    <tr><td>Testes</td><td><code>dotnet test ESCOLA_API.Tests/ESCOLA_API.Tests.csproj</code></td></tr>
     <tr><td>Docker Compose</td><td><code>docker compose -f docker/docker-compose.yml up --build</code></td></tr>
     <tr><td>Swagger no Compose</td><td><code>http://localhost:5000/swagger</code></td></tr>
   </table>

@@ -1,4 +1,4 @@
-# Backend API - Escola High Tech
+# ESCOLA_API - Escola High Tech
 
 API REST em ASP.NET Core 10 para gerenciamento escolar com autenticacao JWT, autorizacao por perfis e CRUD de alunos, professores, usuarios e diretoria.
 
@@ -16,11 +16,11 @@ API REST em ASP.NET Core 10 para gerenciamento escolar com autenticacao JWT, aut
 ## Como Rodar Localmente
 
 ```bash
-dotnet restore form_API.csproj
+dotnet restore ESCOLA_API.csproj
 dotnet run
 ```
 
-Em desenvolvimento, `appsettings.Development.json` usa SQLite local em `form-dev.db`.
+Em desenvolvimento, `appsettings.Development.json` usa SQLite local em `escola-dev.db`.
 Se `Jwt__Key` nao estiver definida em Development, a API cria uma chave local em `.local/jwt.key`, pasta ignorada pelo Git.
 Em container ou producao, defina `Jwt__Key` e a connection string por variaveis de ambiente ou secrets do provedor.
 
@@ -62,7 +62,7 @@ Senha@252525
 Os logs ficam na raiz do projeto backend:
 
 ```text
-Backend_API/logs/backend-api-YYYYMMDD.log
+ESCOLA_API/logs/escola-api-YYYYMMDD.log
 ```
 
 O provider `DailyFileLoggerProvider` registra:
@@ -74,7 +74,7 @@ O provider `DailyFileLoggerProvider` registra:
 - Erros capturados pelos controllers.
 - Tentativas de login recusadas, login bem-sucedido e troca de senha.
 
-No Docker Compose, o volume `../Backend_API/logs:/app/logs` mantem os logs do container nessa mesma pasta.
+No Docker Compose, o volume `../ESCOLA_API/logs:/app/logs` mantem os logs do container nessa mesma pasta.
 
 ## Arquitetura
 
@@ -109,7 +109,7 @@ O backend usa arquitetura em camadas:
 ## Testes
 
 ```bash
-dotnet test form_API.Tests/form_API.Tests.csproj
+dotnet test ESCOLA_API.Tests/ESCOLA_API.Tests.csproj
 ```
 
 ## Documentacao

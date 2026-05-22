@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "iisSettings": {
     "windowsAuthentication": false,
@@ -9,7 +9,7 @@
     }
   },
   "profiles": {
-    "form_API": {
+    "ESCOLA_API": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

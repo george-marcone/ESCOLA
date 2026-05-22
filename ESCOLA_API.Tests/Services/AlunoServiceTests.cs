@@ -1,12 +1,12 @@
 using System.Threading.Tasks;
-using form_API.Data;
-using form_API.Models;
-using form_API.Services;
-using form_API.ViewModels;
+using ESCOLA_API.Data;
+using ESCOLA_API.Models;
+using ESCOLA_API.Services;
+using ESCOLA_API.ViewModels;
 using Moq;
 using Xunit;
 
-namespace form_API.Tests.Services
+namespace ESCOLA_API.Tests.Services
 {
     public class AlunoServiceTests
     {

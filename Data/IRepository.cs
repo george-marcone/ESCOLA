@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using form_API.Models;
+using ESCOLA_API.Models;
 
-namespace form_API.Data
+namespace ESCOLA_API.Data
 {
     public interface IRepository
     {

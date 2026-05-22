@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace form_API.Models
+namespace ESCOLA_API.Models
 {
     public class Perfil
     {

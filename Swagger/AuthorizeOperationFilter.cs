@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace form_API.Swagger
+namespace ESCOLA_API.Swagger
 {
     public class AuthorizeOperationFilter : IOperationFilter
     {

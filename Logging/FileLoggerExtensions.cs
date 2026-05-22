@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 
-namespace form_API.Logging
+namespace ESCOLA_API.Logging
 {
     public static class FileLoggerExtensions
     {

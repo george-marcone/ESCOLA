@@ -1,7 +1,7 @@
 using System.Linq;
-using form_API.Models;
+using ESCOLA_API.Models;
 
-namespace form_API.ViewModels
+namespace ESCOLA_API.ViewModels
 {
     public static class MappingExtensions
     {

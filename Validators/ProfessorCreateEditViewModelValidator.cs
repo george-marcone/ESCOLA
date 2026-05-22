@@ -1,7 +1,7 @@
 using FluentValidation;
-using form_API.ViewModels;
+using ESCOLA_API.ViewModels;
 
-namespace form_API.Validators
+namespace ESCOLA_API.Validators
 {
     public class ProfessorCreateEditViewModelValidator : AbstractValidator<ProfessorCreateEditViewModel>
     {

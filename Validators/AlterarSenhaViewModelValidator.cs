@@ -1,8 +1,8 @@
 using FluentValidation;
-using form_API.Security;
-using form_API.ViewModels;
+using ESCOLA_API.Security;
+using ESCOLA_API.ViewModels;
 
-namespace form_API.Validators
+namespace ESCOLA_API.Validators
 {
     public class AlterarSenhaViewModelValidator : AbstractValidator<AlterarSenhaViewModel>
     {

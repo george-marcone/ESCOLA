@@ -1,4 +1,4 @@
-namespace form_API.ViewModels
+namespace ESCOLA_API.ViewModels
 {
     public class AlunoViewModel
     {

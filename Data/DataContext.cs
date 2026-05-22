@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using form_API.Models;
-using form_API.Security;
+using ESCOLA_API.Models;
+using ESCOLA_API.Security;
 using Microsoft.EntityFrameworkCore;
 
-namespace form_API.Data
+namespace ESCOLA_API.Data
 {
     public class DataContext : DbContext
     {
