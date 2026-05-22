@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -101,7 +102,7 @@ if (string.IsNullOrWhiteSpace(connectionString))
 
 builder.Services.AddDbContext<DataContext>(options =>
 {
-    if (connectionString.Contains("Data Source=", StringComparison.OrdinalIgnoreCase))
+    if (IsSqliteConnectionString(connectionString))
     {
         options.UseSqlite(connectionString);
         return;
@@ -226,6 +227,39 @@ static string ResolveJwtKey(IHostEnvironment environment, IConfiguration configu
     var generatedKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
     File.WriteAllText(localKeyPath, generatedKey);
     return generatedKey;
+}
+
+static bool IsSqliteConnectionString(string connectionString)
+{
+    var builder = new DbConnectionStringBuilder
+    {
+        ConnectionString = connectionString
+    };
+
+    var dataSource = GetConnectionStringValue(builder, "Data Source")
+        ?? GetConnectionStringValue(builder, "DataSource")
+        ?? GetConnectionStringValue(builder, "Filename");
+
+    if (string.IsNullOrWhiteSpace(dataSource))
+    {
+        return false;
+    }
+
+    var normalizedDataSource = dataSource.Trim();
+    if (normalizedDataSource.Equals(":memory:", StringComparison.OrdinalIgnoreCase))
+    {
+        return true;
+    }
+
+    var extension = Path.GetExtension(normalizedDataSource);
+    return extension.Equals(".db", StringComparison.OrdinalIgnoreCase)
+        || extension.Equals(".sqlite", StringComparison.OrdinalIgnoreCase)
+        || extension.Equals(".sqlite3", StringComparison.OrdinalIgnoreCase);
+}
+
+static string? GetConnectionStringValue(DbConnectionStringBuilder builder, string key)
+{
+    return builder.TryGetValue(key, out var value) ? value?.ToString() : null;
 }
 
 static string ValidateJwtKey(string jwtKey)

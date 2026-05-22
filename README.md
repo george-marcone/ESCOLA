@@ -24,6 +24,22 @@ Em desenvolvimento, `appsettings.Development.json` usa SQLite local em `escola-d
 Se `Jwt__Key` nao estiver definida em Development, a API cria uma chave local em `.local/jwt.key`, pasta ignorada pelo Git.
 Em container ou producao, defina `Jwt__Key` e a connection string por variaveis de ambiente ou secrets do provedor.
 
+## Deploy no Render
+
+No Render, cadastre as variaveis em **Web Service > Environment** e depois faca um novo deploy:
+
+| Variavel | Exemplo/observacao |
+| --- | --- |
+| `Jwt__Key` | Chave secreta com ao menos 32 bytes. Gere uma no PowerShell com `[Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(64))`. |
+| `ConnectionStrings__DefaultConnection` | Obrigatoria em producao. Para SQL Server, use algo como `Server=tcp:SEU_HOST,1433;Database=ESCOLA_API;User Id=SEU_USUARIO;Password=SUA_SENHA;Encrypt=True;TrustServerCertificate=True;`. |
+| `ASPNETCORE_ENVIRONMENT` | `Production` |
+
+O separador `__` nas variaveis de ambiente representa `:` na configuracao do ASP.NET Core. Por isso, `Jwt:Key` deve ser cadastrado como `Jwt__Key`, e `ConnectionStrings:DefaultConnection` como `ConnectionStrings__DefaultConnection`.
+
+Para testes simples sem banco externo, e possivel usar SQLite com `ConnectionStrings__DefaultConnection=Data Source=escola.db`, mas os dados podem ser perdidos em redeploy/restart do container. Para uso real, prefira SQL Server persistente.
+
+O arquivo `render.yaml` deste repositorio tambem declara essas variaveis para deploy via Blueprint. Nesse fluxo, o Render gera `Jwt__Key` automaticamente e pede `ConnectionStrings__DefaultConnection` no dashboard.
+
 ## Docker Compose
 
 Na raiz do repositorio:
