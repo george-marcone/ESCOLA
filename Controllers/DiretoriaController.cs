@@ -36,9 +36,9 @@ namespace form_API.Controllers
                 var result = await _diretoriaService.GetAllAsync(true);
                 return Ok(result);
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao obter diretoria");
+                _logger.LogError(ex, "Erro ao obter diretoria");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
@@ -58,9 +58,9 @@ namespace form_API.Controllers
                 if (result == null) return NotFound();
                 return Ok(result);
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao obter diretoria por id");
+                _logger.LogError(ex, "Erro ao obter diretoria por id {DiretoriaId}", DiretoriaId);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
@@ -80,9 +80,9 @@ namespace form_API.Controllers
                 var created = await _diretoriaService.AddAsync(model);
                 return CreatedAtAction(nameof(GetByDiretoriaId), new { DiretoriaId = created.Id }, created);
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao criar diretoria");
+                _logger.LogError(ex, "Erro ao criar diretoria");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
@@ -104,9 +104,9 @@ namespace form_API.Controllers
                 if (updated == null) return NotFound();
                 return CreatedAtAction(nameof(GetByDiretoriaId), new { DiretoriaId = updated.Id }, updated);
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao atualizar diretoria");
+                _logger.LogError(ex, "Erro ao atualizar diretoria {DiretoriaId}", DiretoriaId);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
@@ -127,9 +127,9 @@ namespace form_API.Controllers
                 if (!deleted) return NotFound();
                 return Ok();
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao excluir diretoria");
+                _logger.LogError(ex, "Erro ao excluir diretoria {DiretoriaId}", DiretoriaId);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }

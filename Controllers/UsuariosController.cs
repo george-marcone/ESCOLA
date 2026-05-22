@@ -37,9 +37,9 @@ namespace form_API.Controllers
                 var usuarios = await _usuarioService.GetAllAsync();
                 return Ok(usuarios);
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao obter usuarios");
+                _logger.LogError(ex, "Erro ao obter usuarios");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
@@ -60,9 +60,9 @@ namespace form_API.Controllers
                 if (usuario == null) return NotFound();
                 return Ok(usuario);
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao obter usuario por id");
+                _logger.LogError(ex, "Erro ao obter usuario por id {UsuarioId}", usuarioId);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
@@ -81,9 +81,9 @@ namespace form_API.Controllers
                 var perfis = await _usuarioService.GetPerfisAsync();
                 return Ok(perfis);
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao obter perfis");
+                _logger.LogError(ex, "Erro ao obter perfis");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
@@ -107,9 +107,9 @@ namespace form_API.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao criar usuario");
+                _logger.LogError(ex, "Erro ao criar usuario");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
@@ -135,9 +135,9 @@ namespace form_API.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao atualizar usuario");
+                _logger.LogError(ex, "Erro ao atualizar usuario {UsuarioId}", usuarioId);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
@@ -158,9 +158,9 @@ namespace form_API.Controllers
                 if (!deleted) return NotFound();
                 return Ok();
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao excluir usuario");
+                _logger.LogError(ex, "Erro ao excluir usuario {UsuarioId}", usuarioId);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }

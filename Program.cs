@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using form_API.Data;
+using form_API.Logging;
 using form_API.Services;
 using form_API.Swagger;
 using form_API.Validators;
@@ -12,6 +13,15 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
+var logDirectory = Path.Combine(builder.Environment.ContentRootPath, "logs");
+Directory.CreateDirectory(logDirectory);
+
+builder.Logging.AddDailyFileLogger(options =>
+{
+    options.DirectoryPath = logDirectory;
+    options.FileNamePrefix = "backend-api";
+    options.MinimumLevel = LogLevel.Information;
+});
 
 // Add services to the container.
 builder.Services.AddControllers().AddJsonOptions(x =>
@@ -103,18 +113,39 @@ builder.Services.AddDbContext<DataContext>(options =>
 });
 
 var app = builder.Build();
+app.Logger.LogInformation(
+    "Backend API iniciado. Ambiente: {Environment}. Diretorio de logs: {LogDirectory}",
+    app.Environment.EnvironmentName,
+    logDirectory);
 
 // Apply pending migrations at startup (ensures database schema exists)
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<DataContext>();
-    if (db.Database.ProviderName?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true)
+    var migrationLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>()
+        .CreateLogger("form_API.Migrations");
+
+    try
     {
-        db.Database.EnsureCreated();
+        var db = scope.ServiceProvider.GetRequiredService<DataContext>();
+        migrationLogger.LogInformation(
+            "Preparando banco de dados com provider {ProviderName}",
+            db.Database.ProviderName);
+
+        if (db.Database.ProviderName?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            db.Database.EnsureCreated();
+        }
+        else
+        {
+            db.Database.Migrate();
+        }
+
+        migrationLogger.LogInformation("Banco de dados pronto.");
     }
-    else
+    catch (Exception ex)
     {
-        db.Database.Migrate();
+        migrationLogger.LogCritical(ex, "Falha ao preparar banco de dados.");
+        throw;
     }
 }
 
@@ -128,6 +159,45 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 app.UseAuthentication();
+app.Use(async (context, next) =>
+{
+    var requestLogger = context.RequestServices
+        .GetRequiredService<ILoggerFactory>()
+        .CreateLogger("form_API.Requests");
+    var startedAt = DateTimeOffset.UtcNow;
+    var path = context.Request.Path.HasValue ? context.Request.Path.Value : "/";
+    var userName = context.User.Identity?.IsAuthenticated == true
+        ? context.User.Identity.Name ?? "usuario-autenticado"
+        : "anonimo";
+
+    requestLogger.LogInformation(
+        "Requisicao iniciada {Method} {Path} por {UserName}",
+        context.Request.Method,
+        path,
+        userName);
+
+    try
+    {
+        await next();
+
+        requestLogger.LogInformation(
+            "Requisicao finalizada {Method} {Path} com status {StatusCode} em {ElapsedMilliseconds}ms",
+            context.Request.Method,
+            path,
+            context.Response.StatusCode,
+            (DateTimeOffset.UtcNow - startedAt).TotalMilliseconds);
+    }
+    catch (Exception ex)
+    {
+        requestLogger.LogError(
+            ex,
+            "Requisicao falhou {Method} {Path} em {ElapsedMilliseconds}ms",
+            context.Request.Method,
+            path,
+            (DateTimeOffset.UtcNow - startedAt).TotalMilliseconds);
+        throw;
+    }
+});
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

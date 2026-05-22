@@ -14,10 +14,12 @@ namespace form_API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, ILogger<AuthController> logger)
         {
             _authService = authService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -32,9 +34,14 @@ namespace form_API.Controllers
             var result = await _authService.LoginAsync(model);
             if (result == null)
             {
+                _logger.LogWarning("Tentativa de login recusada para {Email}", model.Email);
                 return Unauthorized("Email ou senha invalidos.");
             }
 
+            _logger.LogInformation(
+                "Login realizado para usuario {UsuarioId} com perfil {Perfil}",
+                result.Usuario.IdUsuario,
+                result.Usuario.DescricaoPerfil);
             return Ok(result);
         }
 
@@ -50,6 +57,7 @@ namespace form_API.Controllers
             var usuario = await _authService.GetUsuarioAtualAsync(User);
             if (usuario == null)
             {
+                _logger.LogWarning("Requisicao /me sem usuario autenticado valido.");
                 return Unauthorized();
             }
 
@@ -96,13 +104,16 @@ namespace form_API.Controllers
                 var usuario = await _authService.AlterarSenhaAsync(User, model);
                 if (usuario == null)
                 {
+                    _logger.LogWarning("Tentativa de alteracao de senha sem usuario autenticado valido.");
                     return Unauthorized();
                 }
 
+                _logger.LogInformation("Senha alterada para usuario {UsuarioId}", usuario.IdUsuario);
                 return Ok(usuario);
             }
             catch (InvalidOperationException ex)
             {
+                _logger.LogWarning(ex, "Alteracao de senha recusada por regra de negocio.");
                 return BadRequest(ex.Message);
             }
         }

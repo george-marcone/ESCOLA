@@ -39,9 +39,9 @@ namespace form_API.Controllers
                 var result = await _professorService.GetAllAsync(true);
                 return Ok(result);
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao obter professores");
+                _logger.LogError(ex, "Erro ao obter professores");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
@@ -63,9 +63,9 @@ namespace form_API.Controllers
                 if (result == null) return NotFound();
                 return Ok(result);
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao obter professor por id");
+                _logger.LogError(ex, "Erro ao obter professor por id {ProfessorId}", ProfessorId);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
@@ -87,9 +87,9 @@ namespace form_API.Controllers
                 var created = await _professorService.AddAsync(model);
                 return CreatedAtAction(nameof(GetByProfessorId), new { ProfessorId = created.Id }, created);
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao criar professor");
+                _logger.LogError(ex, "Erro ao criar professor");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
@@ -114,9 +114,9 @@ namespace form_API.Controllers
                 if (updated == null) return NotFound();
                 return CreatedAtAction(nameof(GetByProfessorId), new { ProfessorId = updated.Id }, updated);
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao atualizar professor");
+                _logger.LogError(ex, "Erro ao atualizar professor {ProfessorId}", ProfessorId);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
@@ -138,9 +138,9 @@ namespace form_API.Controllers
                 if (!deleted) return NotFound();
                 return Ok();
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao excluir professor");
+                _logger.LogError(ex, "Erro ao excluir professor {ProfessorId}", ProfessorId);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }

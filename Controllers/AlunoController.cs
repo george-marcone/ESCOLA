@@ -39,9 +39,9 @@ namespace form_API.Controllers
                 var result = await _alunoService.GetAllAsync(true);
                 return Ok(result);
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao obter alunos");
+                _logger.LogError(ex, "Erro ao obter alunos");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
@@ -63,9 +63,9 @@ namespace form_API.Controllers
                 if (result == null) return NotFound();
                 return Ok(result);
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao obter aluno por id");
+                _logger.LogError(ex, "Erro ao obter aluno por id {AlunoId}", AlunoId);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
@@ -85,9 +85,9 @@ namespace form_API.Controllers
                 var result = await _alunoService.GetByProfessorIdAsync(ProfessorId, true);
                 return Ok(result);
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao obter alunos por professor");
+                _logger.LogError(ex, "Erro ao obter alunos por professor {ProfessorId}", ProfessorId);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
@@ -109,9 +109,9 @@ namespace form_API.Controllers
                 var created = await _alunoService.AddAsync(model);
                 return CreatedAtAction(nameof(GetByAlunoId), new { AlunoId = created.Id }, created);
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao criar aluno");
+                _logger.LogError(ex, "Erro ao criar aluno");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
@@ -136,9 +136,9 @@ namespace form_API.Controllers
                 if (updated == null) return NotFound();
                 return CreatedAtAction(nameof(GetByAlunoId), new { AlunoId = updated.Id }, updated);
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao atualizar aluno");
+                _logger.LogError(ex, "Erro ao atualizar aluno {AlunoId}", AlunoId);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
@@ -160,9 +160,9 @@ namespace form_API.Controllers
                 if (!deleted) return NotFound();
                 return Ok();
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Erro ao excluir aluno");
+                _logger.LogError(ex, "Erro ao excluir aluno {AlunoId}", AlunoId);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
