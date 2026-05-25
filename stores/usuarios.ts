@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { useNuxtApp } from '#app'
 import type { Perfil, UsuarioCreate, UsuarioSummary, UsuarioUpdate } from '~/types/api'
 import { normalizeApiError } from '~/utils/api-client'
-import { normalizePhoneForApi } from '~/utils/br-phone'
+import { normalizeBrazilPhoneForApi } from '~/utils/br-phone'
 import { DUPLICATE_USER_EMAIL_MESSAGE, isDuplicateUserEmail } from '~/utils/usuario-validation'
 
 export const useUsuariosStore = defineStore('usuarios', () => {
@@ -113,7 +113,7 @@ export const useUsuariosStore = defineStore('usuarios', () => {
   function normalizeUsuarioPayload(payload: UsuarioCreate | UsuarioUpdate) {
     return {
       ...payload,
-      telefone: normalizePhoneForApi(payload.telefone)
+      telefone: normalizeBrazilPhoneForApi(payload.telefone)
     }
   }
 

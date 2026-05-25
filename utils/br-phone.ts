@@ -8,7 +8,7 @@ export const PHONE_DEFAULT_COUNTRY_CODE = '55'
 export const BRAZIL_PHONE_COUNTRY_CODE = PHONE_DEFAULT_COUNTRY_CODE
 export const BRAZIL_PHONE_LOCAL_DIGITS = PHONE_LOCAL_DIGITS
 export const BRAZIL_PHONE_MASK_MAX_LENGTH = PHONE_MASK_MAX_LENGTH
-export const BRAZIL_PHONE_PLACEHOLDER = PHONE_PLACEHOLDER
+export const BRAZIL_PHONE_PLACEHOLDER = '+55 (11) 99999-9999'
 
 function onlyDigits(value: string) {
   return value.replace(/\D/g, '')
@@ -37,9 +37,22 @@ export function getPhoneDigits(value: string) {
 }
 
 export function getBrazilPhoneLocalDigits(value: string) {
-  const digits = getPhoneDigitsWithOptions(value, BRAZIL_PHONE_COUNTRY_CODE)
+  const digits = onlyDigits(value)
+  const trimmedValue = value.trim()
 
-  return digits.slice(PHONE_COUNTRY_CODE_DIGITS, PHONE_TOTAL_DIGITS)
+  if (!digits) {
+    return ''
+  }
+
+  if (trimmedValue.startsWith('+')) {
+    return digits.slice(PHONE_COUNTRY_CODE_DIGITS, PHONE_TOTAL_DIGITS)
+  }
+
+  if (digits.startsWith(BRAZIL_PHONE_COUNTRY_CODE) && digits.length > BRAZIL_PHONE_LOCAL_DIGITS) {
+    return digits.slice(BRAZIL_PHONE_COUNTRY_CODE.length, PHONE_TOTAL_DIGITS)
+  }
+
+  return digits.slice(0, BRAZIL_PHONE_LOCAL_DIGITS)
 }
 
 function formatPhoneDigits(digits: string) {
@@ -82,7 +95,9 @@ export function formatPhoneForDisplay(value: string) {
 }
 
 export function formatBrazilPhone(value: string) {
-  return formatPhoneForDisplay(value)
+  const localDigits = getBrazilPhoneLocalDigits(value)
+
+  return localDigits ? formatPhoneDigits(`${BRAZIL_PHONE_COUNTRY_CODE}${localDigits}`) : ''
 }
 
 export function isCompletePhone(value: string) {
@@ -90,7 +105,7 @@ export function isCompletePhone(value: string) {
 }
 
 export function isCompleteBrazilPhone(value: string) {
-  return getPhoneDigitsWithOptions(value, BRAZIL_PHONE_COUNTRY_CODE).length === PHONE_TOTAL_DIGITS
+  return getBrazilPhoneLocalDigits(value).length === BRAZIL_PHONE_LOCAL_DIGITS
 }
 
 export function normalizePhoneForApi(value: string) {
@@ -100,5 +115,7 @@ export function normalizePhoneForApi(value: string) {
 }
 
 export function normalizeBrazilPhoneForApi(value: string) {
-  return normalizePhoneForApi(value)
+  const digits = getBrazilPhoneLocalDigits(value)
+
+  return digits ? `+${BRAZIL_PHONE_COUNTRY_CODE}${digits}` : ''
 }

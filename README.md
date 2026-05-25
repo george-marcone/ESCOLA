@@ -193,7 +193,7 @@ Nao ha uma biblioteca externa dedicada a validacao de formularios, como Zod, Yup
 - Tipagem TypeScript para contratos de payload e resposta.
 - Utilitario proprio `utils/password-strength.ts` para avaliar forca da senha.
 - Utilitario proprio `utils/usuario-validation.ts` para impedir cadastro/edicao com e-mail ja usado por outro usuario.
-- Utilitario proprio `utils/br-phone.ts` para mascara `+xx (xx) xxxxx-xxxx` e envio do telefone como `+xxxxxxxxxxxxx`.
+- Utilitario proprio `utils/br-phone.ts` para mascara `+55 (xx) xxxxx-xxxx` e envio do telefone como `+55xxxxxxxxxxx`.
 - Utilitario proprio `utils/usuario-permissions.ts` para filtrar acoes e tipos de usuario conforme o perfil logado.
 - `normalizeApiError` em `utils/api-client.ts` para exibir mensagens de erro da API, incluindo erros de validacao retornados no formato `{ errors: ... }`.
 

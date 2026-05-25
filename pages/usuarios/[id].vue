@@ -55,12 +55,12 @@
             required
             inputmode="numeric"
             autocomplete="tel"
-            :maxlength="PHONE_MASK_MAX_LENGTH"
-            :placeholder="PHONE_PLACEHOLDER"
+            :maxlength="BRAZIL_PHONE_MASK_MAX_LENGTH"
+            :placeholder="BRAZIL_PHONE_PLACEHOLDER"
             :disabled="!editando"
             @input="atualizarTelefone"
           />
-          <span class="text-xs font-extrabold text-slate-500">{{ form.telefone.length }}/{{ PHONE_MASK_MAX_LENGTH }}</span>
+          <span class="text-xs font-extrabold text-slate-500">{{ form.telefone.length }}/{{ BRAZIL_PHONE_MASK_MAX_LENGTH }}</span>
         </label>
 
         <label>
@@ -90,12 +90,11 @@
 import type { Perfil, UsuarioSummary, UsuarioUpdate } from '~/types/api'
 import { normalizeApiError } from '~/utils/api-client'
 import {
-  PHONE_MASK_MAX_LENGTH,
-  PHONE_PLACEHOLDER,
-  formatPhone,
-  formatPhoneForDisplay,
-  isCompletePhone,
-  normalizePhoneForApi
+  BRAZIL_PHONE_MASK_MAX_LENGTH,
+  BRAZIL_PHONE_PLACEHOLDER,
+  formatBrazilPhone,
+  isCompleteBrazilPhone,
+  normalizeBrazilPhoneForApi
 } from '~/utils/br-phone'
 import {
   canChangeUsuarioPerfil,
@@ -122,7 +121,7 @@ const salvando = ref(false)
 const erro = ref('')
 const mensagem = ref('')
 const USER_TEXT_FIELD_MAX_LENGTH = 50
-const PHONE_FORMAT_ERROR = 'Informe um telefone valido no formato +xx (xx) xxxxx-xxxx.'
+const PHONE_FORMAT_ERROR = 'Informe um telefone valido no formato +55 (xx) xxxxx-xxxx.'
 const REQUIRED_FIELDS_ERROR = 'Nome, e-mail e telefone sao obrigatorios.'
 const REQUIRED_PROFILE_ERROR = 'Informe o tipo de usuario.'
 const form = reactive<UsuarioUpdate>({
@@ -196,7 +195,7 @@ async function carregar() {
 function preencherForm(value: UsuarioSummary) {
   form.nome = value.nome
   form.email = value.email
-  form.telefone = formatPhoneForDisplay(value.telefone)
+  form.telefone = formatBrazilPhone(value.telefone)
   form.idPerfil = value.idPerfil
 }
 
@@ -210,14 +209,14 @@ function cancelar() {
 
 function atualizarTelefone(event: Event) {
   const input = event.target as HTMLInputElement
-  form.telefone = formatPhone(input.value)
+  form.telefone = formatBrazilPhone(input.value)
 }
 
 function montarPayload(): UsuarioUpdate {
   return {
     nome: form.nome.trim(),
     email: form.email.trim(),
-    telefone: normalizePhoneForApi(form.telefone),
+    telefone: normalizeBrazilPhoneForApi(form.telefone),
     idPerfil: form.idPerfil
   }
 }
@@ -228,7 +227,7 @@ function validarFormulario() {
     return false
   }
 
-  if (!isCompletePhone(form.telefone)) {
+  if (!isCompleteBrazilPhone(form.telefone)) {
     erro.value = PHONE_FORMAT_ERROR
     return false
   }
