@@ -150,13 +150,16 @@
           </div>
 
           <p v-if="erroLancamento" class="alert alert-error">{{ erroLancamento }}</p>
+          <p v-if="mensagemLancamento" class="alert alert-success">{{ mensagemLancamento }}</p>
 
           <div class="grid gap-2">
             <button
+              ref="salvarLancamentoButton"
               class="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-[#147f72] px-4 text-sm font-extrabold text-white transition hover:bg-[#0f6c61] disabled:cursor-wait disabled:opacity-70"
               type="button"
               :disabled="salvandoLancamento"
               @click.prevent.stop="salvarLancamento"
+              @mousedown.left.prevent.stop="salvarLancamento"
               @pointerup.prevent.stop="salvarLancamento"
             >
               <ClipboardCheck class="h-5 w-5" aria-hidden="true" />
@@ -365,10 +368,12 @@ const salvandoLancamento = ref(false)
 const erroLista = ref('')
 const erroDisciplina = ref('')
 const erroLancamento = ref('')
+const mensagemLancamento = ref('')
 const busca = ref('')
 const disciplinaFiltro = ref(0)
 const editandoDisciplinaId = ref<number | null>(null)
 const editandoLancamentoId = ref<number | null>(null)
+const salvarLancamentoButton = ref<HTMLButtonElement | null>(null)
 const disciplinaForm = reactive({
   nome: ''
 })
@@ -426,7 +431,12 @@ watch(disciplinasVisiveis, (disponiveis) => {
 })
 
 onMounted(async () => {
+  instalarEventoNativoLancamento()
   await carregarDados()
+})
+
+onBeforeUnmount(() => {
+  removerEventoNativoLancamento()
 })
 
 async function carregarDados() {
@@ -524,6 +534,7 @@ async function salvarLancamento() {
   if (salvandoLancamento.value) return
 
   erroLancamento.value = ''
+  mensagemLancamento.value = ''
   const notas = parseNotas(lancamentoForm.notas)
 
   if (!lancamentoForm.idAlunoUsuario || !lancamentoForm.idDisciplina) {
@@ -564,6 +575,7 @@ async function salvarLancamento() {
     }
 
     limparLancamentoForm()
+    mensagemLancamento.value = 'Lancamento salvo com sucesso.'
     await carregarLancamentos()
   } catch (err) {
     erroLancamento.value = normalizeApiError(err)
@@ -608,6 +620,24 @@ function limparLancamentoForm() {
   lancamentoForm.presencas = 0
   lancamentoForm.faltas = 0
   erroLancamento.value = ''
+}
+
+function salvarLancamentoPorEventoNativo(event: Event) {
+  event.preventDefault()
+  event.stopPropagation()
+  void salvarLancamento()
+}
+
+function instalarEventoNativoLancamento() {
+  salvarLancamentoButton.value?.addEventListener('click', salvarLancamentoPorEventoNativo)
+  salvarLancamentoButton.value?.addEventListener('pointerup', salvarLancamentoPorEventoNativo)
+  salvarLancamentoButton.value?.addEventListener('mousedown', salvarLancamentoPorEventoNativo)
+}
+
+function removerEventoNativoLancamento() {
+  salvarLancamentoButton.value?.removeEventListener('click', salvarLancamentoPorEventoNativo)
+  salvarLancamentoButton.value?.removeEventListener('pointerup', salvarLancamentoPorEventoNativo)
+  salvarLancamentoButton.value?.removeEventListener('mousedown', salvarLancamentoPorEventoNativo)
 }
 
 function parseNotas(values: string[]) {
