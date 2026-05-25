@@ -56,6 +56,7 @@ const route = useRoute()
 const nomeUsuario = computed(() => auth.usuario?.nome || auth.perfil || 'Usuario')
 const tituloPagina = computed(() => {
   if (route.path.startsWith('/usuarios')) return 'Gestao de Usuarios'
+  if (route.path.startsWith('/caderneta-digital')) return 'Caderneta Digital'
   if (route.path.startsWith('/alterar-senha')) return 'Alterar senha'
 
   return 'Escola High Tech'

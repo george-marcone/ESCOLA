@@ -59,3 +59,36 @@ export interface EsqueciSenhaPayload {
 export interface EsqueciSenhaResponse {
   mensagem: string
 }
+
+export interface DisciplinaCaderneta {
+  idDisciplina: number
+  nome: string
+  idProfessorUsuario: number
+  nomeProfessor: string
+}
+
+export interface DisciplinaCadernetaPayload {
+  nome: string
+}
+
+export interface CadernetaDigitalSummary {
+  idCadernetaDigital: number
+  idAlunoUsuario: number
+  nomeAluno: string
+  emailAluno: string
+  idDisciplina: number
+  nomeDisciplina: string
+  idProfessorUsuario: number
+  nomeProfessor: string
+  notas: number[]
+  presencas: number
+  faltas: number
+}
+
+export interface CadernetaDigitalPayload {
+  idAlunoUsuario: number
+  idDisciplina: number
+  notas: number[]
+  presencas: number
+  faltas: number
+}
