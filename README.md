@@ -46,7 +46,14 @@ Na raiz do repositorio:
 
 ```bash
 cp .env.example .env
-docker compose -f docker/docker-compose.yml up --build
+docker compose up -d --build
+```
+
+No PowerShell, se preferir:
+
+```powershell
+Copy-Item .env.example .env
+docker compose up -d --build
 ```
 
 Preencha o `.env` local com `MSSQL_SA_PASSWORD` e `JWT_KEY` antes de subir os containers.
@@ -54,10 +61,27 @@ Esse arquivo local e ignorado pelo Git; mantenha apenas `.env.example` versionad
 
 Acessos padrao:
 
-- API: `http://localhost:5000`
-- Swagger: `http://localhost:5000/swagger`
-- Frontend: `http://localhost:8080`
+- API: `http://localhost:5001`
+- Swagger: `http://localhost:5001/swagger`
 - SQL Server: `localhost,1433`
+
+O SQL Server usa o volume nomeado `escola-high-tech-mssql-data`, montado em `/var/opt/mssql` dentro do container. Esse volume preserva os dados entre rebuilds, restarts e recriacoes dos containers.
+
+Para parar sem perder dados:
+
+```bash
+docker compose down
+```
+
+Para subir novamente usando o mesmo banco:
+
+```bash
+docker compose up -d --build
+```
+
+Evite `docker compose down -v`, `docker volume rm escola-high-tech-mssql-data` ou trocar `MSSQL_DATABASE` se quiser manter os dados existentes. Esses comandos/configuracoes removem ou apontam para outro banco.
+
+A API executa `Database.Migrate()` no startup. Com o volume persistido, o Entity Framework consulta a tabela `__EFMigrationsHistory` e aplica apenas migrations pendentes; ele nao recria o banco nem apaga dados ja inseridos. Se o volume for removido, o SQL Server iniciara vazio e as migrations/seed iniciais serao aplicadas como primeira criacao.
 
 ## Usuario Inicial
 

@@ -105,7 +105,11 @@ builder.Services.AddDbContext<DataContext>(options =>
         return;
     }
 
-    options.UseSqlServer(connectionString);
+    options.UseSqlServer(connectionString, sqlServerOptions =>
+        sqlServerOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null));
 });
 
 var app = builder.Build();
