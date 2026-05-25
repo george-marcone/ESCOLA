@@ -78,6 +78,7 @@
 
       <form
         class="rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6"
+        novalidate
         @submit.prevent="salvarLancamento"
       >
         <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">{{ editandoLancamentoId ? 'Edicao' : 'Lancamento' }}</p>
@@ -154,8 +155,9 @@
           <div class="grid gap-2">
             <button
               class="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-[#147f72] px-4 text-sm font-extrabold text-white transition hover:bg-[#0f6c61] disabled:cursor-wait disabled:opacity-70"
-              type="submit"
+              type="button"
               :disabled="salvandoLancamento"
+              @click="salvarLancamento"
             >
               <ClipboardCheck class="h-5 w-5" aria-hidden="true" />
               {{ editandoLancamentoId ? 'Atualizar lancamento' : 'Salvar lancamento' }}
