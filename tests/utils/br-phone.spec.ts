@@ -7,7 +7,9 @@ import {
   isCompletePhone,
   isCompleteBrazilPhone,
   normalizeBrazilPhoneForApi,
-  normalizePhoneForApi
+  normalizePhoneForApi,
+  shouldBlockNonNumericPhoneInput,
+  shouldBlockNonNumericPhoneKey
 } from '~/utils/br-phone'
 
 describe('br-phone', () => {
@@ -46,5 +48,20 @@ describe('br-phone', () => {
     expect(isCompletePhone('+55 (11) 9999')).toBe(false)
     expect(isCompletePhone('+55 (11) 99999-9999')).toBe(true)
     expect(isCompleteBrazilPhone('11999999999')).toBe(true)
+  })
+
+  it('blocks non-numeric keyboard input while keeping editing shortcuts', () => {
+    expect(shouldBlockNonNumericPhoneKey({ key: 'a', ctrlKey: false, metaKey: false, altKey: false })).toBe(true)
+    expect(shouldBlockNonNumericPhoneKey({ key: '-', ctrlKey: false, metaKey: false, altKey: false })).toBe(true)
+    expect(shouldBlockNonNumericPhoneKey({ key: '7', ctrlKey: false, metaKey: false, altKey: false })).toBe(false)
+    expect(shouldBlockNonNumericPhoneKey({ key: 'Backspace', ctrlKey: false, metaKey: false, altKey: false })).toBe(false)
+    expect(shouldBlockNonNumericPhoneKey({ key: 'v', ctrlKey: true, metaKey: false, altKey: false })).toBe(false)
+  })
+
+  it('blocks typed non-numeric beforeinput data', () => {
+    expect(shouldBlockNonNumericPhoneInput({ inputType: 'insertText', data: 'x' })).toBe(true)
+    expect(shouldBlockNonNumericPhoneInput({ inputType: 'insertText', data: '5' })).toBe(false)
+    expect(shouldBlockNonNumericPhoneInput({ inputType: 'deleteContentBackward', data: null })).toBe(false)
+    expect(shouldBlockNonNumericPhoneInput({ inputType: 'insertFromPaste', data: '+55 (11) 99999-9999' })).toBe(false)
   })
 })

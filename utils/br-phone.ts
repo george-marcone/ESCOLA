@@ -10,6 +10,20 @@ export const BRAZIL_PHONE_LOCAL_DIGITS = PHONE_LOCAL_DIGITS
 export const BRAZIL_PHONE_MASK_MAX_LENGTH = PHONE_MASK_MAX_LENGTH
 export const BRAZIL_PHONE_PLACEHOLDER = '+55 (11) 99999-9999'
 
+const PHONE_EDITING_KEYS = new Set([
+  'Backspace',
+  'Delete',
+  'Tab',
+  'Escape',
+  'Enter',
+  'ArrowLeft',
+  'ArrowRight',
+  'ArrowUp',
+  'ArrowDown',
+  'Home',
+  'End'
+])
+
 function onlyDigits(value: string) {
   return value.replace(/\D/g, '')
 }
@@ -118,4 +132,24 @@ export function normalizeBrazilPhoneForApi(value: string) {
   const digits = getBrazilPhoneLocalDigits(value)
 
   return digits ? `+${BRAZIL_PHONE_COUNTRY_CODE}${digits}` : ''
+}
+
+export function shouldBlockNonNumericPhoneKey(event: Pick<KeyboardEvent, 'altKey' | 'ctrlKey' | 'key' | 'metaKey'>) {
+  if (event.ctrlKey || event.metaKey || event.altKey) {
+    return false
+  }
+
+  if (PHONE_EDITING_KEYS.has(event.key)) {
+    return false
+  }
+
+  if (event.key.length !== 1) {
+    return false
+  }
+
+  return !/^\d$/.test(event.key)
+}
+
+export function shouldBlockNonNumericPhoneInput(event: Pick<InputEvent, 'data' | 'inputType'>) {
+  return event.inputType === 'insertText' && Boolean(event.data && !/^\d+$/.test(event.data))
 }

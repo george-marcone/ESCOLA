@@ -29,7 +29,11 @@
             autocomplete="tel"
             :maxlength="BRAZIL_PHONE_MASK_MAX_LENGTH"
             :placeholder="BRAZIL_PHONE_PLACEHOLDER"
+            @beforeinput="impedirEntradaTelefoneNaoNumerica"
             @input="atualizarTelefone"
+            @keydown="impedirTeclaTelefoneNaoNumerica"
+            @paste="colarTelefone"
+            @drop.prevent
           />
           <span class="text-xs font-extrabold text-slate-500">{{ form.telefone.length }}/{{ BRAZIL_PHONE_MASK_MAX_LENGTH }}</span>
         </label>
@@ -71,7 +75,9 @@ import {
   BRAZIL_PHONE_PLACEHOLDER,
   formatBrazilPhone,
   isCompleteBrazilPhone,
-  normalizeBrazilPhoneForApi
+  normalizeBrazilPhoneForApi,
+  shouldBlockNonNumericPhoneInput,
+  shouldBlockNonNumericPhoneKey
 } from '~/utils/br-phone'
 import {
   canCreateAlunoUsuarios,
@@ -132,7 +138,31 @@ onMounted(async () => {
 
 function atualizarTelefone(event: Event) {
   const input = event.target as HTMLInputElement
-  form.telefone = formatBrazilPhone(input.value)
+  const telefone = formatBrazilPhone(input.value)
+
+  form.telefone = telefone
+  input.value = telefone
+}
+
+function impedirEntradaTelefoneNaoNumerica(event: InputEvent) {
+  if (shouldBlockNonNumericPhoneInput(event)) {
+    event.preventDefault()
+  }
+}
+
+function impedirTeclaTelefoneNaoNumerica(event: KeyboardEvent) {
+  if (shouldBlockNonNumericPhoneKey(event)) {
+    event.preventDefault()
+  }
+}
+
+function colarTelefone(event: ClipboardEvent) {
+  event.preventDefault()
+  const input = event.target as HTMLInputElement
+  const telefone = formatBrazilPhone(event.clipboardData?.getData('text') ?? '')
+
+  form.telefone = telefone
+  input.value = telefone
 }
 
 function montarPayload(): UsuarioCreate {
