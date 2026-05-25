@@ -62,12 +62,28 @@ describe('api-client', () => {
   })
 
   it('normalizes localhost network errors with deployment guidance', () => {
-    const message = normalizeApiError({
-      request: 'http://localhost:5001/api/auth/login',
-      message: '[POST] "http://localhost:5001/api/auth/login": <no response> Failed to fetch'
-    })
+    const message = normalizeApiError(
+      {
+        request: 'http://localhost:5001/api/auth/login',
+        message: '[POST] "http://localhost:5001/api/auth/login": <no response> Failed to fetch'
+      },
+      'escola-high-tech.vercel.app'
+    )
 
     expect(message).toContain('NUXT_PUBLIC_API_BASE')
     expect(message).toContain('URL publica do backend')
+  })
+
+  it('normalizes localhost network errors with local guidance while running locally', () => {
+    const message = normalizeApiError(
+      {
+        request: 'http://localhost:5001/api/auth/login',
+        message: '[POST] "http://localhost:5001/api/auth/login": <no response> Failed to fetch'
+      },
+      'localhost'
+    )
+
+    expect(message).toContain('API local')
+    expect(message).toContain('http://localhost:5001/api')
   })
 })

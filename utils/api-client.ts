@@ -50,7 +50,7 @@ export function buildHeaders(headers: HeadersInit | undefined, token: string | n
   return nextHeaders
 }
 
-export function normalizeApiError(error: unknown): string {
+export function normalizeApiError(error: unknown, hostname = getBrowserHostname()): string {
   if (typeof error === 'string') {
     return error
   }
@@ -84,6 +84,10 @@ export function normalizeApiError(error: unknown): string {
     const request = String(maybeError.request ?? '')
 
     if (isLocalApiUrl(request)) {
+      if (isLocalHostname(hostname)) {
+        return 'Nao foi possivel conectar a API local. Verifique se o backend esta rodando em http://localhost:5001/api.'
+      }
+
       return 'A API publicada esta configurada para localhost. Configure NUXT_PUBLIC_API_BASE com a URL publica do backend.'
     }
 
