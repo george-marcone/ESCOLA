@@ -60,8 +60,8 @@ namespace ESCOLA_API.Services
 
         public async Task<CadernetaDigitalViewModel> AddAsync(CadernetaDigitalCreateUpdateViewModel viewModel, ClaimsPrincipal principal)
         {
-            ValidarProfessor(principal);
-            var disciplina = await ObterDisciplinaDoProfessorAsync(viewModel.IdDisciplina, principal);
+            var usuarioId = await ValidarProfessorAsync(principal);
+            var disciplina = await ObterDisciplinaDoProfessorAsync(viewModel.IdDisciplina, usuarioId);
             var aluno = await ObterAlunoAsync(viewModel.IdAlunoUsuario);
 
             if (disciplina == null)
@@ -99,7 +99,7 @@ namespace ESCOLA_API.Services
 
         public async Task<CadernetaDigitalViewModel?> UpdateAsync(int cadernetaId, CadernetaDigitalCreateUpdateViewModel viewModel, ClaimsPrincipal principal)
         {
-            ValidarProfessor(principal);
+            var usuarioId = await ValidarProfessorAsync(principal);
             var caderneta = await _context.CadernetasDigitais
                 .Include(item => item.Disciplina)
                 .FirstOrDefaultAsync(item => item.IdCadernetaDigital == cadernetaId);
@@ -109,12 +109,12 @@ namespace ESCOLA_API.Services
                 return null;
             }
 
-            if (caderneta.Disciplina?.IdProfessorUsuario != GetUsuarioAtualId(principal))
+            if (caderneta.Disciplina?.IdProfessorUsuario != usuarioId)
             {
                 throw new UnauthorizedAccessException("Usuario nao autorizado a alterar este lancamento.");
             }
 
-            var disciplina = await ObterDisciplinaDoProfessorAsync(viewModel.IdDisciplina, principal);
+            var disciplina = await ObterDisciplinaDoProfessorAsync(viewModel.IdDisciplina, usuarioId);
             var aluno = await ObterAlunoAsync(viewModel.IdAlunoUsuario);
 
             if (disciplina == null)
@@ -150,7 +150,7 @@ namespace ESCOLA_API.Services
 
         public async Task<bool> DeleteAsync(int cadernetaId, ClaimsPrincipal principal)
         {
-            ValidarProfessor(principal);
+            var usuarioId = await ValidarProfessorAsync(principal);
             var caderneta = await _context.CadernetasDigitais
                 .Include(item => item.Disciplina)
                 .FirstOrDefaultAsync(item => item.IdCadernetaDigital == cadernetaId);
@@ -160,7 +160,7 @@ namespace ESCOLA_API.Services
                 return false;
             }
 
-            if (caderneta.Disciplina?.IdProfessorUsuario != GetUsuarioAtualId(principal))
+            if (caderneta.Disciplina?.IdProfessorUsuario != usuarioId)
             {
                 throw new UnauthorizedAccessException("Usuario nao autorizado a excluir este lancamento.");
             }
@@ -201,8 +201,7 @@ namespace ESCOLA_API.Services
 
         public async Task<DisciplinaViewModel> AddDisciplinaAsync(DisciplinaCreateUpdateViewModel viewModel, ClaimsPrincipal principal)
         {
-            ValidarProfessor(principal);
-            var usuarioId = GetUsuarioAtualId(principal);
+            var usuarioId = await ValidarProfessorAsync(principal);
             var nome = viewModel.Nome.Trim();
 
             var jaExiste = await DisciplinaJaExisteAsync(nome);
@@ -231,8 +230,7 @@ namespace ESCOLA_API.Services
 
         public async Task<DisciplinaViewModel?> UpdateDisciplinaAsync(int disciplinaId, DisciplinaCreateUpdateViewModel viewModel, ClaimsPrincipal principal)
         {
-            ValidarProfessor(principal);
-            var usuarioId = GetUsuarioAtualId(principal);
+            var usuarioId = await ValidarProfessorAsync(principal);
             var disciplina = await _context.Disciplinas
                 .FirstOrDefaultAsync(item => item.IdDisciplina == disciplinaId);
 
@@ -267,8 +265,7 @@ namespace ESCOLA_API.Services
 
         public async Task<bool> DeleteDisciplinaAsync(int disciplinaId, ClaimsPrincipal principal)
         {
-            ValidarProfessor(principal);
-            var usuarioId = GetUsuarioAtualId(principal);
+            var usuarioId = await ValidarProfessorAsync(principal);
             var disciplina = await _context.Disciplinas
                 .FirstOrDefaultAsync(item => item.IdDisciplina == disciplinaId);
 
@@ -296,9 +293,8 @@ namespace ESCOLA_API.Services
                 .AsNoTracking();
         }
 
-        private async Task<Disciplina?> ObterDisciplinaDoProfessorAsync(int disciplinaId, ClaimsPrincipal principal)
+        private async Task<Disciplina?> ObterDisciplinaDoProfessorAsync(int disciplinaId, int usuarioId)
         {
-            var usuarioId = GetUsuarioAtualId(principal);
             return await _context.Disciplinas
                 .FirstOrDefaultAsync(disciplina => disciplina.IdDisciplina == disciplinaId && disciplina.IdProfessorUsuario == usuarioId);
         }
@@ -349,12 +345,28 @@ namespace ESCOLA_API.Services
                 || (IsAluno(principal) && caderneta.IdAlunoUsuario == GetUsuarioAtualId(principal));
         }
 
-        private static void ValidarProfessor(ClaimsPrincipal principal)
+        private async Task<int> ValidarProfessorAsync(ClaimsPrincipal principal)
         {
             if (!IsProfessor(principal))
             {
                 throw new UnauthorizedAccessException("Apenas professores podem administrar a caderneta digital.");
             }
+
+            var usuarioId = GetUsuarioAtualId(principal);
+            if (usuarioId <= 0)
+            {
+                throw new InvalidSessionException("Sessao invalida. Saia e entre novamente.");
+            }
+
+            var professorExiste = await _context.Usuarios
+                .AnyAsync(usuario => usuario.IdUsuario == usuarioId && usuario.IdPerfil == PerfilSistema.ProfessorId);
+
+            if (!professorExiste)
+            {
+                throw new InvalidSessionException("Sessao invalida. Saia e entre novamente.");
+            }
+
+            return usuarioId;
         }
 
         private static CadernetaDigitalViewModel ToViewModel(CadernetaDigital caderneta)

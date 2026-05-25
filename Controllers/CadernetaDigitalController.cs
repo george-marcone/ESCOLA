@@ -1,4 +1,5 @@
 using ESCOLA_API.Services;
+using ESCOLA_API.Security;
 using ESCOLA_API.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -79,6 +80,10 @@ namespace ESCOLA_API.Controllers
                 var created = await _service.AddAsync(model, User);
                 return CreatedAtAction(nameof(GetById), new { cadernetaId = created.IdCadernetaDigital }, created);
             }
+            catch (InvalidSessionException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
             catch (UnauthorizedAccessException)
             {
                 return Forbid();
@@ -107,6 +112,10 @@ namespace ESCOLA_API.Controllers
                 var updated = await _service.UpdateAsync(cadernetaId, model, User);
                 return updated == null ? NotFound() : Ok(updated);
             }
+            catch (InvalidSessionException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
             catch (UnauthorizedAccessException)
             {
                 return Forbid();
@@ -133,6 +142,10 @@ namespace ESCOLA_API.Controllers
             {
                 var deleted = await _service.DeleteAsync(cadernetaId, User);
                 return deleted ? Ok() : NotFound();
+            }
+            catch (InvalidSessionException ex)
+            {
+                return Unauthorized(ex.Message);
             }
             catch (UnauthorizedAccessException)
             {
@@ -178,6 +191,10 @@ namespace ESCOLA_API.Controllers
                 var created = await _service.AddDisciplinaAsync(model, User);
                 return CreatedAtAction(nameof(GetDisciplinas), null, created);
             }
+            catch (InvalidSessionException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
             catch (UnauthorizedAccessException)
             {
                 return Forbid();
@@ -206,6 +223,10 @@ namespace ESCOLA_API.Controllers
                 var updated = await _service.UpdateDisciplinaAsync(disciplinaId, model, User);
                 return updated == null ? NotFound() : Ok(updated);
             }
+            catch (InvalidSessionException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
             catch (UnauthorizedAccessException)
             {
                 return Forbid();
@@ -232,6 +253,10 @@ namespace ESCOLA_API.Controllers
             {
                 var deleted = await _service.DeleteDisciplinaAsync(disciplinaId, User);
                 return deleted ? Ok() : NotFound();
+            }
+            catch (InvalidSessionException ex)
+            {
+                return Unauthorized(ex.Message);
             }
             catch (UnauthorizedAccessException)
             {

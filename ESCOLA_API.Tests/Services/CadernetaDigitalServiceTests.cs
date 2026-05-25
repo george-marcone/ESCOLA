@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using ESCOLA_API.Data;
 using ESCOLA_API.Models;
+using ESCOLA_API.Security;
 using ESCOLA_API.Services;
 using ESCOLA_API.ViewModels;
 using Microsoft.Data.Sqlite;
@@ -95,6 +96,25 @@ namespace ESCOLA_API.Tests.Services
                 }, professor));
 
             Assert.Equal("Disciplina ja cadastrada.", exception.Message);
+        }
+
+        [Fact]
+        public async Task AddDisciplinaAsync_WhenProfessorTokenDoesNotMatchUsuario_ThrowsInvalidSessionException()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var service = new CadernetaDigitalService(context);
+
+            var exception = await Assert.ThrowsAsync<InvalidSessionException>(() =>
+                service.AddDisciplinaAsync(new DisciplinaCreateUpdateViewModel
+                {
+                    Nome = "Geografia"
+                }, CreatePrincipal(999, PerfilSistema.Professor)));
+
+            Assert.Equal("Sessao invalida. Saia e entre novamente.", exception.Message);
         }
 
         [Fact]
