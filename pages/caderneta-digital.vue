@@ -76,10 +76,9 @@
         </div>
       </form>
 
-      <form
+      <div
         class="rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6"
-        novalidate
-        @submit.prevent="salvarLancamento"
+        @keydown.enter.prevent="salvarLancamento"
       >
         <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">{{ editandoLancamentoId ? 'Edicao' : 'Lancamento' }}</p>
         <h2 class="mb-6 mt-2 text-xl font-normal text-[#071d3b]">Notas e frequencia</h2>
@@ -157,7 +156,8 @@
               class="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-[#147f72] px-4 text-sm font-extrabold text-white transition hover:bg-[#0f6c61] disabled:cursor-wait disabled:opacity-70"
               type="button"
               :disabled="salvandoLancamento"
-              @click="salvarLancamento"
+              @click.prevent.stop="salvarLancamento"
+              @pointerup.prevent.stop="salvarLancamento"
             >
               <ClipboardCheck class="h-5 w-5" aria-hidden="true" />
               {{ editandoLancamentoId ? 'Atualizar lancamento' : 'Salvar lancamento' }}
@@ -172,7 +172,7 @@
             </button>
           </div>
         </div>
-      </form>
+      </div>
     </div>
 
     <aside
@@ -521,6 +521,8 @@ function limparDisciplinaForm() {
 }
 
 async function salvarLancamento() {
+  if (salvandoLancamento.value) return
+
   erroLancamento.value = ''
   const notas = parseNotas(lancamentoForm.notas)
 
