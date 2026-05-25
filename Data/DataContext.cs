@@ -18,6 +18,8 @@ namespace ESCOLA_API.Data
         public DbSet<Diretoria> Diretorias { get; set; }
         public DbSet<Perfil> Perfis { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<Disciplina> Disciplinas { get; set; }
+        public DbSet<CadernetaDigital> CadernetasDigitais { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -82,6 +84,40 @@ namespace ESCOLA_API.Data
                     .WithMany(usuario => usuario.Diretorias)
                     .HasForeignKey(diretoria => diretoria.IdUsuario)
                     .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            builder.Entity<Disciplina>(entity =>
+            {
+                entity.ToTable("Disciplina");
+                entity.HasKey(disciplina => disciplina.IdDisciplina);
+                entity.Property(disciplina => disciplina.Nome)
+                    .IsRequired()
+                    .HasMaxLength(100);
+                entity.HasIndex(disciplina => new { disciplina.IdProfessorUsuario, disciplina.Nome })
+                    .IsUnique();
+                entity.HasOne(disciplina => disciplina.ProfessorUsuario)
+                    .WithMany(usuario => usuario.DisciplinasMinistradas)
+                    .HasForeignKey(disciplina => disciplina.IdProfessorUsuario)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            builder.Entity<CadernetaDigital>(entity =>
+            {
+                entity.ToTable("CadernetaDigital");
+                entity.HasKey(caderneta => caderneta.IdCadernetaDigital);
+                entity.Property(caderneta => caderneta.Notas)
+                    .IsRequired()
+                    .HasMaxLength(120);
+                entity.HasIndex(caderneta => new { caderneta.IdAlunoUsuario, caderneta.IdDisciplina })
+                    .IsUnique();
+                entity.HasOne(caderneta => caderneta.AlunoUsuario)
+                    .WithMany(usuario => usuario.CadernetasComoAluno)
+                    .HasForeignKey(caderneta => caderneta.IdAlunoUsuario)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(caderneta => caderneta.Disciplina)
+                    .WithMany(disciplina => disciplina.Cadernetas)
+                    .HasForeignKey(caderneta => caderneta.IdDisciplina)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             builder.Entity<Perfil>().HasData(CreatePerfis());

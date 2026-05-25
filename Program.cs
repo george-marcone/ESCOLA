@@ -34,6 +34,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<UsuarioCreateViewModelValid
 builder.Services.AddCors();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<ICadernetaDigitalService, CadernetaDigitalService>();
 
 var jwtKey = ResolveJwtKey(builder.Environment, builder.Configuration);
 builder.Configuration["Jwt:Key"] = jwtKey;
