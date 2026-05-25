@@ -32,11 +32,11 @@
             required
             inputmode="numeric"
             autocomplete="tel"
-            :maxlength="BRAZIL_PHONE_MASK_MAX_LENGTH"
-            :placeholder="BRAZIL_PHONE_PLACEHOLDER"
+            :maxlength="PHONE_MASK_MAX_LENGTH"
+            :placeholder="PHONE_PLACEHOLDER"
             @input="atualizarTelefone"
           />
-          <span class="text-xs font-extrabold text-[#62728a]">{{ form.telefone.length }}/{{ BRAZIL_PHONE_MASK_MAX_LENGTH }}</span>
+          <span class="text-xs font-extrabold text-[#62728a]">{{ form.telefone.length }}/{{ PHONE_MASK_MAX_LENGTH }}</span>
         </label>
 
         <label class="grid gap-2 text-sm font-extrabold text-[#071d3b]">
@@ -132,7 +132,7 @@
             <tr v-for="usuario in usuariosPaginados" :key="usuario.idUsuario" class="border-t border-[#d4dee9]">
               <td class="px-4 py-4 font-semibold text-[#243044]">{{ usuario.nome }}</td>
               <td class="px-4 py-4 text-[#243044]">{{ usuario.email }}</td>
-              <td class="px-4 py-4 text-[#243044]">{{ formatBrazilPhone(usuario.telefone) || '-' }}</td>
+              <td class="px-4 py-4 text-[#243044]">{{ formatPhoneForDisplay(usuario.telefone) || '-' }}</td>
               <td class="px-4 py-4 text-[#243044]">{{ formatPerfilLabel(usuario.descricaoPerfil) }}</td>
               <td class="px-4 py-4">
                 <div class="flex justify-center gap-2">
@@ -193,7 +193,7 @@
             </span>
           </div>
           <p class="m-0 mt-3 text-sm text-[#243044]">
-            <strong>Telefone:</strong> {{ formatBrazilPhone(usuario.telefone) || '-' }}
+            <strong>Telefone:</strong> {{ formatPhoneForDisplay(usuario.telefone) || '-' }}
           </p>
           <div class="mt-4 flex flex-wrap gap-2">
             <NuxtLink
@@ -268,11 +268,12 @@ import { ChevronLeft, ChevronRight, Eye, Pencil, Plus, RefreshCcw, Search, Trash
 import type { Perfil, UsuarioCreate, UsuarioSummary } from '~/types/api'
 import { normalizeApiError } from '~/utils/api-client'
 import {
-  BRAZIL_PHONE_MASK_MAX_LENGTH,
-  BRAZIL_PHONE_PLACEHOLDER,
-  formatBrazilPhone,
-  isCompleteBrazilPhone,
-  normalizeBrazilPhoneForApi
+  PHONE_MASK_MAX_LENGTH,
+  PHONE_PLACEHOLDER,
+  formatPhone,
+  formatPhoneForDisplay,
+  isCompletePhone,
+  normalizePhoneForApi
 } from '~/utils/br-phone'
 import {
   canCreateAlunoUsuarios,
@@ -304,7 +305,7 @@ const pagina = ref(1)
 const porPagina = 10
 const editandoId = ref<number | null>(null)
 const USER_TEXT_FIELD_MAX_LENGTH = 50
-const PHONE_FORMAT_ERROR = 'Informe um telefone valido no formato +55 (xx) xxxxx-xxxx.'
+const PHONE_FORMAT_ERROR = 'Informe um telefone valido no formato +xx (xx) xxxxx-xxxx.'
 const REQUIRED_FIELDS_ERROR = 'Nome, e-mail e telefone sao obrigatorios.'
 const REQUIRED_PROFILE_ERROR = 'Informe o tipo de usuario.'
 const form = reactive<UsuarioCreate>({
@@ -358,7 +359,7 @@ const usuariosFiltrados = computed(() => {
   if (!termo) return usuariosVisiveis.value
 
   return usuariosVisiveis.value.filter((usuario) =>
-    [usuario.nome, usuario.email, usuario.telefone, formatBrazilPhone(usuario.telefone), usuario.descricaoPerfil, formatPerfilLabel(usuario.descricaoPerfil)]
+    [usuario.nome, usuario.email, usuario.telefone, formatPhoneForDisplay(usuario.telefone), usuario.descricaoPerfil, formatPerfilLabel(usuario.descricaoPerfil)]
       .filter(Boolean)
       .some((value) => String(value).toLowerCase().includes(termo))
   )
@@ -435,7 +436,7 @@ function editar(usuario: UsuarioSummary) {
   editandoId.value = usuario.idUsuario
   form.nome = usuario.nome
   form.email = usuario.email
-  form.telefone = formatBrazilPhone(usuario.telefone)
+  form.telefone = formatPhoneForDisplay(usuario.telefone)
   form.idPerfil = usuario.idPerfil
   mensagem.value = ''
   erro.value = ''
@@ -451,14 +452,14 @@ function limparForm() {
 
 function atualizarTelefone(event: Event) {
   const input = event.target as HTMLInputElement
-  form.telefone = formatBrazilPhone(input.value)
+  form.telefone = formatPhone(input.value)
 }
 
 function montarPayload(): UsuarioCreate {
   return {
     nome: form.nome.trim(),
     email: form.email.trim(),
-    telefone: normalizeBrazilPhoneForApi(form.telefone),
+    telefone: normalizePhoneForApi(form.telefone),
     idPerfil: form.idPerfil
   }
 }
@@ -469,7 +470,7 @@ function validarFormulario() {
     return false
   }
 
-  if (!isCompleteBrazilPhone(form.telefone)) {
+  if (!isCompletePhone(form.telefone)) {
     erro.value = PHONE_FORMAT_ERROR
     return false
   }

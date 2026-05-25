@@ -54,7 +54,9 @@ Variaveis suportadas:
 
 No Docker Compose do projeto, o front e publicado em `http://localhost:8080` e a API e apontada para `http://localhost:5000/api`.
 
-Em deploy na Vercel, configure `NUXT_PUBLIC_API_BASE` nas variaveis de ambiente do projeto com a URL publica do backend, por exemplo `https://sua-api-publica.com/api`. Nao use `localhost` em producao, porque no navegador ele aponta para a maquina do usuario.
+Em deploy na Vercel ou GitHub Pages, configure `NUXT_PUBLIC_API_BASE` nas variaveis de ambiente do projeto com a URL publica do backend, por exemplo `https://sua-api-publica.com/api`. Nao use `localhost` em producao, porque no navegador ele aponta para a maquina do usuario.
+
+No GitHub Pages, crie uma variavel ou secret de Actions chamada `NUXT_PUBLIC_API_BASE` em `Settings > Secrets and variables > Actions` e execute o workflow novamente. Sem essa variavel, o build usa `/api` como fallback, que so funciona se houver proxy ou backend no mesmo dominio.
 
 ## Como executar
 
@@ -191,7 +193,7 @@ Nao ha uma biblioteca externa dedicada a validacao de formularios, como Zod, Yup
 - Tipagem TypeScript para contratos de payload e resposta.
 - Utilitario proprio `utils/password-strength.ts` para avaliar forca da senha.
 - Utilitario proprio `utils/usuario-validation.ts` para impedir cadastro/edicao com e-mail ja usado por outro usuario.
-- Utilitario proprio `utils/br-phone.ts` para mascara `+55 (xx) xxxxx-xxxx` e envio do telefone como `+xxxxxxxxxxxxx`.
+- Utilitario proprio `utils/br-phone.ts` para mascara `+xx (xx) xxxxx-xxxx` e envio do telefone como `+xxxxxxxxxxxxx`.
 - Utilitario proprio `utils/usuario-permissions.ts` para filtrar acoes e tipos de usuario conforme o perfil logado.
 - `normalizeApiError` em `utils/api-client.ts` para exibir mensagens de erro da API, incluindo erros de validacao retornados no formato `{ errors: ... }`.
 
