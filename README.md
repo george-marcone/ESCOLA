@@ -56,6 +56,23 @@ No Docker Compose do projeto, o front e publicado em `http://localhost:8080` e a
 
 Em deploy na Vercel ou GitHub Pages, configure `NUXT_PUBLIC_API_BASE` nas variaveis de ambiente do projeto com a URL publica do backend, por exemplo `https://sua-api-publica.com/api`. Nao use `localhost` em producao, porque no navegador ele aponta para a maquina do usuario.
 
+No Render, crie o front como `Static Site` e use:
+
+| Campo | Valor |
+| --- | --- |
+| Branch | `master` |
+| Build Command | `npm run generate` |
+| Publish Directory | `.output/public` |
+| Environment Variable | `NUXT_PUBLIC_API_BASE=https://sua-api-publica.com/api` |
+
+Tambem adicione uma regra de rewrite para a SPA:
+
+| Action | Source | Destination |
+| --- | --- | --- |
+| Rewrite | `/*` | `/index.html` |
+
+O repositorio inclui `render.yaml` com essa configuracao. Se o servico ja existir no Render, ajuste os mesmos campos em `Settings` e execute `Manual Deploy > Clear build cache & deploy`.
+
 No GitHub Pages, crie uma variavel ou secret de Actions chamada `NUXT_PUBLIC_API_BASE` em `Settings > Secrets and variables > Actions` e execute o workflow novamente. Sem essa variavel, o build usa `/api` como fallback, que so funciona se houver proxy ou backend no mesmo dominio.
 
 ## Como executar
