@@ -159,8 +159,6 @@
               type="button"
               :disabled="salvandoLancamento"
               @click.prevent.stop="salvarLancamento"
-              @mousedown.left.prevent.stop="salvarLancamento"
-              @pointerup.prevent.stop="salvarLancamento"
             >
               <ClipboardCheck class="h-5 w-5" aria-hidden="true" />
               {{ editandoLancamentoId ? 'Atualizar lancamento' : 'Salvar lancamento' }}
@@ -349,13 +347,14 @@ import type {
   UsuarioSummary
 } from '~/types/api'
 import { normalizeApiError } from '~/utils/api-client'
+import { parseCadernetaNotas, type CadernetaNotaInput } from '~/utils/caderneta-digital'
 import { isPerfilAluno } from '~/utils/usuario-permissions'
 
 definePageMeta({
   roles: []
 })
 
-const EMPTY_NOTAS = ['', '', '', '']
+const EMPTY_NOTAS: CadernetaNotaInput[] = ['', '', '', '']
 
 const auth = useAuthStore()
 const { $api } = useNuxtApp()
@@ -535,7 +534,7 @@ async function salvarLancamento() {
 
   erroLancamento.value = ''
   mensagemLancamento.value = ''
-  const notas = parseNotas(lancamentoForm.notas)
+  const notas = parseCadernetaNotas(lancamentoForm.notas)
 
   if (!lancamentoForm.idAlunoUsuario || !lancamentoForm.idDisciplina) {
     erroLancamento.value = 'Informe aluno e disciplina.'
@@ -630,27 +629,10 @@ function salvarLancamentoPorEventoNativo(event: Event) {
 
 function instalarEventoNativoLancamento() {
   salvarLancamentoButton.value?.addEventListener('click', salvarLancamentoPorEventoNativo)
-  salvarLancamentoButton.value?.addEventListener('pointerup', salvarLancamentoPorEventoNativo)
-  salvarLancamentoButton.value?.addEventListener('mousedown', salvarLancamentoPorEventoNativo)
 }
 
 function removerEventoNativoLancamento() {
   salvarLancamentoButton.value?.removeEventListener('click', salvarLancamentoPorEventoNativo)
-  salvarLancamentoButton.value?.removeEventListener('pointerup', salvarLancamentoPorEventoNativo)
-  salvarLancamentoButton.value?.removeEventListener('mousedown', salvarLancamentoPorEventoNativo)
-}
-
-function parseNotas(values: string[]) {
-  const notas = values
-    .map((value) => value.trim().replace(',', '.'))
-    .filter(Boolean)
-    .map(Number)
-
-  if (!notas.length || notas.some((nota) => !Number.isFinite(nota) || nota < 0 || nota > 10)) {
-    return null
-  }
-
-  return notas
 }
 
 function formatNotas(notas: number[]) {
