@@ -371,6 +371,10 @@ namespace ESCOLA_API.Services
 
         private static CadernetaDigitalViewModel ToViewModel(CadernetaDigital caderneta)
         {
+            var notas = DeserializeNotas(caderneta.Notas);
+            var media = CalcularMediaAritmetica(notas);
+            var situacao = CalcularSituacao(media, caderneta.Faltas);
+
             return new CadernetaDigitalViewModel
             {
                 IdCadernetaDigital = caderneta.IdCadernetaDigital,
@@ -381,7 +385,10 @@ namespace ESCOLA_API.Services
                 NomeDisciplina = caderneta.Disciplina?.Nome ?? string.Empty,
                 IdProfessorUsuario = caderneta.Disciplina?.IdProfessorUsuario ?? 0,
                 NomeProfessor = caderneta.Disciplina?.ProfessorUsuario?.Nome ?? string.Empty,
-                Notas = DeserializeNotas(caderneta.Notas),
+                Notas = notas,
+                MediaAritmetica = media,
+                Situacao = situacao.Label,
+                CorSituacao = situacao.Cor,
                 Presencas = caderneta.Presencas,
                 Faltas = caderneta.Faltas
             };
@@ -411,6 +418,33 @@ namespace ESCOLA_API.Services
                 .Where(nota => nota.HasValue)
                 .Select(nota => nota!.Value)
                 .ToArray();
+        }
+
+        private static decimal CalcularMediaAritmetica(decimal[] notas)
+        {
+            return notas.Length == 0
+                ? 0
+                : Math.Round(notas.Average(), 2, MidpointRounding.AwayFromZero);
+        }
+
+        private static (string Label, string Cor) CalcularSituacao(decimal media, int faltas)
+        {
+            if (faltas >= 10)
+            {
+                return ("Reprovado por Faltas", "vermelho");
+            }
+
+            if (media < 6)
+            {
+                return ("Reprovado", "vermelho");
+            }
+
+            if (media <= 7)
+            {
+                return ("Em recuperacao", "preto");
+            }
+
+            return ("Aprovado", "azul");
         }
 
         private static bool IsAdministrador(ClaimsPrincipal principal)

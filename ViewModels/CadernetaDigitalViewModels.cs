@@ -24,6 +24,9 @@ namespace ESCOLA_API.ViewModels
         public int IdProfessorUsuario { get; set; }
         public string NomeProfessor { get; set; } = string.Empty;
         public decimal[] Notas { get; set; } = [];
+        public decimal MediaAritmetica { get; set; }
+        public string Situacao { get; set; } = string.Empty;
+        public string CorSituacao { get; set; } = string.Empty;
         public int Presencas { get; set; }
         public int Faltas { get; set; }
     }

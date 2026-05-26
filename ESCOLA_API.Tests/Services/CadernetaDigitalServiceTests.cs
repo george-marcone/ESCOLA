@@ -38,8 +38,51 @@ namespace ESCOLA_API.Tests.Services
             Assert.Equal("Aluno Maria", created.NomeAluno);
             Assert.Equal("Matematica", created.NomeDisciplina);
             Assert.Equal(new[] { 8.5m, 9m }, created.Notas);
+            Assert.Equal(8.75m, created.MediaAritmetica);
+            Assert.Equal("Aprovado", created.Situacao);
+            Assert.Equal("azul", created.CorSituacao);
             Assert.Equal(18, created.Presencas);
             Assert.Equal(2, created.Faltas);
+        }
+
+        [Fact]
+        public async Task AddAsync_WhenMediaIsLowerThanSix_ReturnsReprovado()
+        {
+            var created = await CriarCadernetaAsync(new[] { 5m, 6m }, 2);
+
+            Assert.Equal(5.5m, created.MediaAritmetica);
+            Assert.Equal("Reprovado", created.Situacao);
+            Assert.Equal("vermelho", created.CorSituacao);
+        }
+
+        [Fact]
+        public async Task AddAsync_WhenMediaIsBetweenSixAndSeven_ReturnsRecuperacao()
+        {
+            var created = await CriarCadernetaAsync(new[] { 6m, 7m }, 2);
+
+            Assert.Equal(6.5m, created.MediaAritmetica);
+            Assert.Equal("Em recuperacao", created.Situacao);
+            Assert.Equal("preto", created.CorSituacao);
+        }
+
+        [Fact]
+        public async Task AddAsync_WhenMediaIsGreaterThanSeven_ReturnsAprovado()
+        {
+            var created = await CriarCadernetaAsync(new[] { 7m, 8m }, 2);
+
+            Assert.Equal(7.5m, created.MediaAritmetica);
+            Assert.Equal("Aprovado", created.Situacao);
+            Assert.Equal("azul", created.CorSituacao);
+        }
+
+        [Fact]
+        public async Task AddAsync_WhenFaltasReachTen_ReturnsReprovadoPorFaltas()
+        {
+            var created = await CriarCadernetaAsync(new[] { 10m, 10m }, 10);
+
+            Assert.Equal(10m, created.MediaAritmetica);
+            Assert.Equal("Reprovado por Faltas", created.Situacao);
+            Assert.Equal("vermelho", created.CorSituacao);
         }
 
         [Fact]
@@ -226,6 +269,30 @@ namespace ESCOLA_API.Tests.Services
                 .Options;
 
             return new DataContext(options);
+        }
+
+        private static async Task<CadernetaDigitalViewModel> CriarCadernetaAsync(decimal[] notas, int faltas)
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var service = new CadernetaDigitalService(context);
+            var professor = CreatePrincipal(2, PerfilSistema.Professor);
+            var disciplina = await service.AddDisciplinaAsync(new DisciplinaCreateUpdateViewModel
+            {
+                Nome = $"Disciplina {Guid.NewGuid():N}"
+            }, professor);
+
+            return await service.AddAsync(new CadernetaDigitalCreateUpdateViewModel
+            {
+                IdAlunoUsuario = 12,
+                IdDisciplina = disciplina.IdDisciplina,
+                Notas = notas,
+                Presencas = 20,
+                Faltas = faltas
+            }, professor);
         }
     }
 }
