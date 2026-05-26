@@ -35,6 +35,7 @@ services:
       Jwt__ExpirationMinutes: ${JWT_EXPIRATION_MINUTES:-120}
       ServiceBus__ConnectionString: ${SERVICEBUS_CONNECTION_STRING:-}
       ServiceBus__QueueName: ${SERVICEBUS_QUEUE_NAME:-notificacoes}
+      ServiceBus__ConsumerEnabled: ${SERVICEBUS_CONSUMER_ENABLED:-true}
     ports:
       - "${API_HOST_PORT:-5001}:80"
     volumes:

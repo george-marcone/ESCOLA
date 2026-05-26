@@ -9,6 +9,7 @@ namespace ESCOLA_API.Models
         public string Email { get; set; } = string.Empty;
         public string Telefone { get; set; } = string.Empty;
         public string Senha { get; set; } = string.Empty;
+        public string? FotoPerfilUrl { get; set; }
         public int IdPerfil { get; set; }
         public Perfil? Perfil { get; set; }
         public List<Aluno> Alunos { get; set; } = new();
@@ -16,5 +17,7 @@ namespace ESCOLA_API.Models
         public List<Diretoria> Diretorias { get; set; } = new();
         public List<Disciplina> DisciplinasMinistradas { get; set; } = new();
         public List<CadernetaDigital> CadernetasComoAluno { get; set; } = new();
+        public List<UsuarioArquivo> Arquivos { get; set; } = new();
+        public List<Notificacao> Notificacoes { get; set; } = new();
     }
 }

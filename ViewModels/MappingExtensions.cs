@@ -73,9 +73,47 @@ namespace ESCOLA_API.ViewModels
                 Nome = entity.Nome,
                 Email = entity.Email,
                 Telefone = entity.Telefone,
+                FotoPerfilUrl = entity.FotoPerfilUrl,
                 IdPerfil = entity.IdPerfil,
                 DescricaoPerfil = entity.Perfil?.DescricaoPerfil ?? string.Empty,
                 TipoUsuario = PerfilSistema.ObterDescricaoPorId(entity.IdPerfil)
+            };
+        }
+
+        public static UsuarioArquivoViewModel ToViewModel(this UsuarioArquivo entity)
+        {
+            return new UsuarioArquivoViewModel
+            {
+                IdUsuarioArquivo = entity.IdUsuarioArquivo,
+                IdUsuario = entity.IdUsuario,
+                TipoArquivo = entity.TipoArquivo,
+                NomeOriginal = entity.NomeOriginal,
+                Url = entity.Url,
+                ContentType = entity.ContentType,
+                TamanhoBytes = entity.TamanhoBytes,
+                CriadoEmUtc = entity.CriadoEmUtc
+            };
+        }
+
+        public static NotificacaoViewModel ToViewModel(this Notificacao entity)
+        {
+            return new NotificacaoViewModel
+            {
+                IdNotificacao = entity.IdNotificacao,
+                IdUsuario = entity.IdUsuario,
+                Tipo = entity.Tipo,
+                Titulo = entity.Titulo,
+                Mensagem = entity.Mensagem,
+                Link = entity.Link,
+                IdCadernetaDigital = entity.IdCadernetaDigital,
+                IdDisciplina = entity.IdDisciplina,
+                NomeDisciplina = entity.NomeDisciplina,
+                MediaAritmetica = entity.MediaAritmetica,
+                Situacao = entity.Situacao,
+                CorSituacao = entity.CorSituacao,
+                Lida = entity.Lida,
+                CriadaEmUtc = entity.CriadaEmUtc,
+                LidaEmUtc = entity.LidaEmUtc
             };
         }
 

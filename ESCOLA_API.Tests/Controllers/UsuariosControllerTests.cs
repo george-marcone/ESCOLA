@@ -37,8 +37,9 @@ namespace ESCOLA_API.Tests.Controllers
             service.Setup(s => s.AddAsync(model, It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
                 .ReturnsAsync(expected);
 
+            var arquivoService = new Mock<IUsuarioArquivoService>();
             var logger = new Mock<ILogger<UsuariosController>>();
-            var controller = new UsuariosController(service.Object, logger.Object);
+            var controller = new UsuariosController(service.Object, arquivoService.Object, logger.Object);
 
             var actionResult = await controller.Post(model);
             var createdResult = Assert.IsType<CreatedAtActionResult>(actionResult);

@@ -21,3 +21,5 @@ services:
         sync: false
       - key: ServiceBus__QueueName
         value: notificacoes
+      - key: ServiceBus__ConsumerEnabled
+        value: "true"

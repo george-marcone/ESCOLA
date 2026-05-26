@@ -47,6 +47,11 @@ namespace ESCOLA_API.ViewModels
         public string Telefone { get; set; } = string.Empty;
 
         /// <summary>
+        /// URL publica da foto de perfil do usuario.
+        /// </summary>
+        public string? FotoPerfilUrl { get; set; }
+
+        /// <summary>
         /// Tipo do usuario: Aluno, Professor ou Administrador. Apenas administradores podem alterar.
         /// </summary>
         public string? TipoUsuario { get; set; }
@@ -78,6 +83,11 @@ namespace ESCOLA_API.ViewModels
         public string Telefone { get; set; } = string.Empty;
 
         /// <summary>
+        /// URL publica da foto de perfil do usuario.
+        /// </summary>
+        public string? FotoPerfilUrl { get; set; }
+
+        /// <summary>
         /// Identificador do perfil de autorizacao.
         /// </summary>
         public int IdPerfil { get; set; }
@@ -91,6 +101,18 @@ namespace ESCOLA_API.ViewModels
         /// Tipo do usuario.
         /// </summary>
         public string TipoUsuario { get; set; } = string.Empty;
+    }
+
+    public class UsuarioArquivoViewModel
+    {
+        public int IdUsuarioArquivo { get; set; }
+        public int IdUsuario { get; set; }
+        public string TipoArquivo { get; set; } = string.Empty;
+        public string NomeOriginal { get; set; } = string.Empty;
+        public string Url { get; set; } = string.Empty;
+        public string ContentType { get; set; } = string.Empty;
+        public long TamanhoBytes { get; set; }
+        public DateTime CriadoEmUtc { get; set; }
     }
 
     /// <summary>

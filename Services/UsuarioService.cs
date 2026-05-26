@@ -42,6 +42,7 @@ namespace ESCOLA_API.Services
                     Nome = usuario.Nome,
                     Email = usuario.Email,
                     Telefone = usuario.Telefone,
+                    FotoPerfilUrl = usuario.FotoPerfilUrl,
                     IdPerfil = usuario.IdPerfil,
                     DescricaoPerfil = usuario.Perfil == null ? string.Empty : usuario.Perfil.DescricaoPerfil,
                     TipoUsuario = PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil)

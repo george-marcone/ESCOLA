@@ -12,6 +12,7 @@ using ESCOLA_API.Swagger;
 using ESCOLA_API.Validators;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
@@ -35,7 +36,11 @@ builder.Services.AddCors();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ICadernetaDigitalService, CadernetaDigitalService>();
+builder.Services.AddScoped<INotificacaoService, NotificacaoService>();
+builder.Services.AddScoped<IUsuarioArquivoService, UsuarioArquivoService>();
 builder.Services.AddSingleton<ICadernetaDigitalEventPublisher, ServiceBusCadernetaDigitalEventPublisher>();
+builder.Services.AddHostedService<ServiceBusNotificacaoWorker>();
+builder.Services.AddHostedService<ServiceBusNotificacaoWorker>();
 
 var jwtKey = ResolveJwtKey(builder.Environment, builder.Configuration);
 builder.Configuration["Jwt:Key"] = jwtKey;
@@ -164,6 +169,14 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
+var uploadRoot = ResolveUploadRoot(app.Environment, app.Configuration);
+Directory.CreateDirectory(uploadRoot);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadRoot),
+    RequestPath = "/uploads"
+});
+
 app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 app.UseAuthentication();
 app.Use(async (context, next) =>
@@ -268,6 +281,19 @@ static bool IsSqliteConnectionString(string connectionString)
 static string? GetConnectionStringValue(DbConnectionStringBuilder builder, string key)
 {
     return builder.TryGetValue(key, out var value) ? value?.ToString() : null;
+}
+
+static string ResolveUploadRoot(IHostEnvironment environment, IConfiguration configuration)
+{
+    var configured = configuration["Uploads:RootPath"];
+    if (!string.IsNullOrWhiteSpace(configured))
+    {
+        return Path.IsPathRooted(configured)
+            ? configured
+            : Path.Combine(environment.ContentRootPath, configured);
+    }
+
+    return Path.Combine(environment.ContentRootPath, "uploads");
 }
 
 static string ValidateJwtKey(string jwtKey)

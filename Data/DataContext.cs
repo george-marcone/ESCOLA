@@ -20,6 +20,8 @@ namespace ESCOLA_API.Data
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Disciplina> Disciplinas { get; set; }
         public DbSet<CadernetaDigital> CadernetasDigitais { get; set; }
+        public DbSet<UsuarioArquivo> UsuarioArquivos { get; set; }
+        public DbSet<Notificacao> Notificacoes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -48,6 +50,8 @@ namespace ESCOLA_API.Data
                 entity.Property(usuario => usuario.Senha)
                     .IsRequired()
                     .HasMaxLength(255);
+                entity.Property(usuario => usuario.FotoPerfilUrl)
+                    .HasMaxLength(500);
                 entity.HasIndex(usuario => usuario.Email)
                     .IsUnique();
                 entity.HasOne(usuario => usuario.Perfil)
@@ -117,6 +121,66 @@ namespace ESCOLA_API.Data
                 entity.HasOne(caderneta => caderneta.Disciplina)
                     .WithMany(disciplina => disciplina.Cadernetas)
                     .HasForeignKey(caderneta => caderneta.IdDisciplina)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<UsuarioArquivo>(entity =>
+            {
+                entity.ToTable("UsuarioArquivo");
+                entity.HasKey(arquivo => arquivo.IdUsuarioArquivo);
+                entity.Property(arquivo => arquivo.TipoArquivo)
+                    .IsRequired()
+                    .HasMaxLength(30);
+                entity.Property(arquivo => arquivo.NomeOriginal)
+                    .IsRequired()
+                    .HasMaxLength(255);
+                entity.Property(arquivo => arquivo.CaminhoRelativo)
+                    .IsRequired()
+                    .HasMaxLength(500);
+                entity.Property(arquivo => arquivo.Url)
+                    .IsRequired()
+                    .HasMaxLength(500);
+                entity.Property(arquivo => arquivo.ContentType)
+                    .IsRequired()
+                    .HasMaxLength(120);
+                entity.HasOne(arquivo => arquivo.Usuario)
+                    .WithMany(usuario => usuario.Arquivos)
+                    .HasForeignKey(arquivo => arquivo.IdUsuario)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<Notificacao>(entity =>
+            {
+                entity.ToTable("Notificacao");
+                entity.HasKey(notificacao => notificacao.IdNotificacao);
+                entity.Property(notificacao => notificacao.Tipo)
+                    .IsRequired()
+                    .HasMaxLength(50);
+                entity.Property(notificacao => notificacao.Titulo)
+                    .IsRequired()
+                    .HasMaxLength(120);
+                entity.Property(notificacao => notificacao.Mensagem)
+                    .IsRequired()
+                    .HasMaxLength(2000);
+                entity.Property(notificacao => notificacao.Link)
+                    .HasMaxLength(500);
+                entity.Property(notificacao => notificacao.NomeDisciplina)
+                    .HasMaxLength(100);
+                entity.Property(notificacao => notificacao.MediaAritmetica)
+                    .HasPrecision(5, 2);
+                entity.Property(notificacao => notificacao.Situacao)
+                    .HasMaxLength(80);
+                entity.Property(notificacao => notificacao.CorSituacao)
+                    .HasMaxLength(30);
+                entity.Property(notificacao => notificacao.OrigemMensagemId)
+                    .HasMaxLength(160);
+                entity.HasIndex(notificacao => notificacao.IdUsuario);
+                entity.HasIndex(notificacao => notificacao.OrigemMensagemId)
+                    .IsUnique()
+                    .HasFilter("[OrigemMensagemId] IS NOT NULL");
+                entity.HasOne(notificacao => notificacao.Usuario)
+                    .WithMany(usuario => usuario.Notificacoes)
+                    .HasForeignKey(notificacao => notificacao.IdUsuario)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 

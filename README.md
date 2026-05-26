@@ -34,6 +34,7 @@ No Render, cadastre as variaveis em **Web Service > Environment** e depois faca 
 | `ConnectionStrings__DefaultConnection` | Obrigatoria em producao. Para SQL Server, use algo como `Server=tcp:SEU_HOST,1433;Database=ESCOLA_API;User Id=SEU_USUARIO;Password=SUA_SENHA;Encrypt=True;TrustServerCertificate=True;`. |
 | `ServiceBus__ConnectionString` | Opcional. Cadeia de conexao primaria do Azure Service Bus para publicar eventos da caderneta digital. |
 | `ServiceBus__QueueName` | Opcional. Nome da fila de notificacoes. Padrao: `notificacoes`. |
+| `ServiceBus__ConsumerEnabled` | Opcional. Define se a API tambem consome a fila e grava notificacoes no banco. Padrao: `true`. |
 | `ASPNETCORE_ENVIRONMENT` | `Production` |
 
 O separador `__` nas variaveis de ambiente representa `:` na configuracao do ASP.NET Core. Por isso, `Jwt:Key` deve ser cadastrado como `Jwt__Key`, `ConnectionStrings:DefaultConnection` como `ConnectionStrings__DefaultConnection`, e `ServiceBus:ConnectionString` como `ServiceBus__ConnectionString`.
@@ -42,7 +43,7 @@ Para testes simples sem banco externo, e possivel usar SQLite com `ConnectionStr
 
 O arquivo `render.yaml` deste repositorio tambem declara essas variaveis para deploy via Blueprint. Nesse fluxo, o Render gera `Jwt__Key` automaticamente e pede `ConnectionStrings__DefaultConnection` no dashboard.
 
-Quando `ServiceBus__ConnectionString` estiver configurada, a API publica um evento `NotasPublicadas` na fila `ServiceBus__QueueName` sempre que um professor cria ou atualiza um lancamento da caderneta digital. Se a variavel nao estiver configurada, a API continua funcionando normalmente e apenas nao envia o evento.
+Quando `ServiceBus__ConnectionString` estiver configurada, a API publica um evento `NotasPublicadas` na fila `ServiceBus__QueueName` sempre que um professor cria ou atualiza um lancamento da caderneta digital. A API tambem consome essa fila e grava uma linha na tabela `Notificacao` para o aluno visualizar no painel. Se a variavel nao estiver configurada, a API continua funcionando normalmente e apenas nao envia/consome o evento.
 
 ## Docker Compose
 
