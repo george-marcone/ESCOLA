@@ -73,6 +73,8 @@ Tambem adicione uma regra de rewrite para a SPA:
 
 O repositorio inclui `render.yaml` com essa configuracao. Se o servico ja existir no Render, ajuste os mesmos campos em `Settings` e execute `Manual Deploy > Clear build cache & deploy`.
 
+Para compatibilidade com servicos do Render que ja estejam configurados com `Publish Directory = dist`, o `postinstall` detecta o ambiente Render, executa `nuxt generate` e copia `.output/public` para `dist`. Ainda assim, a configuracao recomendada continua sendo `Build Command = npm run generate` e `Publish Directory = .output/public`.
+
 No GitHub Pages, crie uma variavel ou secret de Actions chamada `NUXT_PUBLIC_API_BASE` em `Settings > Secrets and variables > Actions` e execute o workflow novamente. Sem essa variavel, o build usa `/api` como fallback, que so funciona se houver proxy ou backend no mesmo dominio.
 
 ## Como executar

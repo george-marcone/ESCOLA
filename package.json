@@ -11,7 +11,7 @@
     "typecheck": "nuxt typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
-    "postinstall": "nuxt prepare"
+    "postinstall": "node scripts/postinstall.mjs"
   },
   "dependencies": {
     "@lucide/vue": "^1.16.0",
