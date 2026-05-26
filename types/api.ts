@@ -3,6 +3,7 @@ export interface UsuarioSummary {
   nome: string
   email: string
   telefone: string
+  fotoPerfilUrl?: string | null
   idPerfil: number
   descricaoPerfil: string
   tipoUsuario?: string
@@ -27,6 +28,37 @@ export interface UsuarioUpdate {
   email: string
   telefone: string
   tipoUsuario?: string
+}
+
+export interface UsuarioArquivo {
+  idArquivo?: number
+  idUsuarioArquivo?: number
+  idUsuario?: number | null
+  nomeBlob?: string | null
+  tipoArquivo?: string | null
+  nomeOriginal?: string | null
+  url?: string | null
+  contentType?: string | null
+  tamanhoBytes?: number | null
+  criadoEmUtc?: string | null
+}
+
+export interface Notificacao {
+  idNotificacao: number
+  idUsuario: number
+  tipo: string
+  titulo: string
+  mensagem: string
+  link?: string | null
+  idCadernetaDigital?: number | null
+  idDisciplina?: number | null
+  nomeDisciplina?: string | null
+  mediaAritmetica?: number | null
+  situacao?: string | null
+  corSituacao?: string | null
+  lida: boolean
+  criadaEmUtc: string
+  lidaEmUtc?: string | null
 }
 
 export interface Perfil {
