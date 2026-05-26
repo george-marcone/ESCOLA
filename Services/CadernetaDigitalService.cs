@@ -12,10 +12,14 @@ namespace ESCOLA_API.Services
     public class CadernetaDigitalService : ICadernetaDigitalService
     {
         private readonly DataContext _context;
+        private readonly ICadernetaDigitalEventPublisher _eventPublisher;
 
-        public CadernetaDigitalService(DataContext context)
+        public CadernetaDigitalService(
+            DataContext context,
+            ICadernetaDigitalEventPublisher? eventPublisher = null)
         {
             _context = context;
+            _eventPublisher = eventPublisher ?? NullCadernetaDigitalEventPublisher.Instance;
         }
 
         public async Task<CadernetaDigitalViewModel[]> GetAllAsync(ClaimsPrincipal principal)
@@ -94,7 +98,9 @@ namespace ESCOLA_API.Services
             _context.CadernetasDigitais.Add(caderneta);
             await SaveChangesAsync("Este aluno ja esta associado a esta disciplina.");
 
-            return (await GetByIdAsync(caderneta.IdCadernetaDigital, principal))!;
+            var created = (await GetByIdAsync(caderneta.IdCadernetaDigital, principal))!;
+            await _eventPublisher.PublishNotasPublicadasAsync(created, "Criacao");
+            return created;
         }
 
         public async Task<CadernetaDigitalViewModel?> UpdateAsync(int cadernetaId, CadernetaDigitalCreateUpdateViewModel viewModel, ClaimsPrincipal principal)
@@ -145,7 +151,13 @@ namespace ESCOLA_API.Services
             caderneta.Faltas = viewModel.Faltas;
 
             await SaveChangesAsync("Este aluno ja esta associado a esta disciplina.");
-            return await GetByIdAsync(cadernetaId, principal);
+            var updated = await GetByIdAsync(cadernetaId, principal);
+            if (updated != null)
+            {
+                await _eventPublisher.PublishNotasPublicadasAsync(updated, "Atualizacao");
+            }
+
+            return updated;
         }
 
         public async Task<bool> DeleteAsync(int cadernetaId, ClaimsPrincipal principal)

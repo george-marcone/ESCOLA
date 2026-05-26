@@ -19,7 +19,8 @@ namespace ESCOLA_API.Tests.Services
             await using var context = CreateContext(connection);
             await context.Database.EnsureCreatedAsync();
 
-            var service = new CadernetaDigitalService(context);
+            var publisher = new CapturingCadernetaDigitalEventPublisher();
+            var service = new CadernetaDigitalService(context, publisher);
             var professor = CreatePrincipal(2, PerfilSistema.Professor);
             var disciplina = await service.AddDisciplinaAsync(new DisciplinaCreateUpdateViewModel
             {
@@ -43,6 +44,50 @@ namespace ESCOLA_API.Tests.Services
             Assert.Equal("azul", created.CorSituacao);
             Assert.Equal(18, created.Presencas);
             Assert.Equal(2, created.Faltas);
+            Assert.Single(publisher.Published);
+            Assert.Equal("Criacao", publisher.Published[0].Operacao);
+            Assert.Equal(created.IdCadernetaDigital, publisher.Published[0].Caderneta.IdCadernetaDigital);
+            Assert.Equal(created.Situacao, publisher.Published[0].Caderneta.Situacao);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_WhenProfessorUpdatesCaderneta_PublishesAtualizacaoEvent()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var publisher = new CapturingCadernetaDigitalEventPublisher();
+            var service = new CadernetaDigitalService(context, publisher);
+            var professor = CreatePrincipal(2, PerfilSistema.Professor);
+            var disciplina = await service.AddDisciplinaAsync(new DisciplinaCreateUpdateViewModel
+            {
+                Nome = "Matematica"
+            }, professor);
+
+            var created = await service.AddAsync(new CadernetaDigitalCreateUpdateViewModel
+            {
+                IdAlunoUsuario = 12,
+                IdDisciplina = disciplina.IdDisciplina,
+                Notas = new[] { 8m, 9m },
+                Presencas = 20,
+                Faltas = 1
+            }, professor);
+
+            var updated = await service.UpdateAsync(created.IdCadernetaDigital, new CadernetaDigitalCreateUpdateViewModel
+            {
+                IdAlunoUsuario = 12,
+                IdDisciplina = disciplina.IdDisciplina,
+                Notas = new[] { 6m, 7m },
+                Presencas = 21,
+                Faltas = 2
+            }, professor);
+
+            Assert.NotNull(updated);
+            Assert.Equal(2, publisher.Published.Count);
+            Assert.Equal("Atualizacao", publisher.Published[1].Operacao);
+            Assert.Equal("Em recuperacao", publisher.Published[1].Caderneta.Situacao);
         }
 
         [Fact]
@@ -293,6 +338,20 @@ namespace ESCOLA_API.Tests.Services
                 Presencas = 20,
                 Faltas = faltas
             }, professor);
+        }
+
+        private sealed class CapturingCadernetaDigitalEventPublisher : ICadernetaDigitalEventPublisher
+        {
+            public List<(CadernetaDigitalViewModel Caderneta, string Operacao)> Published { get; } = [];
+
+            public Task PublishNotasPublicadasAsync(
+                CadernetaDigitalViewModel caderneta,
+                string operacao,
+                CancellationToken cancellationToken = default)
+            {
+                Published.Add((caderneta, operacao));
+                return Task.CompletedTask;
+            }
         }
     }
 }

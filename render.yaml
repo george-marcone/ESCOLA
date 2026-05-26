@@ -17,3 +17,7 @@ services:
         generateValue: true
       - key: ConnectionStrings__DefaultConnection
         sync: false
+      - key: ServiceBus__ConnectionString
+        sync: false
+      - key: ServiceBus__QueueName
+        value: notificacoes
