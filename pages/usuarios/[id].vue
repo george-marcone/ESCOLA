@@ -1,30 +1,33 @@
 <template>
   <section class="grid gap-6">
-    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-      <div>
+    <div class="page-heading with-action">
+      <div class="min-w-0">
         <p class="eyebrow">Usuarios</p>
-        <h1 class="m-0 text-3xl font-extrabold text-slate-900">
+        <h1>
           {{ tituloPagina }}
         </h1>
       </div>
-      <div class="flex flex-wrap gap-2">
-        <NuxtLink class="rounded-md border border-slate-200 px-4 py-2 text-sm font-bold no-underline hover:bg-slate-100" to="/usuarios">
+      <div class="form-actions w-full sm:w-auto">
+        <NuxtLink class="btn btn-secondary gap-2" to="/usuarios">
+          <ArrowLeft class="h-5 w-5" aria-hidden="true" />
           Voltar
         </NuxtLink>
         <button
           v-if="podeEditar && !editando"
-          class="rounded-md bg-[#147f72] px-4 py-2 text-sm font-bold text-white hover:bg-[#0f6c61]"
+          class="btn btn-primary gap-2"
           type="button"
           @click="editando = true"
         >
+          <Pencil class="h-5 w-5" aria-hidden="true" />
           Editar
         </button>
         <button
           v-if="podeExcluir"
-          class="rounded-md border border-red-200 px-4 py-2 text-sm font-bold text-red-700 hover:bg-red-50"
+          class="btn btn-danger gap-2"
           type="button"
           @click="excluir"
         >
+          <Trash2 class="h-5 w-5" aria-hidden="true" />
           Excluir
         </button>
       </div>
@@ -33,10 +36,10 @@
     <p v-if="mensagem" class="alert alert-success">{{ mensagem }}</p>
     <p v-if="erro" class="alert alert-error">{{ erro }}</p>
 
-    <article v-if="usuario && deveExibirArquivos" class="grid gap-5 rounded-lg border border-slate-200 bg-white p-5">
-      <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+    <div v-if="usuario" class="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)] xl:items-start">
+      <aside class="form-panel min-w-0">
         <div class="flex min-w-0 items-center gap-4">
-          <div class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#edf3f8] text-xl font-extrabold text-[#071d3b]">
+          <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#edf3f8] text-2xl font-extrabold text-[#071d3b]">
             <img
               v-if="fotoUsuarioUrl"
               class="h-full w-full object-cover"
@@ -46,15 +49,14 @@
             <span v-else>{{ obterIniciais(usuario.nome) }}</span>
           </div>
           <div class="min-w-0">
-            <p class="eyebrow">Arquivos</p>
-            <h2 class="m-0 mt-1 text-xl font-normal text-[#071d3b]">Perfil e certificados</h2>
-            <p class="m-0 mt-1 break-words text-sm font-semibold text-[#62728a]">{{ usuario.nome }}</p>
+            <p class="eyebrow">Perfil</p>
+            <h2 class="m-0 mt-1 break-words text-xl font-normal text-[#071d3b]">{{ usuario.nome }}</h2>
+            <p class="m-0 mt-1 break-words text-sm font-semibold text-[#62728a]">{{ usuario.email }}</p>
+            <p class="m-0 mt-1 break-words text-sm font-semibold text-[#62728a]">{{ formatPerfilLabel(usuario.descricaoPerfil) }}</p>
           </div>
         </div>
-      </div>
 
-      <div class="grid gap-5 lg:grid-cols-2">
-        <section v-if="podeEnviarFoto" class="grid gap-3 rounded-md border border-[#d4dee9] bg-[#f8fbfd] p-4">
+        <section v-if="podeEnviarFoto" class="grid gap-3 border-t border-[#d4dee9] pt-5">
           <div>
             <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Foto</p>
             <h3 class="m-0 mt-1 text-base font-extrabold text-[#071d3b]">Foto do perfil</h3>
@@ -79,7 +81,7 @@
           </button>
         </section>
 
-        <section v-if="deveExibirCertificados" class="grid gap-3 rounded-md border border-[#d4dee9] bg-[#f8fbfd] p-4">
+        <section v-if="deveExibirCertificados" class="grid gap-3 border-t border-[#d4dee9] pt-5">
           <div>
             <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Certificados</p>
             <h3 class="m-0 mt-1 text-base font-extrabold text-[#071d3b]">Documentos PDF</h3>
@@ -141,71 +143,83 @@
             Nenhum certificado cadastrado.
           </p>
         </section>
-      </div>
 
-      <p v-if="mensagemArquivos" class="alert alert-success">{{ mensagemArquivos }}</p>
-      <p v-if="erroArquivos" class="alert alert-error">{{ erroArquivos }}</p>
-    </article>
+        <p v-if="mensagemArquivos" class="alert alert-success">{{ mensagemArquivos }}</p>
+        <p v-if="erroArquivos" class="alert alert-error">{{ erroArquivos }}</p>
+      </aside>
 
-    <form class="grid gap-5 rounded-lg border border-slate-200 bg-white p-5" @submit.prevent="salvar">
-      <div class="grid gap-4 md:grid-cols-2">
-        <label>
-          <span>Nome</span>
-          <input v-model.trim="form.nome" type="text" required :maxlength="USER_TEXT_FIELD_MAX_LENGTH" :disabled="!editando" />
-          <span class="text-xs font-extrabold text-slate-500">{{ form.nome.length }}/{{ USER_TEXT_FIELD_MAX_LENGTH }}</span>
-        </label>
+      <form class="form-panel min-w-0" @submit.prevent="salvar">
+        <div class="form-panel-header">
+          <div>
+            <p class="eyebrow">Cadastro</p>
+            <strong>Dados do usuario</strong>
+          </div>
+          <span>{{ editando ? 'Edicao liberada' : 'Somente leitura' }}</span>
+        </div>
 
-        <label>
-          <span>Email</span>
-          <input v-model.trim="form.email" type="email" required :maxlength="USER_TEXT_FIELD_MAX_LENGTH" :disabled="!editando" />
-          <span class="text-xs font-extrabold text-slate-500">{{ form.email.length }}/{{ USER_TEXT_FIELD_MAX_LENGTH }}</span>
-        </label>
+        <div class="form-grid two-columns">
+          <label>
+            <span>Nome</span>
+            <input v-model.trim="form.nome" type="text" required :maxlength="USER_TEXT_FIELD_MAX_LENGTH" :disabled="!editando" />
+            <span class="text-xs font-extrabold text-slate-500">{{ form.nome.length }}/{{ USER_TEXT_FIELD_MAX_LENGTH }}</span>
+          </label>
 
-        <label>
-          <span>Telefone</span>
-          <input
-            :value="form.telefone"
-            type="tel"
-            required
-            inputmode="numeric"
-            autocomplete="tel"
-            :maxlength="BRAZIL_PHONE_MASK_MAX_LENGTH"
-            :placeholder="BRAZIL_PHONE_PLACEHOLDER"
-            :disabled="!editando"
-            @beforeinput="impedirEntradaTelefoneNaoNumerica"
-            @input="atualizarTelefone"
-            @keydown="impedirTeclaTelefoneNaoNumerica"
-            @paste="colarTelefone"
-            @drop.prevent
-          />
-          <span class="text-xs font-extrabold text-slate-500">{{ form.telefone.length }}/{{ BRAZIL_PHONE_MASK_MAX_LENGTH }}</span>
-        </label>
+          <label>
+            <span>Email</span>
+            <input v-model.trim="form.email" type="email" required :maxlength="USER_TEXT_FIELD_MAX_LENGTH" :disabled="!editando" />
+            <span class="text-xs font-extrabold text-slate-500">{{ form.email.length }}/{{ USER_TEXT_FIELD_MAX_LENGTH }}</span>
+          </label>
 
-        <label>
-          <span>Tipo de usuario</span>
-          <select v-model.number="form.idPerfil" required :disabled="!podeAlterarPerfil">
-            <option v-if="!perfisFormulario.length" :value="form.idPerfil">{{ usuario?.descricaoPerfil || 'Perfil atual' }}</option>
-            <option v-for="perfil in perfisFormulario" :key="perfil.idPerfil" :value="perfil.idPerfil">
-              {{ formatPerfilLabel(perfil.descricaoPerfil) }}
-            </option>
-          </select>
-        </label>
-      </div>
+          <label>
+            <span>Telefone</span>
+            <input
+              :value="form.telefone"
+              type="tel"
+              required
+              inputmode="numeric"
+              autocomplete="tel"
+              :maxlength="BRAZIL_PHONE_MASK_MAX_LENGTH"
+              :placeholder="BRAZIL_PHONE_PLACEHOLDER"
+              :disabled="!editando"
+              @beforeinput="impedirEntradaTelefoneNaoNumerica"
+              @input="atualizarTelefone"
+              @keydown="impedirTeclaTelefoneNaoNumerica"
+              @paste="colarTelefone"
+              @drop.prevent
+            />
+            <span class="text-xs font-extrabold text-slate-500">{{ form.telefone.length }}/{{ BRAZIL_PHONE_MASK_MAX_LENGTH }}</span>
+          </label>
 
-      <div v-if="editando" class="flex flex-wrap justify-end gap-2">
-        <button class="rounded-md border border-slate-200 px-4 py-2 text-sm font-bold hover:bg-slate-100" type="button" @click="cancelar">
-          Cancelar
-        </button>
-        <button class="rounded-md bg-[#147f72] px-4 py-2 text-sm font-bold text-white hover:bg-[#0f6c61]" type="submit" :disabled="salvando">
-          {{ salvando ? 'Salvando...' : 'Salvar alteracoes' }}
-        </button>
-      </div>
-    </form>
+          <label>
+            <span>Tipo de usuario</span>
+            <select v-model.number="form.idPerfil" required :disabled="!podeAlterarPerfil">
+              <option v-if="!perfisFormulario.length" :value="form.idPerfil">{{ usuario?.descricaoPerfil || 'Perfil atual' }}</option>
+              <option v-for="perfil in perfisFormulario" :key="perfil.idPerfil" :value="perfil.idPerfil">
+                {{ formatPerfilLabel(perfil.descricaoPerfil) }}
+              </option>
+            </select>
+          </label>
+        </div>
+
+        <div v-if="editando" class="form-actions">
+          <button class="btn btn-secondary gap-2" type="button" @click="cancelar">
+            <XCircle class="h-5 w-5" aria-hidden="true" />
+            Cancelar
+          </button>
+          <button class="btn btn-primary gap-2" type="submit" :disabled="salvando">
+            <Save class="h-5 w-5" aria-hidden="true" />
+            {{ salvando ? 'Salvando...' : 'Salvar alteracoes' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <p v-else-if="!erro" class="alert alert-warning">Carregando usuario...</p>
   </section>
 </template>
 
 <script setup lang="ts">
-import { Camera, FileText, Trash2, Upload } from '@lucide/vue'
+import { ArrowLeft, Camera, FileText, Pencil, Save, Trash2, Upload, XCircle } from '@lucide/vue'
 import type { Perfil, UsuarioArquivo, UsuarioForm, UsuarioSummary, UsuarioUpdate } from '~/types/api'
 import { normalizeApiError } from '~/utils/api-client'
 import { resolveApiAssetUrl } from '~/utils/api-url'
@@ -292,9 +306,6 @@ const podeEnviarCertificado = computed(() =>
 const podeExcluirArquivo = computed(() => podeEnviarCertificado.value)
 const deveExibirCertificados = computed(() =>
   podeConsultarArquivos.value && (usuarioEhProfessor.value || certificadosUsuario.value.length > 0 || carregandoArquivos.value)
-)
-const deveExibirArquivos = computed(() =>
-  podeEnviarFoto.value || podeConsultarArquivos.value
 )
 const perfisFormulario = computed<Perfil[]>(() => {
   if (!usuario.value) return []
