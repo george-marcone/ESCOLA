@@ -256,6 +256,7 @@ const fotoInputRef = ref<HTMLInputElement | null>(null)
 const certificadoInputRef = ref<HTMLInputElement | null>(null)
 const fotoSelecionada = ref<File | null>(null)
 const certificadoSelecionado = ref<File | null>(null)
+const fotoPreviewUrl = ref('')
 const USER_TEXT_FIELD_MAX_LENGTH = 50
 const PHONE_FORMAT_ERROR = 'Informe um telefone valido no formato +55 (xx) xxxxx-xxxx.'
 const REQUIRED_FIELDS_ERROR = 'Nome, e-mail e telefone sao obrigatorios.'
@@ -270,7 +271,9 @@ const form = reactive<UsuarioForm>({
 const usuarioId = computed(() => Number(route.params.id))
 const podeEditar = computed(() => usuario.value ? canEditUsuario(auth.usuario, usuario.value) : false)
 const podeExcluir = computed(() => usuario.value ? canDeleteUsuario(auth.usuario) : false)
-const fotoUsuarioUrl = computed(() => resolveApiAssetUrl(usuario.value?.fotoPerfilUrl, config.public.apiBase))
+const fotoUsuarioUrl = computed(() =>
+  fotoPreviewUrl.value || resolveApiAssetUrl(usuario.value?.fotoPerfilUrl, config.public.apiBase)
+)
 const certificadosUsuario = computed(() =>
   arquivosUsuario.value.filter((arquivo) => arquivo.tipoArquivo?.toLowerCase() === 'certificado')
 )
@@ -330,6 +333,10 @@ onMounted(async () => {
   }
 })
 
+onBeforeUnmount(() => {
+  limparFotoPreview()
+})
+
 async function carregar() {
   erro.value = ''
 
@@ -382,6 +389,7 @@ function resetarArquivosUsuario() {
   certificadoSelecionado.value = null
   mensagemArquivos.value = ''
   erroArquivos.value = ''
+  limparFotoPreview()
   limparInputArquivo(fotoInputRef.value)
   limparInputArquivo(certificadoInputRef.value)
 }
@@ -402,7 +410,9 @@ function cancelar() {
 }
 
 function selecionarFoto(event: Event) {
-  fotoSelecionada.value = obterArquivoSelecionado(event)
+  const arquivo = obterArquivoSelecionado(event)
+  fotoSelecionada.value = arquivo
+  atualizarFotoPreview(arquivo)
   mensagemArquivos.value = ''
   erroArquivos.value = ''
 }
@@ -421,6 +431,21 @@ function obterArquivoSelecionado(event: Event) {
 function limparInputArquivo(input: HTMLInputElement | null) {
   if (input) {
     input.value = ''
+  }
+}
+
+function atualizarFotoPreview(arquivo: File | null) {
+  limparFotoPreview()
+
+  if (arquivo?.type.startsWith('image/')) {
+    fotoPreviewUrl.value = URL.createObjectURL(arquivo)
+  }
+}
+
+function limparFotoPreview() {
+  if (fotoPreviewUrl.value) {
+    URL.revokeObjectURL(fotoPreviewUrl.value)
+    fotoPreviewUrl.value = ''
   }
 }
 
@@ -449,6 +474,7 @@ async function enviarFoto() {
 
     preencherForm(usuario.value)
     fotoSelecionada.value = null
+    limparFotoPreview()
     limparInputArquivo(fotoInputRef.value)
     mensagemArquivos.value = 'Foto atualizada.'
   } catch (err) {

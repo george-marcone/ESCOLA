@@ -478,6 +478,7 @@ const fotoInputRef = ref<HTMLInputElement | null>(null)
 const certificadoInputRef = ref<HTMLInputElement | null>(null)
 const fotoSelecionada = ref<File | null>(null)
 const certificadoSelecionado = ref<File | null>(null)
+const fotoPreviewUrl = ref('')
 const porPagina = 10
 const editandoId = ref<number | null>(null)
 const USER_TEXT_FIELD_MAX_LENGTH = 50
@@ -515,7 +516,7 @@ const usuarioEmEdicao = computed(() =>
   editandoId.value ? usuarios.value.find((usuario) => usuario.idUsuario === editandoId.value) ?? null : null
 )
 const fotoUsuarioEmEdicao = computed(() =>
-  resolveApiAssetUrl(usuarioEmEdicao.value?.fotoPerfilUrl, config.public.apiBase)
+  fotoPreviewUrl.value || resolveApiAssetUrl(usuarioEmEdicao.value?.fotoPerfilUrl, config.public.apiBase)
 )
 const certificadosUsuario = computed(() =>
   arquivosUsuario.value.filter((arquivo) => arquivo.tipoArquivo?.toLowerCase() === 'certificado')
@@ -544,7 +545,6 @@ const podeAlterarPerfilNoFormulario = computed(() =>
 )
 const tituloFormulario = computed(() => {
   if (editandoId.value) return 'Editar usuario'
-  if (auth.isProfessor) return 'Novo aluno'
 
   return 'Novo usuario'
 })
@@ -552,11 +552,11 @@ const textoBotaoSalvar = computed(() => {
   if (salvando.value) return 'Salvando...'
   if (editandoId.value) return 'Atualizar usuario'
 
-  return auth.isProfessor ? 'Cadastrar aluno' : 'Cadastrar usuario'
+  return 'Cadastrar usuario'
 })
 const textoPermissaoConsulta = computed(() => {
   if (auth.isAluno) return 'Seu perfil permite corrigir seus dados cadastrais.'
-  if (auth.isProfessor) return 'Seu perfil permite cadastrar alunos e consultar os usuarios permitidos.'
+  if (auth.isProfessor) return 'Seu perfil permite consultar alunos e professores cadastrados, e alterar apenas seus proprios dados.'
 
   return 'Seu perfil permite consultar os usuarios cadastrados.'
 })
@@ -614,6 +614,10 @@ onMounted(async () => {
   if (podeCadastrarUsuarios.value || canChangeUsuarioPerfil(auth.usuario)) {
     await carregarPerfis()
   }
+})
+
+onBeforeUnmount(() => {
+  limparFotoPreview()
 })
 
 async function carregar() {
@@ -696,12 +700,15 @@ function resetarArquivosUsuario() {
   certificadoSelecionado.value = null
   mensagemArquivos.value = ''
   erroArquivos.value = ''
+  limparFotoPreview()
   limparInputArquivo(fotoInputRef.value)
   limparInputArquivo(certificadoInputRef.value)
 }
 
 function selecionarFoto(event: Event) {
-  fotoSelecionada.value = obterArquivoSelecionado(event)
+  const arquivo = obterArquivoSelecionado(event)
+  fotoSelecionada.value = arquivo
+  atualizarFotoPreview(arquivo)
   mensagemArquivos.value = ''
   erroArquivos.value = ''
 }
@@ -720,6 +727,21 @@ function obterArquivoSelecionado(event: Event) {
 function limparInputArquivo(input: HTMLInputElement | null) {
   if (input) {
     input.value = ''
+  }
+}
+
+function atualizarFotoPreview(arquivo: File | null) {
+  limparFotoPreview()
+
+  if (arquivo?.type.startsWith('image/')) {
+    fotoPreviewUrl.value = URL.createObjectURL(arquivo)
+  }
+}
+
+function limparFotoPreview() {
+  if (fotoPreviewUrl.value) {
+    URL.revokeObjectURL(fotoPreviewUrl.value)
+    fotoPreviewUrl.value = ''
   }
 }
 
@@ -862,6 +884,7 @@ async function enviarFoto() {
 
     atualizarUsuarioLocal(updated)
     fotoSelecionada.value = null
+    limparFotoPreview()
     limparInputArquivo(fotoInputRef.value)
     mensagemArquivos.value = 'Foto atualizada.'
   } catch (err) {

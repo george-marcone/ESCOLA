@@ -35,7 +35,7 @@ export function canManageAllUsuarios(descricaoPerfil?: string | null) {
 }
 
 export function canCreateAlunoUsuarios(descricaoPerfil?: string | null) {
-  return canManageAllUsuarios(descricaoPerfil) || isPerfilProfessor(descricaoPerfil)
+  return canManageAllUsuarios(descricaoPerfil)
 }
 
 export function canEditUsuario(currentUsuario: UsuarioSummary | null | undefined, targetUsuario: UsuarioSummary) {
@@ -43,7 +43,7 @@ export function canEditUsuario(currentUsuario: UsuarioSummary | null | undefined
   if (canManageAllUsuarios(currentUsuario.descricaoPerfil)) return true
   if (currentUsuario.idUsuario === targetUsuario.idUsuario) return true
 
-  return isPerfilProfessor(currentUsuario.descricaoPerfil) && isPerfilAluno(targetUsuario.descricaoPerfil)
+  return false
 }
 
 export function canDeleteUsuario(currentUsuario: UsuarioSummary | null | undefined) {
@@ -58,7 +58,9 @@ export function canViewUsuarioInList(currentUsuario: UsuarioSummary | null | und
   if (!currentUsuario) return false
   if (canManageAllUsuarios(currentUsuario.descricaoPerfil)) return true
   if (isPerfilProfessor(currentUsuario.descricaoPerfil)) {
-    return currentUsuario.idUsuario === targetUsuario.idUsuario || isPerfilAluno(targetUsuario.descricaoPerfil)
+    return currentUsuario.idUsuario === targetUsuario.idUsuario
+      || isPerfilAluno(targetUsuario.descricaoPerfil)
+      || isPerfilProfessor(targetUsuario.descricaoPerfil)
   }
 
   return currentUsuario.idUsuario === targetUsuario.idUsuario
@@ -92,10 +94,6 @@ export function getTipoUsuarioForApiByPerfilId(perfis: Perfil[], idPerfil: numbe
 export function filterPerfisForUsuarioCreation(perfis: Perfil[], currentUsuario: UsuarioSummary | null | undefined) {
   if (canManageAllUsuarios(currentUsuario?.descricaoPerfil)) {
     return perfis.filter((perfil) => getUsuarioPerfilTipo(perfil.descricaoPerfil) !== 'desconhecido')
-  }
-
-  if (isPerfilProfessor(currentUsuario?.descricaoPerfil)) {
-    return perfis.filter((perfil) => isPerfilAluno(perfil.descricaoPerfil))
   }
 
   return []

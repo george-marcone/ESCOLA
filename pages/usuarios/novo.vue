@@ -2,7 +2,7 @@
   <section class="grid gap-6">
     <div>
       <p class="eyebrow">Usuarios</p>
-      <h1 class="m-0 text-3xl font-extrabold text-slate-900">{{ auth.isProfessor ? 'Novo aluno' : 'Novo usuario' }}</h1>
+      <h1 class="m-0 text-3xl font-extrabold text-slate-900">Novo usuario</h1>
     </div>
 
     <form class="grid gap-5 rounded-lg border border-slate-200 bg-white p-5" @submit.prevent="salvar">
@@ -60,7 +60,7 @@
           Cancelar
         </NuxtLink>
         <button class="rounded-md bg-[#147f72] px-4 py-2 text-sm font-bold text-white hover:bg-[#0f6c61]" type="submit" :disabled="salvando">
-          {{ salvando ? 'Salvando...' : auth.isProfessor ? 'Salvar aluno' : 'Salvar usuario' }}
+          {{ salvando ? 'Salvando...' : 'Salvar usuario' }}
         </button>
       </div>
     </form>

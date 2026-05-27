@@ -58,10 +58,13 @@ describe('usuario-permissions', () => {
     expect(canManageAllUsuarios('Professor')).toBe(false)
   })
 
-  it('allows professors to create and edit only student users beyond themselves', () => {
-    expect(canCreateAlunoUsuarios(professor.descricaoPerfil)).toBe(true)
-    expect(canEditUsuario(professor, aluno)).toBe(true)
+  it('allows professors to view students and professors, but edit only themselves', () => {
+    expect(canCreateAlunoUsuarios(professor.descricaoPerfil)).toBe(false)
+    expect(canEditUsuario(professor, aluno)).toBe(false)
+    expect(canEditUsuario(professor, professor)).toBe(true)
     expect(canEditUsuario(professor, administrador)).toBe(false)
+    expect(canViewUsuarioInList(professor, aluno)).toBe(true)
+    expect(canViewUsuarioInList(professor, professor)).toBe(true)
   })
 
   it('allows students to see and edit only their own user', () => {
@@ -76,7 +79,7 @@ describe('usuario-permissions', () => {
       'Professor',
       'Aluno'
     ])
-    expect(filterPerfisForUsuarioCreation(perfis, professor).map((perfil) => perfil.descricaoPerfil)).toEqual(['Aluno'])
+    expect(filterPerfisForUsuarioCreation(perfis, professor)).toEqual([])
     expect(filterPerfisForUsuarioCreation(perfis, aluno)).toEqual([])
   })
 
