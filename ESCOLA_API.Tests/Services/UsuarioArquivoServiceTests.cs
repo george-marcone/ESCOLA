@@ -36,6 +36,14 @@ namespace ESCOLA_API.Tests.Services
                 Assert.NotNull(updated);
                 Assert.StartsWith("/uploads/usuarios/12/foto/", updated!.FotoPerfilUrl);
                 Assert.True(File.Exists(ToPhysicalPath(uploadRoot, updated.FotoPerfilUrl!)));
+
+                var download = await service.DownloadFotoAsync(12, CreatePrincipal(1, PerfilSistema.Administrador));
+                Assert.NotNull(download);
+                Assert.Equal("image/jpeg", download!.ContentType);
+                await using (download.Stream)
+                {
+                    Assert.True(download.Stream.Length > 0);
+                }
             }
             finally
             {
@@ -66,6 +74,15 @@ namespace ESCOLA_API.Tests.Services
                 Assert.Equal("certificado.pdf", created.NomeOriginal);
                 Assert.StartsWith("usuarios/2/certificados/", created.NomeBlob);
                 Assert.True(File.Exists(ToPhysicalPath(uploadRoot, created.Url!)));
+
+                var download = await service.DownloadArquivoAsync(2, created.IdArquivo, CreatePrincipal(1, PerfilSistema.Administrador));
+                Assert.NotNull(download);
+                Assert.Equal("application/pdf", download!.ContentType);
+                Assert.Equal("certificado.pdf", download.NomeArquivo);
+                await using (download.Stream)
+                {
+                    Assert.True(download.Stream.Length > 0);
+                }
             }
             finally
             {

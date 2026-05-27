@@ -191,6 +191,33 @@ namespace ESCOLA_API.Controllers
         }
 
         /// <summary>
+        /// Obtem a foto de perfil do usuario.
+        /// </summary>
+        [HttpGet("{usuarioId:int}/foto")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetFoto(int usuarioId)
+        {
+            try
+            {
+                var arquivo = await _arquivoService.DownloadFotoAsync(usuarioId, User);
+                if (arquivo == null) return NotFound();
+                return File(arquivo.Stream, arquivo.ContentType, arquivo.NomeArquivo);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao obter foto do usuario {UsuarioId}", usuarioId);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
+            }
+        }
+
+        /// <summary>
         /// Lista arquivos vinculados ao usuario.
         /// </summary>
         [HttpGet("{usuarioId:int}/arquivos")]
@@ -211,6 +238,33 @@ namespace ESCOLA_API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao obter arquivos do usuario {UsuarioId}", usuarioId);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
+            }
+        }
+
+        /// <summary>
+        /// Baixa um arquivo vinculado ao usuario.
+        /// </summary>
+        [HttpGet("{usuarioId:int}/arquivos/{arquivoId:int}/download")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DownloadArquivo(int usuarioId, int arquivoId)
+        {
+            try
+            {
+                var arquivo = await _arquivoService.DownloadArquivoAsync(usuarioId, arquivoId, User);
+                if (arquivo == null) return NotFound();
+                return File(arquivo.Stream, arquivo.ContentType, arquivo.NomeArquivo);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao baixar arquivo {ArquivoId} do usuario {UsuarioId}", arquivoId, usuarioId);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }

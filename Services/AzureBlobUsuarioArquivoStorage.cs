@@ -51,6 +51,36 @@ namespace ESCOLA_API.Services
             };
         }
 
+        public async Task<ArquivoDownload?> AbrirAsync(string? nomeBlob, string? url, string? nomeOriginal, string? contentType)
+        {
+            var blobName = !string.IsNullOrWhiteSpace(nomeBlob)
+                ? nomeBlob
+                : TryGetBlobNameFromUrl(url);
+
+            if (string.IsNullOrWhiteSpace(blobName))
+            {
+                return null;
+            }
+
+            var blobClient = _containerClient.GetBlobClient(blobName);
+            if (!await blobClient.ExistsAsync())
+            {
+                return null;
+            }
+
+            var download = await blobClient.DownloadStreamingAsync();
+            return new ArquivoDownload
+            {
+                Stream = download.Value.Content,
+                ContentType = string.IsNullOrWhiteSpace(contentType)
+                    ? download.Value.Details.ContentType ?? "application/octet-stream"
+                    : contentType,
+                NomeArquivo = string.IsNullOrWhiteSpace(nomeOriginal)
+                    ? Path.GetFileName(blobName)
+                    : nomeOriginal
+            };
+        }
+
         public async Task RemoverAsync(string? nomeBlob, string? url)
         {
             var blobName = !string.IsNullOrWhiteSpace(nomeBlob)
@@ -82,13 +112,22 @@ namespace ESCOLA_API.Services
                 return null;
             }
 
-            var segments = uri.AbsolutePath.Trim('/').Split('/', StringSplitOptions.RemoveEmptyEntries);
-            if (segments.Length < 2 || !segments[0].Equals(_containerClient.Name, StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrWhiteSpace(_publicBaseUrl)
+                && url.StartsWith($"{_publicBaseUrl}/", StringComparison.OrdinalIgnoreCase))
             {
-                return null;
+                return Uri.UnescapeDataString(url[(_publicBaseUrl.Length + 1)..]);
             }
 
-            return string.Join('/', segments.Skip(1));
+            var path = uri.AbsolutePath.Trim('/');
+            var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            if (segments.Length < 2 || !segments[0].Equals(_containerClient.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                return path.StartsWith("usuarios/", StringComparison.OrdinalIgnoreCase)
+                    ? Uri.UnescapeDataString(path)
+                    : null;
+            }
+
+            return Uri.UnescapeDataString(string.Join('/', segments.Skip(1)));
         }
     }
 }
