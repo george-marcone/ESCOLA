@@ -37,7 +37,7 @@
     <p v-if="erro" class="alert alert-error">{{ erro }}</p>
 
     <div v-if="usuario" class="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)] xl:items-start">
-      <aside class="form-panel min-w-0">
+      <aside class="form-panel min-w-0 overflow-hidden">
         <div class="flex min-w-0 items-center gap-4">
           <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#edf3f8] text-2xl font-extrabold text-[#071d3b]">
             <img
@@ -56,7 +56,7 @@
           </div>
         </div>
 
-        <section v-if="podeEnviarFoto" class="grid gap-3 border-t border-[#d4dee9] pt-5">
+        <section v-if="podeEnviarFoto" class="grid min-w-0 gap-3 border-t border-[#d4dee9] pt-5">
           <div>
             <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Foto</p>
             <h3 class="m-0 mt-1 text-base font-extrabold text-[#071d3b]">Foto do perfil</h3>
@@ -65,13 +65,14 @@
             <span>Arquivo de imagem</span>
             <input
               ref="fotoInputRef"
+              class="min-h-11 w-full min-w-0 max-w-full"
               type="file"
               accept="image/jpeg,image/png,image/webp"
               @change="selecionarFoto"
             />
           </label>
           <button
-            class="btn btn-primary min-h-11 gap-2"
+            class="btn btn-primary min-h-11 w-full max-w-full gap-2"
             type="button"
             :disabled="!fotoSelecionada || enviandoFoto"
             @click="enviarFoto"
@@ -81,7 +82,7 @@
           </button>
         </section>
 
-        <section v-if="deveExibirCertificados" class="grid gap-3 border-t border-[#d4dee9] pt-5">
+        <section v-if="deveExibirCertificados" class="grid min-w-0 gap-3 border-t border-[#d4dee9] pt-5">
           <div>
             <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Certificados</p>
             <h3 class="m-0 mt-1 text-base font-extrabold text-[#071d3b]">Documentos PDF</h3>
@@ -92,13 +93,14 @@
               <span>Certificado PDF</span>
               <input
                 ref="certificadoInputRef"
+                class="min-h-11 w-full min-w-0 max-w-full"
                 type="file"
                 accept="application/pdf"
                 @change="selecionarCertificado"
               />
             </label>
             <button
-              class="btn btn-primary min-h-11 gap-2"
+              class="btn btn-primary min-h-11 w-full max-w-full gap-2"
               type="button"
               :disabled="!certificadoSelecionado || enviandoCertificado"
               @click="enviarCertificado"
@@ -115,7 +117,7 @@
             <div
               v-for="arquivo in certificadosUsuario"
               :key="obterArquivoId(arquivo)"
-              class="flex items-center justify-between gap-3 rounded-md border border-[#d4dee9] bg-white p-3"
+              class="flex min-w-0 items-center justify-between gap-3 rounded-md border border-[#d4dee9] bg-white p-3"
             >
               <a
                 class="inline-flex min-w-0 items-center gap-2 text-sm font-extrabold text-[#071d3b] no-underline hover:text-[#147f72]"
@@ -295,13 +297,13 @@ const usuarioEhProfessor = computed(() =>
   getUsuarioPerfilTipo(usuario.value?.descricaoPerfil) === 'professor'
 )
 const podeConsultarArquivos = computed(() =>
-  Boolean(usuario.value && (auth.isAdmin || auth.usuario?.idUsuario === usuario.value.idUsuario))
+  Boolean(usuario.value && (auth.isAdmin || auth.usuario?.idUsuario === usuario.value.idUsuario || (auth.isProfessor && usuarioEhProfessor.value)))
 )
 const podeEnviarFoto = computed(() =>
-  usuario.value ? canEditUsuario(auth.usuario, usuario.value) : false
+  usuario.value ? editando.value && canEditUsuario(auth.usuario, usuario.value) : false
 )
 const podeEnviarCertificado = computed(() =>
-  Boolean(usuario.value && usuarioEhProfessor.value && (auth.isAdmin || auth.usuario?.idUsuario === usuario.value.idUsuario))
+  Boolean(editando.value && usuario.value && usuarioEhProfessor.value && (auth.isAdmin || auth.usuario?.idUsuario === usuario.value.idUsuario))
 )
 const podeExcluirArquivo = computed(() => podeEnviarCertificado.value)
 const deveExibirCertificados = computed(() =>

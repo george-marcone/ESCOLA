@@ -215,7 +215,7 @@
       </p>
     </aside>
 
-    <article class="min-w-0 rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6">
+    <article class="min-w-0 rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6" :aria-busy="carregandoArquivosLista">
       <div class="flex items-start justify-between gap-4">
         <div>
           <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">{{ usuariosVisiveis.length }} usuario(s)</p>
@@ -260,6 +260,7 @@
               <th class="px-4 py-4">E-mail</th>
               <th class="px-4 py-4">Telefone</th>
               <th class="px-4 py-4">Tipo</th>
+              <th class="px-4 py-4 text-center">Docs</th>
               <th class="px-4 py-4 text-center">Acoes</th>
             </tr>
           </thead>
@@ -282,6 +283,21 @@
               <td class="px-4 py-4 text-[#243044]">{{ usuario.email }}</td>
               <td class="px-4 py-4 text-[#243044]">{{ formatBrazilPhone(usuario.telefone) || '-' }}</td>
               <td class="px-4 py-4 text-[#243044]">{{ formatPerfilLabel(usuario.descricaoPerfil) }}</td>
+              <td class="px-4 py-4">
+                <div class="flex justify-center">
+                  <button
+                    v-if="usuarioTemCertificados(usuario)"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-md bg-[#edf3f8] text-[#071d3b] transition hover:bg-[#dfe8f1]"
+                    type="button"
+                    title="Ver documentos"
+                    aria-label="Ver documentos"
+                    @click="abrirArquivosProfessor(usuario)"
+                  >
+                    <FileText class="h-5 w-5" aria-hidden="true" />
+                  </button>
+                  <span v-else class="inline-flex h-10 w-10 items-center justify-center text-[#9aa8ba]">-</span>
+                </div>
+              </td>
               <td class="px-4 py-4">
                 <div class="flex justify-center gap-2">
                   <NuxtLink
@@ -316,10 +332,10 @@
               </td>
             </tr>
             <tr v-if="!carregando && !usuariosFiltrados.length">
-              <td class="px-4 py-6 text-[#62728a]" colspan="5">Nenhum usuario encontrado.</td>
+              <td class="px-4 py-6 text-[#62728a]" colspan="6">Nenhum usuario encontrado.</td>
             </tr>
             <tr v-if="carregando && !usuarios.length">
-              <td class="px-4 py-6 text-[#62728a]" colspan="5">Carregando usuarios...</td>
+              <td class="px-4 py-6 text-[#62728a]" colspan="6">Carregando usuarios...</td>
             </tr>
           </tbody>
         </table>
@@ -355,6 +371,16 @@
             <strong>Telefone:</strong> {{ formatBrazilPhone(usuario.telefone) || '-' }}
           </p>
           <div class="mt-4 flex flex-wrap gap-2">
+            <button
+              v-if="usuarioTemCertificados(usuario)"
+              class="inline-flex h-10 flex-1 items-center justify-center rounded-md bg-[#edf3f8] text-[#071d3b] transition hover:bg-[#dfe8f1]"
+              type="button"
+              title="Ver documentos"
+              aria-label="Ver documentos"
+              @click="abrirArquivosProfessor(usuario)"
+            >
+              <FileText class="h-5 w-5" aria-hidden="true" />
+            </button>
             <NuxtLink
               class="inline-flex h-10 flex-1 items-center justify-center rounded-md bg-[#edf3f8] text-[#071d3b] no-underline transition hover:bg-[#dfe8f1]"
               :to="`/usuarios/${usuario.idUsuario}`"
@@ -419,11 +445,60 @@
         </div>
       </div>
     </article>
+
+    <div
+      v-if="usuarioArquivosPopup"
+      class="fixed inset-0 z-40 grid place-items-center bg-[#071d3b]/50 px-4 py-6"
+      @click.self="fecharArquivosProfessor"
+    >
+      <article class="grid max-h-[90vh] w-full max-w-lg gap-4 overflow-auto rounded-lg bg-white p-5 shadow-[0_22px_55px_rgba(14,30,53,0.24)]">
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0">
+            <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Documentos</p>
+            <h2 class="m-0 mt-1 break-words text-xl font-normal text-[#071d3b]">{{ usuarioArquivosPopup.nome }}</h2>
+          </div>
+          <button
+            class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#edf3f8] text-[#071d3b] transition hover:bg-[#dfe8f1]"
+            type="button"
+            title="Fechar"
+            aria-label="Fechar"
+            @click="fecharArquivosProfessor"
+          >
+            <X class="h-5 w-5" aria-hidden="true" />
+          </button>
+        </div>
+
+        <div class="grid gap-2">
+          <a
+            v-for="arquivo in arquivosPopup"
+            :key="obterArquivoId(arquivo)"
+            class="flex min-w-0 items-center justify-between gap-3 rounded-md border border-[#d4dee9] bg-[#f8fbfd] p-3 text-[#071d3b] no-underline transition hover:border-[#147f72]"
+            :href="resolverArquivoUrl(arquivo.url)"
+            target="_blank"
+            rel="noreferrer"
+            download
+          >
+            <span class="inline-flex min-w-0 items-center gap-2">
+              <FileText class="h-5 w-5 shrink-0" aria-hidden="true" />
+              <span class="truncate text-sm font-extrabold">{{ arquivo.nomeOriginal || 'Certificado PDF' }}</span>
+            </span>
+            <span class="inline-flex shrink-0 items-center gap-2 text-xs font-extrabold text-[#62728a]">
+              {{ formatarTamanhoArquivo(arquivo.tamanhoBytes) }}
+              <Download class="h-4 w-4" aria-hidden="true" />
+            </span>
+          </a>
+        </div>
+
+        <p v-if="!arquivosPopup.length" class="m-0 rounded-md border border-[#d4dee9] bg-[#f8fbfd] p-3 text-sm font-semibold text-[#62728a]">
+          Nenhum documento cadastrado.
+        </p>
+      </article>
+    </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { Camera, ChevronLeft, ChevronRight, Eye, FileText, Pencil, Plus, RefreshCcw, Search, Send, Trash2, Upload } from '@lucide/vue'
+import { Camera, ChevronLeft, ChevronRight, Download, Eye, FileText, Pencil, Plus, RefreshCcw, Search, Send, Trash2, Upload, X } from '@lucide/vue'
 import type { Perfil, UsuarioArquivo, UsuarioCreate, UsuarioForm, UsuarioSummary, UsuarioUpdate } from '~/types/api'
 import { normalizeApiError } from '~/utils/api-client'
 import { resolveApiAssetUrl } from '~/utils/api-url'
@@ -460,9 +535,12 @@ const auth = useAuthStore()
 const usuarios = ref<UsuarioSummary[]>([])
 const perfis = ref<Perfil[]>([])
 const arquivosUsuario = ref<UsuarioArquivo[]>([])
+const arquivosPorUsuario = ref<Record<number, UsuarioArquivo[]>>({})
+const usuarioArquivosPopup = ref<UsuarioSummary | null>(null)
 const carregando = ref(false)
 const salvando = ref(false)
 const carregandoArquivos = ref(false)
+const carregandoArquivosLista = ref(false)
 const enviandoFoto = ref(false)
 const enviandoCertificado = ref(false)
 const enviandoNotificacao = ref(false)
@@ -520,6 +598,9 @@ const fotoUsuarioEmEdicao = computed(() =>
 )
 const certificadosUsuario = computed(() =>
   arquivosUsuario.value.filter((arquivo) => arquivo.tipoArquivo?.toLowerCase() === 'certificado')
+)
+const arquivosPopup = computed(() =>
+  usuarioArquivosPopup.value ? obterCertificadosDoUsuario(usuarioArquivosPopup.value.idUsuario) : []
 )
 const podeEnviarCertificado = computed(() =>
   getUsuarioPerfilTipo(usuarioEmEdicao.value?.descricaoPerfil) === 'professor'
@@ -631,7 +712,6 @@ async function carregar() {
       try {
         const usuario = await $api<UsuarioSummary>(`/usuarios/${auth.usuario.idUsuario}`)
         usuarios.value = [usuario]
-        return
       } catch {
         usuarios.value = [auth.usuario]
       }
@@ -641,6 +721,8 @@ async function carregar() {
   } finally {
     carregando.value = false
   }
+
+  await carregarArquivosProfessores()
 }
 
 async function carregarPerfis() {
@@ -660,11 +742,69 @@ async function carregarArquivos(idUsuario: number) {
 
   try {
     arquivosUsuario.value = await $api<UsuarioArquivo[]>(`/usuarios/${idUsuario}/arquivos`)
+    arquivosPorUsuario.value = {
+      ...arquivosPorUsuario.value,
+      [idUsuario]: obterApenasCertificados(arquivosUsuario.value)
+    }
   } catch (err) {
     erroArquivos.value = normalizeApiError(err)
   } finally {
     carregandoArquivos.value = false
   }
+}
+
+async function carregarArquivosProfessores() {
+  const professores = usuariosVisiveis.value.filter(usuarioEhProfessorDaLista)
+  arquivosPorUsuario.value = {}
+
+  if (!professores.length) {
+    return
+  }
+
+  carregandoArquivosLista.value = true
+
+  try {
+    const resultados = await Promise.all(professores.map(async (usuario) => {
+      try {
+        const arquivos = await $api<UsuarioArquivo[]>(`/usuarios/${usuario.idUsuario}/arquivos`)
+        return [usuario.idUsuario, obterApenasCertificados(arquivos)] as const
+      } catch {
+        return [usuario.idUsuario, []] as const
+      }
+    }))
+
+    arquivosPorUsuario.value = Object.fromEntries(resultados)
+  } finally {
+    carregandoArquivosLista.value = false
+  }
+}
+
+function obterApenasCertificados(arquivos: UsuarioArquivo[]) {
+  return arquivos.filter((arquivo) => arquivo.tipoArquivo?.toLowerCase() === 'certificado')
+}
+
+function usuarioEhProfessorDaLista(usuario: UsuarioSummary) {
+  return getUsuarioPerfilTipo(usuario.descricaoPerfil) === 'professor'
+}
+
+function obterCertificadosDoUsuario(idUsuario: number) {
+  return arquivosPorUsuario.value[idUsuario] ?? []
+}
+
+function usuarioTemCertificados(usuario: UsuarioSummary) {
+  return usuarioEhProfessorDaLista(usuario) && obterCertificadosDoUsuario(usuario.idUsuario).length > 0
+}
+
+function abrirArquivosProfessor(usuario: UsuarioSummary) {
+  if (!usuarioTemCertificados(usuario)) {
+    return
+  }
+
+  usuarioArquivosPopup.value = usuario
+}
+
+function fecharArquivosProfessor() {
+  usuarioArquivosPopup.value = null
 }
 
 function editar(usuario: UsuarioSummary) {
@@ -1013,6 +1153,16 @@ async function excluir(usuario: UsuarioSummary) {
 
 function resolverArquivoUrl(url?: string | null) {
   return resolveApiAssetUrl(url, config.public.apiBase)
+}
+
+function formatarTamanhoArquivo(tamanhoBytes?: number | null) {
+  if (!tamanhoBytes || tamanhoBytes <= 0) return 'PDF'
+
+  if (tamanhoBytes < 1024 * 1024) {
+    return `${Math.ceil(tamanhoBytes / 1024)} KB`
+  }
+
+  return `${(tamanhoBytes / (1024 * 1024)).toFixed(1).replace('.', ',')} MB`
 }
 
 function obterArquivoId(arquivo: UsuarioArquivo) {
