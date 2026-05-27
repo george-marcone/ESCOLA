@@ -11,8 +11,11 @@ namespace ESCOLA_API.Services
 
         public AzureBlobUsuarioArquivoStorage(IConfiguration configuration)
         {
-            var connectionString = configuration["AzureBlob:ConnectionString"];
-            var containerName = configuration["AzureBlob:ContainerName"] ?? "escola-uploads";
+            var connectionString = configuration["AzureBlob:ConnectionString"]
+                ?? configuration["AzureStorage:ConnectionString"];
+            var containerName = configuration["AzureBlob:ContainerName"]
+                ?? configuration["AzureStorage:ContainerName"]
+                ?? "arquivos";
 
             if (string.IsNullOrWhiteSpace(connectionString))
             {
@@ -20,7 +23,8 @@ namespace ESCOLA_API.Services
             }
 
             _containerClient = new BlobContainerClient(connectionString, containerName);
-            _publicBaseUrl = configuration["AzureBlob:PublicBaseUrl"]?.TrimEnd('/');
+            _publicBaseUrl = (configuration["AzureBlob:PublicBaseUrl"]
+                ?? configuration["AzureStorage:PublicBaseUrl"])?.TrimEnd('/');
         }
 
         public async Task<ArquivoSalvo> SalvarAsync(int usuarioId, string categoria, IFormFile arquivo)

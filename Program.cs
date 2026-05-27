@@ -17,6 +17,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
+ConfigureHttpPort(builder);
 var logDirectory = Path.Combine(builder.Environment.ContentRootPath, "logs");
 Directory.CreateDirectory(logDirectory);
 
@@ -258,6 +259,17 @@ static string ResolveJwtKey(IHostEnvironment environment, IConfiguration configu
     var generatedKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
     File.WriteAllText(localKeyPath, generatedKey);
     return generatedKey;
+}
+
+static void ConfigureHttpPort(WebApplicationBuilder builder)
+{
+    var port = Environment.GetEnvironmentVariable("PORT");
+    if (string.IsNullOrWhiteSpace(port))
+    {
+        return;
+    }
+
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 }
 
 static bool IsSqliteConnectionString(string connectionString)

@@ -37,11 +37,11 @@ No Render, cadastre as variaveis em **Web Service > Environment** e depois faca 
 | `ServiceBus__ConsumerEnabled` | Opcional. Define se a API tambem consome a fila e grava notificacoes no banco. Padrao: `true`. |
 | `Uploads__Provider` | Use `AzureBlob` em producao para salvar fotos e PDFs no Azure Blob Storage. Use `Local` em desenvolvimento. |
 | `AzureBlob__ConnectionString` | Obrigatoria quando `Uploads__Provider=AzureBlob`. Use a connection string do Storage Account. |
-| `AzureBlob__ContainerName` | Container dos arquivos. Padrao usado no deploy: `escola-uploads`. |
+| `AzureBlob__ContainerName` | Container dos arquivos. Padrao usado no deploy: `arquivos`. |
 | `AzureBlob__PublicBaseUrl` | Opcional. URL publica/CDN do container. Se vazia, a API usa a URL padrao do blob. |
 | `ASPNETCORE_ENVIRONMENT` | `Production` |
 
-O separador `__` nas variaveis de ambiente representa `:` na configuracao do ASP.NET Core. Por isso, `Jwt:Key` deve ser cadastrado como `Jwt__Key`, `ConnectionStrings:DefaultConnection` como `ConnectionStrings__DefaultConnection`, e `AzureBlob:ConnectionString` como `AzureBlob__ConnectionString`.
+O separador `__` nas variaveis de ambiente representa `:` na configuracao do ASP.NET Core. Por isso, `Jwt:Key` deve ser cadastrado como `Jwt__Key`, `ConnectionStrings:DefaultConnection` como `ConnectionStrings__DefaultConnection`, e `AzureBlob:ConnectionString` como `AzureBlob__ConnectionString`. A API tambem aceita `AzureStorage__ConnectionString`, `AzureStorage__ContainerName` e `AzureStorage__PublicBaseUrl` como alias.
 
 Para testes simples sem banco externo, e possivel usar SQLite com `ConnectionStrings__DefaultConnection=Data Source=escola.db`, mas os dados podem ser perdidos em redeploy/restart do container. Para uso real, prefira SQL Server persistente.
 
