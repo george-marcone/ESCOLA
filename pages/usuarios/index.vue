@@ -2,7 +2,7 @@
   <section class="grid gap-5 xl:grid-cols-[minmax(280px,360px)_minmax(0,1fr)]">
     <form
       v-if="exibeFormulario"
-      class="rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6"
+      class="min-w-0 overflow-hidden rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6"
       @submit.prevent="salvar"
     >
       <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">{{ editandoId ? 'Edicao' : 'Cadastro' }}</p>
@@ -58,7 +58,7 @@
           </select>
         </label>
 
-        <div v-if="editandoId" class="grid gap-4 rounded-md border border-[#d4dee9] bg-[#f8fbfd] p-4">
+        <div v-if="editandoId" class="grid min-w-0 gap-4 overflow-hidden rounded-md border border-[#d4dee9] bg-[#f8fbfd] p-4">
           <div class="flex items-center gap-3">
             <div class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#edf3f8] text-lg font-extrabold text-[#071d3b]">
               <img
@@ -79,14 +79,14 @@
             <span>Foto do perfil</span>
             <input
               ref="fotoInputRef"
-              class="min-h-11 rounded-md border border-[#ccd8e5] bg-white px-3 py-2 text-[#071d3b] outline-none focus:border-[#147f72] focus:ring-4 focus:ring-[#147f72]/10"
+              class="min-h-11 w-full min-w-0 max-w-full rounded-md border border-[#ccd8e5] bg-white px-3 py-2 text-[#071d3b] outline-none focus:border-[#147f72] focus:ring-4 focus:ring-[#147f72]/10"
               type="file"
               accept="image/jpeg,image/png,image/webp"
               @change="selecionarFoto"
             />
           </label>
           <button
-            class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-[#147f72] px-4 text-sm font-extrabold text-white transition hover:bg-[#0f6c61] disabled:cursor-wait disabled:opacity-70"
+            class="inline-flex min-h-11 w-full max-w-full items-center justify-center gap-2 rounded-md bg-[#147f72] px-4 text-sm font-extrabold text-white transition hover:bg-[#0f6c61] disabled:cursor-wait disabled:opacity-70"
             type="button"
             :disabled="!fotoSelecionada || enviandoFoto"
             @click="enviarFoto"
@@ -100,14 +100,14 @@
               <span>Certificado PDF</span>
               <input
                 ref="certificadoInputRef"
-                class="min-h-11 rounded-md border border-[#ccd8e5] bg-white px-3 py-2 text-[#071d3b] outline-none focus:border-[#147f72] focus:ring-4 focus:ring-[#147f72]/10"
+                class="min-h-11 w-full min-w-0 max-w-full rounded-md border border-[#ccd8e5] bg-white px-3 py-2 text-[#071d3b] outline-none focus:border-[#147f72] focus:ring-4 focus:ring-[#147f72]/10"
                 type="file"
                 accept="application/pdf"
                 @change="selecionarCertificado"
               />
             </label>
             <button
-              class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-[#147f72] px-4 text-sm font-extrabold text-white transition hover:bg-[#0f6c61] disabled:cursor-wait disabled:opacity-70"
+              class="inline-flex min-h-11 w-full max-w-full items-center justify-center gap-2 rounded-md bg-[#147f72] px-4 text-sm font-extrabold text-white transition hover:bg-[#0f6c61] disabled:cursor-wait disabled:opacity-70"
               type="button"
               :disabled="!certificadoSelecionado || enviandoCertificado"
               @click="enviarCertificado"
@@ -120,7 +120,7 @@
               <div
                 v-for="arquivo in certificadosUsuario"
                 :key="obterArquivoId(arquivo)"
-                class="flex items-center justify-between gap-3 rounded-md border border-[#d4dee9] bg-white p-3"
+                class="flex min-w-0 items-center justify-between gap-3 rounded-md border border-[#d4dee9] bg-white p-3"
               >
                 <a
                   class="inline-flex min-w-0 items-center gap-2 text-sm font-extrabold text-[#071d3b] no-underline hover:text-[#147f72]"
@@ -162,7 +162,7 @@
               />
             </label>
             <button
-              class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-[#147f72] px-4 text-sm font-extrabold text-white transition hover:bg-[#0f6c61] disabled:cursor-wait disabled:opacity-70"
+              class="inline-flex min-h-11 w-full max-w-full items-center justify-center gap-2 rounded-md bg-[#147f72] px-4 text-sm font-extrabold text-white transition hover:bg-[#0f6c61] disabled:cursor-wait disabled:opacity-70"
               type="button"
               :disabled="enviandoNotificacao"
               @click="enviarNotificacao"
@@ -185,7 +185,7 @@
 
         <div class="grid gap-2">
           <button
-            class="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-[#147f72] px-4 text-sm font-extrabold text-white transition hover:bg-[#0f6c61] disabled:cursor-wait disabled:opacity-70"
+            class="inline-flex min-h-12 w-full max-w-full items-center justify-center gap-2 rounded-md bg-[#147f72] px-4 text-sm font-extrabold text-white transition hover:bg-[#0f6c61] disabled:cursor-wait disabled:opacity-70"
             type="submit"
             :disabled="salvando"
           >
@@ -194,7 +194,7 @@
           </button>
           <button
             v-if="editandoId"
-            class="inline-flex min-h-10 items-center justify-center rounded-md border border-[#d4dee9] bg-white px-4 text-sm font-extrabold text-[#51627a] transition hover:bg-[#edf3f8]"
+            class="inline-flex min-h-10 w-full max-w-full items-center justify-center rounded-md border border-[#d4dee9] bg-white px-4 text-sm font-extrabold text-[#51627a] transition hover:bg-[#edf3f8]"
             type="button"
             @click="limparForm"
           >
