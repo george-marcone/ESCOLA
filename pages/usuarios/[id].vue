@@ -33,6 +33,120 @@
     <p v-if="mensagem" class="alert alert-success">{{ mensagem }}</p>
     <p v-if="erro" class="alert alert-error">{{ erro }}</p>
 
+    <article v-if="usuario && deveExibirArquivos" class="grid gap-5 rounded-lg border border-slate-200 bg-white p-5">
+      <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div class="flex min-w-0 items-center gap-4">
+          <div class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#edf3f8] text-xl font-extrabold text-[#071d3b]">
+            <img
+              v-if="fotoUsuarioUrl"
+              class="h-full w-full object-cover"
+              :src="fotoUsuarioUrl"
+              :alt="`Foto de ${usuario.nome}`"
+            />
+            <span v-else>{{ obterIniciais(usuario.nome) }}</span>
+          </div>
+          <div class="min-w-0">
+            <p class="eyebrow">Arquivos</p>
+            <h2 class="m-0 mt-1 text-xl font-normal text-[#071d3b]">Perfil e certificados</h2>
+            <p class="m-0 mt-1 break-words text-sm font-semibold text-[#62728a]">{{ usuario.nome }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid gap-5 lg:grid-cols-2">
+        <section v-if="podeEnviarFoto" class="grid gap-3 rounded-md border border-[#d4dee9] bg-[#f8fbfd] p-4">
+          <div>
+            <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Foto</p>
+            <h3 class="m-0 mt-1 text-base font-extrabold text-[#071d3b]">Foto do perfil</h3>
+          </div>
+          <label>
+            <span>Arquivo de imagem</span>
+            <input
+              ref="fotoInputRef"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              @change="selecionarFoto"
+            />
+          </label>
+          <button
+            class="btn btn-primary min-h-11 gap-2"
+            type="button"
+            :disabled="!fotoSelecionada || enviandoFoto"
+            @click="enviarFoto"
+          >
+            <Camera class="h-5 w-5" aria-hidden="true" />
+            {{ enviandoFoto ? 'Enviando...' : 'Atualizar foto' }}
+          </button>
+        </section>
+
+        <section v-if="deveExibirCertificados" class="grid gap-3 rounded-md border border-[#d4dee9] bg-[#f8fbfd] p-4">
+          <div>
+            <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Certificados</p>
+            <h3 class="m-0 mt-1 text-base font-extrabold text-[#071d3b]">Documentos PDF</h3>
+          </div>
+
+          <div v-if="podeEnviarCertificado" class="grid gap-3">
+            <label>
+              <span>Certificado PDF</span>
+              <input
+                ref="certificadoInputRef"
+                type="file"
+                accept="application/pdf"
+                @change="selecionarCertificado"
+              />
+            </label>
+            <button
+              class="btn btn-primary min-h-11 gap-2"
+              type="button"
+              :disabled="!certificadoSelecionado || enviandoCertificado"
+              @click="enviarCertificado"
+            >
+              <Upload class="h-5 w-5" aria-hidden="true" />
+              {{ enviandoCertificado ? 'Enviando...' : 'Adicionar certificado' }}
+            </button>
+          </div>
+
+          <div v-if="carregandoArquivos" class="rounded-md border border-[#d4dee9] bg-white p-3 text-sm font-semibold text-[#62728a]">
+            Carregando certificados...
+          </div>
+          <div v-else-if="certificadosUsuario.length" class="grid gap-2">
+            <div
+              v-for="arquivo in certificadosUsuario"
+              :key="obterArquivoId(arquivo)"
+              class="flex items-center justify-between gap-3 rounded-md border border-[#d4dee9] bg-white p-3"
+            >
+              <a
+                class="inline-flex min-w-0 items-center gap-2 text-sm font-extrabold text-[#071d3b] no-underline hover:text-[#147f72]"
+                :href="resolverArquivoUrl(arquivo.url)"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <FileText class="h-5 w-5 shrink-0" aria-hidden="true" />
+                <span class="truncate">{{ arquivo.nomeOriginal || 'Certificado' }}</span>
+              </a>
+              <button
+                v-if="podeExcluirArquivo"
+                class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#ffe1e3] text-[#dc2626] transition hover:bg-[#ffd4d7] disabled:cursor-wait disabled:opacity-70"
+                type="button"
+                title="Excluir certificado"
+                aria-label="Excluir certificado"
+                :disabled="arquivoExcluindoId === obterArquivoId(arquivo)"
+                @click="excluirArquivo(arquivo)"
+              >
+                <Trash2 class="h-5 w-5" aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+          <p v-else class="m-0 rounded-md border border-[#d4dee9] bg-white p-3 text-sm font-semibold text-[#62728a]">
+            Nenhum certificado cadastrado.
+          </p>
+        </section>
+      </div>
+
+      <p v-if="mensagemArquivos" class="alert alert-success">{{ mensagemArquivos }}</p>
+      <p v-if="erroArquivos" class="alert alert-error">{{ erroArquivos }}</p>
+    </article>
+
     <form class="grid gap-5 rounded-lg border border-slate-200 bg-white p-5" @submit.prevent="salvar">
       <div class="grid gap-4 md:grid-cols-2">
         <label>
@@ -91,8 +205,10 @@
 </template>
 
 <script setup lang="ts">
-import type { Perfil, UsuarioForm, UsuarioSummary, UsuarioUpdate } from '~/types/api'
+import { Camera, FileText, Trash2, Upload } from '@lucide/vue'
+import type { Perfil, UsuarioArquivo, UsuarioForm, UsuarioSummary, UsuarioUpdate } from '~/types/api'
 import { normalizeApiError } from '~/utils/api-client'
+import { resolveApiAssetUrl } from '~/utils/api-url'
 import {
   BRAZIL_PHONE_MASK_MAX_LENGTH,
   BRAZIL_PHONE_PLACEHOLDER,
@@ -109,6 +225,7 @@ import {
   canViewUsuarioInList,
   filterPerfisForUsuarioCreation,
   formatPerfilLabel,
+  getUsuarioPerfilTipo,
   getTipoUsuarioForApiByPerfilId
 } from '~/utils/usuario-permissions'
 import { DUPLICATE_USER_EMAIL_MESSAGE, isDuplicateUserEmail } from '~/utils/usuario-validation'
@@ -118,15 +235,27 @@ definePageMeta({
 })
 
 const { $api } = useNuxtApp()
+const config = useRuntimeConfig()
 const route = useRoute()
 const auth = useAuthStore()
 const usuario = ref<UsuarioSummary | null>(null)
 const perfis = ref<Perfil[]>([])
 const usuarios = ref<UsuarioSummary[]>([])
+const arquivosUsuario = ref<UsuarioArquivo[]>([])
 const editando = ref(false)
 const salvando = ref(false)
+const carregandoArquivos = ref(false)
+const enviandoFoto = ref(false)
+const enviandoCertificado = ref(false)
+const arquivoExcluindoId = ref(0)
 const erro = ref('')
 const mensagem = ref('')
+const erroArquivos = ref('')
+const mensagemArquivos = ref('')
+const fotoInputRef = ref<HTMLInputElement | null>(null)
+const certificadoInputRef = ref<HTMLInputElement | null>(null)
+const fotoSelecionada = ref<File | null>(null)
+const certificadoSelecionado = ref<File | null>(null)
 const USER_TEXT_FIELD_MAX_LENGTH = 50
 const PHONE_FORMAT_ERROR = 'Informe um telefone valido no formato +55 (xx) xxxxx-xxxx.'
 const REQUIRED_FIELDS_ERROR = 'Nome, e-mail e telefone sao obrigatorios.'
@@ -141,6 +270,29 @@ const form = reactive<UsuarioForm>({
 const usuarioId = computed(() => Number(route.params.id))
 const podeEditar = computed(() => usuario.value ? canEditUsuario(auth.usuario, usuario.value) : false)
 const podeExcluir = computed(() => usuario.value ? canDeleteUsuario(auth.usuario) : false)
+const fotoUsuarioUrl = computed(() => resolveApiAssetUrl(usuario.value?.fotoPerfilUrl, config.public.apiBase))
+const certificadosUsuario = computed(() =>
+  arquivosUsuario.value.filter((arquivo) => arquivo.tipoArquivo?.toLowerCase() === 'certificado')
+)
+const usuarioEhProfessor = computed(() =>
+  getUsuarioPerfilTipo(usuario.value?.descricaoPerfil) === 'professor'
+)
+const podeConsultarArquivos = computed(() =>
+  Boolean(usuario.value && (auth.isAdmin || auth.usuario?.idUsuario === usuario.value.idUsuario))
+)
+const podeEnviarFoto = computed(() =>
+  usuario.value ? canEditUsuario(auth.usuario, usuario.value) : false
+)
+const podeEnviarCertificado = computed(() =>
+  Boolean(usuario.value && usuarioEhProfessor.value && (auth.isAdmin || auth.usuario?.idUsuario === usuario.value.idUsuario))
+)
+const podeExcluirArquivo = computed(() => podeEnviarCertificado.value)
+const deveExibirCertificados = computed(() =>
+  podeConsultarArquivos.value && (usuarioEhProfessor.value || certificadosUsuario.value.length > 0 || carregandoArquivos.value)
+)
+const deveExibirArquivos = computed(() =>
+  podeEnviarFoto.value || podeConsultarArquivos.value
+)
 const perfisFormulario = computed<Perfil[]>(() => {
   if (!usuario.value) return []
 
@@ -196,7 +348,42 @@ async function carregar() {
 
   if (usuario.value && !canViewUsuarioInList(auth.usuario, usuario.value)) {
     await navigateTo('/usuarios', { replace: true })
+    return
   }
+
+  if (podeConsultarArquivos.value) {
+    await carregarArquivos()
+  } else {
+    resetarArquivosUsuario()
+  }
+}
+
+async function carregarArquivos() {
+  if (!podeConsultarArquivos.value) {
+    resetarArquivosUsuario()
+    return
+  }
+
+  carregandoArquivos.value = true
+  erroArquivos.value = ''
+
+  try {
+    arquivosUsuario.value = await $api<UsuarioArquivo[]>(`/usuarios/${usuarioId.value}/arquivos`)
+  } catch (err) {
+    erroArquivos.value = normalizeApiError(err)
+  } finally {
+    carregandoArquivos.value = false
+  }
+}
+
+function resetarArquivosUsuario() {
+  arquivosUsuario.value = []
+  fotoSelecionada.value = null
+  certificadoSelecionado.value = null
+  mensagemArquivos.value = ''
+  erroArquivos.value = ''
+  limparInputArquivo(fotoInputRef.value)
+  limparInputArquivo(certificadoInputRef.value)
 }
 
 function preencherForm(value: UsuarioSummary) {
@@ -212,6 +399,125 @@ function cancelar() {
   }
 
   editando.value = false
+}
+
+function selecionarFoto(event: Event) {
+  fotoSelecionada.value = obterArquivoSelecionado(event)
+  mensagemArquivos.value = ''
+  erroArquivos.value = ''
+}
+
+function selecionarCertificado(event: Event) {
+  certificadoSelecionado.value = obterArquivoSelecionado(event)
+  mensagemArquivos.value = ''
+  erroArquivos.value = ''
+}
+
+function obterArquivoSelecionado(event: Event) {
+  const input = event.target as HTMLInputElement
+  return input.files?.[0] ?? null
+}
+
+function limparInputArquivo(input: HTMLInputElement | null) {
+  if (input) {
+    input.value = ''
+  }
+}
+
+async function enviarFoto() {
+  if (!usuario.value || !podeEnviarFoto.value || !fotoSelecionada.value) {
+    erroArquivos.value = 'Selecione uma foto para enviar.'
+    return
+  }
+
+  enviandoFoto.value = true
+  erroArquivos.value = ''
+  mensagemArquivos.value = ''
+
+  try {
+    const formData = new FormData()
+    formData.append('arquivo', fotoSelecionada.value)
+
+    usuario.value = await $api<UsuarioSummary>(`/usuarios/${usuarioId.value}/foto`, {
+      method: 'POST',
+      body: formData
+    })
+
+    if (usuario.value.idUsuario === auth.usuario?.idUsuario) {
+      auth.updateUsuario(usuario.value)
+    }
+
+    preencherForm(usuario.value)
+    fotoSelecionada.value = null
+    limparInputArquivo(fotoInputRef.value)
+    mensagemArquivos.value = 'Foto atualizada.'
+  } catch (err) {
+    erroArquivos.value = normalizeApiError(err)
+  } finally {
+    enviandoFoto.value = false
+  }
+}
+
+async function enviarCertificado() {
+  if (!usuario.value || !podeEnviarCertificado.value || !certificadoSelecionado.value) {
+    erroArquivos.value = 'Selecione um PDF para enviar.'
+    return
+  }
+
+  enviandoCertificado.value = true
+  erroArquivos.value = ''
+  mensagemArquivos.value = ''
+
+  try {
+    const formData = new FormData()
+    formData.append('arquivo', certificadoSelecionado.value)
+
+    await $api<UsuarioArquivo>(`/usuarios/${usuarioId.value}/certificados`, {
+      method: 'POST',
+      body: formData
+    })
+
+    certificadoSelecionado.value = null
+    limparInputArquivo(certificadoInputRef.value)
+    await carregarArquivos()
+    mensagemArquivos.value = 'Certificado adicionado.'
+  } catch (err) {
+    erroArquivos.value = normalizeApiError(err)
+  } finally {
+    enviandoCertificado.value = false
+  }
+}
+
+async function excluirArquivo(arquivo: UsuarioArquivo) {
+  if (!usuario.value || !podeExcluirArquivo.value) {
+    return
+  }
+
+  const arquivoId = obterArquivoId(arquivo)
+  if (!arquivoId) {
+    erroArquivos.value = 'Arquivo sem identificador para exclusao.'
+    return
+  }
+
+  if (!confirm(`Excluir o arquivo ${arquivo.nomeOriginal || 'selecionado'}?`)) {
+    return
+  }
+
+  arquivoExcluindoId.value = arquivoId
+  erroArquivos.value = ''
+  mensagemArquivos.value = ''
+
+  try {
+    await $api(`/usuarios/${usuarioId.value}/arquivos/${arquivoId}`, {
+      method: 'DELETE'
+    })
+    await carregarArquivos()
+    mensagemArquivos.value = 'Arquivo excluido.'
+  } catch (err) {
+    erroArquivos.value = normalizeApiError(err)
+  } finally {
+    arquivoExcluindoId.value = 0
+  }
 }
 
 function atualizarTelefone(event: Event) {
@@ -298,6 +604,11 @@ async function salvar() {
       auth.updateUsuario(usuario.value)
     }
     preencherForm(usuario.value)
+    if (podeConsultarArquivos.value) {
+      await carregarArquivos()
+    } else {
+      resetarArquivosUsuario()
+    }
     mensagem.value = 'Usuario atualizado.'
     editando.value = false
   } catch (err) {
@@ -320,5 +631,27 @@ async function excluir() {
   } catch (err) {
     erro.value = normalizeApiError(err)
   }
+}
+
+function resolverArquivoUrl(url?: string | null) {
+  return resolveApiAssetUrl(url, config.public.apiBase)
+}
+
+function obterArquivoId(arquivo: UsuarioArquivo) {
+  return arquivo.idArquivo ?? arquivo.idUsuarioArquivo ?? 0
+}
+
+function obterIniciais(nome?: string | null) {
+  const partes = (nome ?? '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+
+  if (!partes.length) return 'U'
+
+  return partes
+    .slice(0, 2)
+    .map((parte) => parte[0]?.toUpperCase() ?? '')
+    .join('')
 }
 </script>
