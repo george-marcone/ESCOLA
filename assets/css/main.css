@@ -185,6 +185,10 @@ select {
   gap: 16px;
 }
 
+.form-grid > label {
+  align-content: start;
+}
+
 .form-grid.two-columns {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
