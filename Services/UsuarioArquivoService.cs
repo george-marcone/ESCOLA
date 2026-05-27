@@ -53,7 +53,7 @@ namespace ESCOLA_API.Services
                 return Array.Empty<UsuarioArquivoViewModel>();
             }
 
-            ValidarPermissaoArquivo(principal, usuario, permiteProfessorEditarAluno: false);
+            ValidarPermissaoConsultaArquivos(principal, usuario);
 
             return await _context.UsuarioArquivos
                 .AsNoTracking()
@@ -181,6 +181,27 @@ namespace ESCOLA_API.Services
             }
 
             throw new UnauthorizedAccessException("Usuario nao autorizado a gerenciar arquivos deste cadastro.");
+        }
+
+        private static void ValidarPermissaoConsultaArquivos(ClaimsPrincipal principal, Usuario usuario)
+        {
+            if (principal.IsInRole(PerfilSistema.Administrador))
+            {
+                return;
+            }
+
+            var usuarioAtualId = GetUsuarioAtualId(principal);
+            if (usuario.IdUsuario == usuarioAtualId)
+            {
+                return;
+            }
+
+            if (principal.IsInRole(PerfilSistema.Professor) && usuario.IdPerfil == PerfilSistema.ProfessorId)
+            {
+                return;
+            }
+
+            throw new UnauthorizedAccessException("Usuario nao autorizado a consultar arquivos deste cadastro.");
         }
 
         private static int GetUsuarioAtualId(ClaimsPrincipal principal)

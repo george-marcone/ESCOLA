@@ -73,6 +73,67 @@ namespace ESCOLA_API.Tests.Services
             }
         }
 
+        [Fact]
+        public async Task GetArquivosAsync_WhenProfessorViewsAnotherProfessor_ReturnsCertificates()
+        {
+            var uploadRoot = CreateUploadRoot();
+
+            try
+            {
+                await using var connection = new SqliteConnection("DataSource=:memory:");
+                await connection.OpenAsync();
+                await using var context = CreateContext(connection);
+                await context.Database.EnsureCreatedAsync();
+
+                context.UsuarioArquivos.Add(new UsuarioArquivo
+                {
+                    IdUsuario = 2,
+                    TipoArquivo = "Certificado",
+                    NomeOriginal = "certificado-professor.pdf",
+                    NomeBlob = "usuarios/2/certificados/certificado-professor.pdf",
+                    Url = "/uploads/usuarios/2/certificados/certificado-professor.pdf",
+                    ContentType = "application/pdf",
+                    TamanhoBytes = 128,
+                    CriadoEmUtc = DateTime.UtcNow
+                });
+                await context.SaveChangesAsync();
+
+                var service = CreateService(context, uploadRoot);
+
+                var arquivos = await service.GetArquivosAsync(2, CreatePrincipal(3, PerfilSistema.Professor));
+
+                Assert.Single(arquivos);
+                Assert.Equal("certificado-professor.pdf", arquivos[0].NomeOriginal);
+            }
+            finally
+            {
+                DeleteDirectory(uploadRoot);
+            }
+        }
+
+        [Fact]
+        public async Task GetArquivosAsync_WhenProfessorViewsAluno_ThrowsUnauthorizedAccessException()
+        {
+            var uploadRoot = CreateUploadRoot();
+
+            try
+            {
+                await using var connection = new SqliteConnection("DataSource=:memory:");
+                await connection.OpenAsync();
+                await using var context = CreateContext(connection);
+                await context.Database.EnsureCreatedAsync();
+
+                var service = CreateService(context, uploadRoot);
+
+                await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                    service.GetArquivosAsync(12, CreatePrincipal(3, PerfilSistema.Professor)));
+            }
+            finally
+            {
+                DeleteDirectory(uploadRoot);
+            }
+        }
+
         private static IFormFile CreateFormFile(string fileName, string contentType, byte[] content)
         {
             var stream = new MemoryStream(content);
