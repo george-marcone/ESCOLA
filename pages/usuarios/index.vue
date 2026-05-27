@@ -253,15 +253,14 @@
       <p v-if="erroLista" class="alert alert-error mt-4">{{ erroLista }}</p>
 
       <div class="mt-4 hidden max-h-[520px] overflow-auto rounded-lg border border-[#d4dee9] md:block">
-        <table class="min-w-[720px] border-collapse text-left lg:min-w-full">
+        <table class="w-full table-fixed border-collapse text-left">
           <thead class="sticky top-0 bg-[#f5f8fb] text-xs uppercase text-[#51627a]">
             <tr>
-              <th class="px-4 py-4">Nome</th>
-              <th class="px-4 py-4">E-mail</th>
-              <th class="px-4 py-4">Telefone</th>
-              <th class="px-4 py-4">Tipo</th>
-              <th class="px-4 py-4 text-center">Docs</th>
-              <th class="px-4 py-4 text-center">Acoes</th>
+              <th class="w-[38%] px-4 py-4">Nome</th>
+              <th class="w-[13%] px-4 py-4 text-center">Contato</th>
+              <th class="w-[16%] px-4 py-4">Tipo</th>
+              <th class="w-[13%] px-4 py-4 text-center">Docs</th>
+              <th class="w-[20%] px-4 py-4 text-center">Acoes</th>
             </tr>
           </thead>
           <tbody>
@@ -280,8 +279,19 @@
                   <span class="min-w-0 break-words">{{ usuario.nome }}</span>
                 </div>
               </td>
-              <td class="px-4 py-4 text-[#243044]">{{ usuario.email }}</td>
-              <td class="px-4 py-4 text-[#243044]">{{ formatBrazilPhone(usuario.telefone) || '-' }}</td>
+              <td class="px-4 py-4">
+                <div class="flex justify-center">
+                  <button
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-md bg-[#edf3f8] text-[#071d3b] transition hover:bg-[#dfe8f1]"
+                    type="button"
+                    title="Ver contato"
+                    aria-label="Ver contato"
+                    @click="abrirContatoUsuario(usuario)"
+                  >
+                    <Contact class="h-5 w-5" aria-hidden="true" />
+                  </button>
+                </div>
+              </td>
               <td class="px-4 py-4 text-[#243044]">{{ formatPerfilLabel(usuario.descricaoPerfil) }}</td>
               <td class="px-4 py-4">
                 <div class="flex justify-center">
@@ -332,10 +342,10 @@
               </td>
             </tr>
             <tr v-if="!carregando && !usuariosFiltrados.length">
-              <td class="px-4 py-6 text-[#62728a]" colspan="6">Nenhum usuario encontrado.</td>
+              <td class="px-4 py-6 text-[#62728a]" colspan="5">Nenhum usuario encontrado.</td>
             </tr>
             <tr v-if="carregando && !usuarios.length">
-              <td class="px-4 py-6 text-[#62728a]" colspan="6">Carregando usuarios...</td>
+              <td class="px-4 py-6 text-[#62728a]" colspan="5">Carregando usuarios...</td>
             </tr>
           </tbody>
         </table>
@@ -360,17 +370,22 @@
               </div>
               <div class="min-w-0">
                 <h3 class="m-0 truncate text-base font-extrabold text-[#071d3b]">{{ usuario.nome }}</h3>
-                <p class="m-0 mt-1 break-all text-sm text-[#51627a]">{{ usuario.email }}</p>
               </div>
             </div>
             <span class="rounded-md bg-[#eaf4f1] px-2 py-1 text-xs font-extrabold text-[#006b61]">
               {{ formatPerfilLabel(usuario.descricaoPerfil) }}
             </span>
           </div>
-          <p class="m-0 mt-3 text-sm text-[#243044]">
-            <strong>Telefone:</strong> {{ formatBrazilPhone(usuario.telefone) || '-' }}
-          </p>
           <div class="mt-4 flex flex-wrap gap-2">
+            <button
+              class="inline-flex h-10 flex-1 items-center justify-center rounded-md bg-[#edf3f8] text-[#071d3b] transition hover:bg-[#dfe8f1]"
+              type="button"
+              title="Ver contato"
+              aria-label="Ver contato"
+              @click="abrirContatoUsuario(usuario)"
+            >
+              <Contact class="h-5 w-5" aria-hidden="true" />
+            </button>
             <button
               v-if="usuarioTemCertificados(usuario)"
               class="inline-flex h-10 flex-1 items-center justify-center rounded-md bg-[#edf3f8] text-[#071d3b] transition hover:bg-[#dfe8f1]"
@@ -447,6 +462,47 @@
     </article>
 
     <div
+      v-if="usuarioContatoPopup"
+      class="fixed inset-0 z-40 grid place-items-center bg-[#071d3b]/50 px-4 py-6"
+      @click.self="fecharContatoUsuario"
+    >
+      <article class="grid w-full max-w-md gap-4 rounded-lg bg-white p-5 shadow-[0_22px_55px_rgba(14,30,53,0.24)]">
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0">
+            <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Contato</p>
+            <h2 class="m-0 mt-1 break-words text-xl font-normal text-[#071d3b]">{{ usuarioContatoPopup.nome }}</h2>
+          </div>
+          <button
+            class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#edf3f8] text-[#071d3b] transition hover:bg-[#dfe8f1]"
+            type="button"
+            title="Fechar"
+            aria-label="Fechar"
+            @click="fecharContatoUsuario"
+          >
+            <X class="h-5 w-5" aria-hidden="true" />
+          </button>
+        </div>
+
+        <div class="grid gap-2">
+          <a
+            class="flex min-w-0 items-center gap-3 rounded-md border border-[#d4dee9] bg-[#f8fbfd] p-3 text-[#071d3b] no-underline transition hover:border-[#147f72]"
+            :href="`mailto:${usuarioContatoPopup.email}`"
+          >
+            <Mail class="h-5 w-5 shrink-0" aria-hidden="true" />
+            <span class="break-all text-sm font-extrabold">{{ usuarioContatoPopup.email }}</span>
+          </a>
+          <a
+            class="flex min-w-0 items-center gap-3 rounded-md border border-[#d4dee9] bg-[#f8fbfd] p-3 text-[#071d3b] no-underline transition hover:border-[#147f72]"
+            :href="telefoneContatoHref"
+          >
+            <Phone class="h-5 w-5 shrink-0" aria-hidden="true" />
+            <span class="text-sm font-extrabold">{{ telefoneContatoFormatado }}</span>
+          </a>
+        </div>
+      </article>
+    </div>
+
+    <div
       v-if="usuarioArquivosPopup"
       class="fixed inset-0 z-40 grid place-items-center bg-[#071d3b]/50 px-4 py-6"
       @click.self="fecharArquivosProfessor"
@@ -497,7 +553,7 @@
 </template>
 
 <script setup lang="ts">
-import { Camera, ChevronLeft, ChevronRight, Download, Eye, FileText, Pencil, Plus, RefreshCcw, Search, Send, Trash2, Upload, X } from '@lucide/vue'
+import { Camera, ChevronLeft, ChevronRight, Contact, Download, Eye, FileText, Mail, Pencil, Phone, Plus, RefreshCcw, Search, Send, Trash2, Upload, X } from '@lucide/vue'
 import type { Perfil, UsuarioArquivo, UsuarioCreate, UsuarioForm, UsuarioSummary, UsuarioUpdate } from '~/types/api'
 import { normalizeApiError } from '~/utils/api-client'
 import { downloadBlob, fetchApiBlob } from '~/utils/api-file'
@@ -536,6 +592,7 @@ const perfis = ref<Perfil[]>([])
 const arquivosUsuario = ref<UsuarioArquivo[]>([])
 const arquivosPorUsuario = ref<Record<number, UsuarioArquivo[]>>({})
 const fotosPorUsuario = ref<Record<number, string>>({})
+const usuarioContatoPopup = ref<UsuarioSummary | null>(null)
 const usuarioArquivosPopup = ref<UsuarioSummary | null>(null)
 const carregando = ref(false)
 const salvando = ref(false)
@@ -602,6 +659,12 @@ const certificadosUsuario = computed(() =>
 )
 const arquivosPopup = computed(() =>
   usuarioArquivosPopup.value ? obterCertificadosDoUsuario(usuarioArquivosPopup.value.idUsuario) : []
+)
+const telefoneContatoFormatado = computed(() =>
+  usuarioContatoPopup.value ? formatBrazilPhone(usuarioContatoPopup.value.telefone) || '-' : '-'
+)
+const telefoneContatoHref = computed(() =>
+  usuarioContatoPopup.value ? `tel:${normalizeBrazilPhoneForApi(usuarioContatoPopup.value.telefone)}` : ''
 )
 const podeEnviarCertificado = computed(() =>
   getUsuarioPerfilTipo(usuarioEmEdicao.value?.descricaoPerfil) === 'professor'
@@ -861,6 +924,14 @@ function obterCertificadosDoUsuario(idUsuario: number) {
 
 function usuarioTemCertificados(usuario: UsuarioSummary) {
   return usuarioEhProfessorDaLista(usuario) && obterCertificadosDoUsuario(usuario.idUsuario).length > 0
+}
+
+function abrirContatoUsuario(usuario: UsuarioSummary) {
+  usuarioContatoPopup.value = usuario
+}
+
+function fecharContatoUsuario() {
+  usuarioContatoPopup.value = null
 }
 
 function abrirArquivosProfessor(usuario: UsuarioSummary) {
