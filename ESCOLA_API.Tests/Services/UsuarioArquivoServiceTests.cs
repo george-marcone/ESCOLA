@@ -52,6 +52,40 @@ namespace ESCOLA_API.Tests.Services
         }
 
         [Fact]
+        public async Task UploadFotoAsync_WhenProfessorUpdatesOwnPhoto_NotifiesAdministrators()
+        {
+            var uploadRoot = CreateUploadRoot();
+
+            try
+            {
+                await using var connection = new SqliteConnection("DataSource=:memory:");
+                await connection.OpenAsync();
+                await using var context = CreateContext(connection);
+                await context.Database.EnsureCreatedAsync();
+
+                var service = CreateService(context, uploadRoot);
+                var foto = CreateFormFile("foto.jpg", "image/jpeg", new byte[] { 1, 2, 3 });
+
+                var updated = await service.UploadFotoAsync(2, foto, CreatePrincipal(2, PerfilSistema.Professor));
+                var notificacao = await context.Notificacoes
+                    .SingleAsync(item => item.IdUsuario == 1 && item.Tipo == "DadosUsuarioAtualizados");
+
+                Assert.NotNull(updated);
+                Assert.Equal("Dados do usuario atualizados", notificacao.Titulo);
+                Assert.Contains("Professor Vinicius", notificacao.Mensagem);
+                Assert.Contains("Foto de perfil atualizada", notificacao.Mensagem);
+                Assert.Contains("Dados anteriores", notificacao.Mensagem);
+                Assert.Contains("Dados atuais", notificacao.Mensagem);
+                Assert.Contains(updated!.FotoPerfilUrl!, notificacao.Mensagem);
+                Assert.Equal("/usuarios/2", notificacao.Link);
+            }
+            finally
+            {
+                DeleteDirectory(uploadRoot);
+            }
+        }
+
+        [Fact]
         public async Task UploadCertificadoAsync_WhenProfessorAndPdfAreValid_SavesCertificate()
         {
             var uploadRoot = CreateUploadRoot();
@@ -83,6 +117,38 @@ namespace ESCOLA_API.Tests.Services
                 {
                     Assert.True(download.Stream.Length > 0);
                 }
+            }
+            finally
+            {
+                DeleteDirectory(uploadRoot);
+            }
+        }
+
+        [Fact]
+        public async Task UploadCertificadoAsync_WhenProfessorAddsOwnCertificate_NotifiesAdministrators()
+        {
+            var uploadRoot = CreateUploadRoot();
+
+            try
+            {
+                await using var connection = new SqliteConnection("DataSource=:memory:");
+                await connection.OpenAsync();
+                await using var context = CreateContext(connection);
+                await context.Database.EnsureCreatedAsync();
+
+                var service = CreateService(context, uploadRoot);
+                var certificado = CreateFormFile("certificado.pdf", "application/pdf", new byte[] { 37, 80, 68, 70 });
+
+                var created = await service.UploadCertificadoAsync(2, certificado, CreatePrincipal(2, PerfilSistema.Professor));
+                var notificacao = await context.Notificacoes
+                    .SingleAsync(item => item.IdUsuario == 1 && item.Tipo == "DadosUsuarioAtualizados");
+
+                Assert.Equal("Dados do usuario atualizados", notificacao.Titulo);
+                Assert.Contains("Professor Vinicius", notificacao.Mensagem);
+                Assert.Contains("Certificado PDF adicionado", notificacao.Mensagem);
+                Assert.Contains("certificado.pdf", notificacao.Mensagem);
+                Assert.Contains(created.Url!, notificacao.Mensagem);
+                Assert.Equal("/usuarios/2", notificacao.Link);
             }
             finally
             {

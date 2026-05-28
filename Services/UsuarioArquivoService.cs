@@ -34,9 +34,19 @@ namespace ESCOLA_API.Services
             ValidarPermissaoArquivo(principal, usuario, permiteProfessorEditarAluno: false);
             ValidarArquivo(arquivo, FotoMaxBytes, new[] { ".jpg", ".jpeg", ".png", ".webp" }, new[] { "image/jpeg", "image/png", "image/webp" });
 
+            var fotoAnteriorUrl = usuario.FotoPerfilUrl;
             await _storage.RemoverAsync(null, usuario.FotoPerfilUrl);
             var arquivoSalvo = await _storage.SalvarAsync(usuarioId, "foto", arquivo);
             usuario.FotoPerfilUrl = arquivoSalvo.Url;
+
+            if (DeveNotificarAlteracaoPropria(principal, usuario))
+            {
+                await CriarNotificacaoPerfilAtualizadoAsync(
+                    usuario,
+                    "Foto de perfil atualizada",
+                    $"Dados anteriores: Foto de perfil: {FormatarValor(fotoAnteriorUrl)}. Dados atuais: Foto de perfil: {FormatarValor(usuario.FotoPerfilUrl)}.");
+            }
+
             await _context.SaveChangesAsync();
 
             return usuario.ToSummary();
@@ -152,6 +162,15 @@ namespace ESCOLA_API.Services
             };
 
             _context.UsuarioArquivos.Add(entity);
+
+            if (DeveNotificarAlteracaoPropria(principal, usuario))
+            {
+                await CriarNotificacaoPerfilAtualizadoAsync(
+                    usuario,
+                    "Certificado PDF adicionado",
+                    $"Certificado adicionado: {entity.NomeOriginal}; Tamanho: {entity.TamanhoBytes} bytes; Link: {entity.Url}.");
+            }
+
             await _context.SaveChangesAsync();
 
             return entity.ToViewModel();
@@ -259,6 +278,47 @@ namespace ESCOLA_API.Services
             }
 
             return Path.GetExtension(caminhoOuUrl.Split('?', 2)[0]);
+        }
+
+        private async Task CriarNotificacaoPerfilAtualizadoAsync(Usuario usuario, string alteracao, string detalhes)
+        {
+            var administradoresIds = await _context.Usuarios
+                .AsNoTracking()
+                .Where(item => item.IdPerfil == PerfilSistema.AdministradorId)
+                .Select(item => item.IdUsuario)
+                .ToArrayAsync();
+
+            if (administradoresIds.Length == 0)
+            {
+                return;
+            }
+
+            var mensagem = $"O usuario {usuario.Nome} ({PerfilSistema.ObterDescricaoPorId(usuario.IdPerfil)}) alterou seu perfil. "
+                + $"Alteracao realizada: {alteracao}. {detalhes}";
+
+            foreach (var administradorId in administradoresIds)
+            {
+                _context.Notificacoes.Add(new Notificacao
+                {
+                    IdUsuario = administradorId,
+                    Tipo = "DadosUsuarioAtualizados",
+                    Titulo = "Dados do usuario atualizados",
+                    Mensagem = mensagem,
+                    Link = $"/usuarios/{usuario.IdUsuario}",
+                    CriadaEmUtc = DateTime.UtcNow
+                });
+            }
+        }
+
+        private static bool DeveNotificarAlteracaoPropria(ClaimsPrincipal principal, Usuario usuario)
+        {
+            return !principal.IsInRole(PerfilSistema.Administrador)
+                && usuario.IdUsuario == GetUsuarioAtualId(principal);
+        }
+
+        private static string FormatarValor(string? valor)
+        {
+            return string.IsNullOrWhiteSpace(valor) ? "nao cadastrada" : valor;
         }
 
         private static void ValidarPermissaoConsultaArquivos(ClaimsPrincipal principal, Usuario usuario)

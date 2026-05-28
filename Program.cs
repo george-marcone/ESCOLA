@@ -40,6 +40,7 @@ builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ICadernetaDigitalService, CadernetaDigitalService>();
 builder.Services.AddScoped<INotificacaoService, NotificacaoService>();
 builder.Services.AddScoped<IUsuarioArquivoService, UsuarioArquivoService>();
+builder.Services.AddScoped<IAlunoQrCodeBancarioService, AlunoQrCodeBancarioService>();
 builder.Services.AddScoped<IUsuarioArquivoStorage>(serviceProvider =>
 {
     var configuration = serviceProvider.GetRequiredService<IConfiguration>();
