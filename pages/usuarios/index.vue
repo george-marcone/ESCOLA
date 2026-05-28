@@ -156,7 +156,7 @@
           <div v-if="podeEnviarNotificacao" class="grid gap-3 border-t border-[#d4dee9] pt-4">
             <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Notificacao</p>
             <p class="m-0 rounded-md border border-[#d4dee9] bg-[#f8fbfd] p-3 text-sm font-semibold text-[#51627a]">
-              Destinatarios: todos os perfis.
+              Destinatarios: alunos e professores.
             </p>
             <label class="grid gap-2 text-sm font-extrabold text-[#071d3b]">
               <span>Titulo</span>
@@ -1284,13 +1284,13 @@ async function enviarNotificacao() {
       method: 'POST',
       body: {
         ...body,
-        todosOsPerfis: true
+        tiposUsuario: ['Aluno', 'Professor']
       }
     })
 
     notificacaoForm.titulo = ''
     notificacaoForm.mensagem = ''
-    mensagemArquivos.value = 'Notificacao enviada para todos os perfis.'
+    mensagemArquivos.value = 'Notificacao enviada para alunos e professores.'
   } catch (err) {
     erroArquivos.value = normalizeApiError(err)
   } finally {

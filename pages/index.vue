@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowRight, BookOpen, CalendarDays, FileText, GripVertical, QrCode, ShieldCheck, UserCog } from '@lucide/vue'
+import { ArrowRight, BookOpen, CalendarDays, FileText, GripVertical, Megaphone, QrCode, ShieldCheck, UserCog } from '@lucide/vue'
 import type { Component } from 'vue'
 import { getUsuarioPerfilTipo } from '~/utils/usuario-permissions'
 
@@ -94,6 +94,7 @@ const baseModulos = computed<ModuloPainel[]>(() => [
   { id: 'usuarios', label: 'Usuarios', title: auth.isAluno ? 'Corrigir meu cadastro' : 'Gerenciar usuarios', to: '/usuarios', icon: UserCog, show: true },
   { id: 'caderneta-digital', label: 'Caderneta Digital', title: auth.isProfessor ? 'Administrar notas e frequencia' : 'Visualizar boletim e frequencia', to: '/caderneta-digital', icon: BookOpen, show: true },
   { id: 'calendario-escolar', label: 'Calendario Escolar', title: auth.isProfessor ? 'Planejar avaliacoes e trabalhos' : 'Consultar agenda escolar', to: '/calendario-escolar', icon: CalendarDays, show: true },
+  { id: 'comunicados', label: 'Comunicados', title: 'Enviar avisos para alunos e professores', to: '/comunicados', icon: Megaphone, show: perfilTipo.value === 'administrador' },
   { id: 'qr-code-bancario', label: 'QR Code', title: 'Gerar dados bancarios ficticios', to: '/qr-code-bancario', icon: QrCode, show: auth.isAluno },
   { id: 'holerite', label: 'Holerite', title: ['administrador', 'diretoria'].includes(perfilTipo.value) ? 'Lancar e consultar PDFs' : 'Consultar meus PDFs', to: '/holerite', icon: FileText, show: ['administrador', 'diretoria', 'professor'].includes(perfilTipo.value) },
   { id: 'seguranca', label: 'Seguranca', title: 'Alterar senha', to: '/alterar-senha', icon: ShieldCheck, show: true }

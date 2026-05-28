@@ -34,6 +34,7 @@ const routeLabels: Record<string, string> = {
   '/alterar-senha': 'Alterar senha',
   '/caderneta-digital': 'Caderneta Digital',
   '/calendario-escolar': 'Calendario Escolar',
+  '/comunicados': 'Comunicados',
   '/holerite': 'Holerite',
   '/qr-code-bancario': 'QR Code Bancario',
   '/usuarios': 'Usuarios'
