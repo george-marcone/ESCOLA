@@ -200,17 +200,42 @@ namespace ESCOLA_API.Services
                 nomeLancador = "Administrador";
             }
 
-            _context.Notificacoes.Add(new Notificacao
+            var professoresIds = await _context.Usuarios
+                .AsNoTracking()
+                .Where(usuario => usuario.IdPerfil == PerfilSistema.ProfessorId)
+                .Select(usuario => usuario.IdUsuario)
+                .ToArrayAsync();
+
+            var destinatariosIds = professoresIds
+                .Append(funcionario.IdUsuario)
+                .Distinct()
+                .ToArray();
+
+            var criadoEmUtc = DateTime.UtcNow;
+            var dadosHolerite = $"Competencia: {holerite.Competencia}. "
+                + $"Arquivo: {holerite.NomeOriginal}. "
+                + $"Funcionario: {funcionario.Nome} ({PerfilSistema.ObterDescricaoPorId(funcionario.IdPerfil)}).";
+
+            var notificacoes = destinatariosIds.Select(idUsuario =>
             {
-                IdUsuario = funcionario.IdUsuario,
-                Tipo = "HoleriteLancado",
-                Titulo = $"Holerite {holerite.Competencia} lancado",
-                Mensagem = $"O administrador {nomeLancador} lancou um holerite para voce. "
-                    + $"Competencia: {holerite.Competencia}. Arquivo: {holerite.NomeOriginal}. "
-                    + $"Funcionario: {funcionario.Nome} ({PerfilSistema.ObterDescricaoPorId(funcionario.IdPerfil)}).",
-                Link = $"/holerite?holeriteId={holerite.IdHolerite}",
-                CriadaEmUtc = DateTime.UtcNow
-            });
+                var ehFuncionarioDoHolerite = idUsuario == funcionario.IdUsuario;
+
+                return new Notificacao
+                {
+                    IdUsuario = idUsuario,
+                    Tipo = "HoleriteLancado",
+                    Titulo = $"Holerite {holerite.Competencia} lancado",
+                    Mensagem = ehFuncionarioDoHolerite
+                        ? $"O administrador {nomeLancador} lancou um holerite para voce. {dadosHolerite}"
+                        : $"O administrador {nomeLancador} lancou um holerite. {dadosHolerite}",
+                    Link = ehFuncionarioDoHolerite
+                        ? $"/holerite?holeriteId={holerite.IdHolerite}"
+                        : "/holerite",
+                    CriadaEmUtc = criadoEmUtc
+                };
+            }).ToArray();
+
+            _context.Notificacoes.AddRange(notificacoes);
 
             await _context.SaveChangesAsync();
         }

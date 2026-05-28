@@ -162,7 +162,7 @@ O backend usa arquitetura em camadas:
 
 ## Autorizacao
 
-- `Administrador`: cadastra, edita e exclui usuarios; envia notificacoes manuais; gerencia arquivos de qualquer usuario; gerencia holerites de professores/administradores; visualiza caderneta, disciplinas, eventos e calendario escolar.
+- `Administrador`: cadastra, edita e exclui usuarios; envia notificacoes manuais; gerencia arquivos de qualquer usuario; gerencia holerites de professores/administradores; ao lancar holerite, notifica todos os professores com competencia, arquivo, funcionario e responsavel pelo lancamento; visualiza caderneta, disciplinas, eventos e calendario escolar.
 - `Professor`: visualiza alunos e professores cadastrados; edita apenas o proprio perfil; consulta seus proprios holerites; cadastra disciplinas; faz lancamentos de notas, presencas e faltas; agenda avaliacoes e entregas de trabalhos nas suas disciplinas.
 - `Aluno`: visualiza e edita apenas o proprio perfil; visualiza somente cadernetas e eventos das disciplinas associadas; gera QR Code bancario ficticio do proprio usuario; recebe notificacoes quando notas, frequencia, avaliacoes e trabalhos sao publicados.
 

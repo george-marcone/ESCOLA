@@ -36,11 +36,29 @@ namespace ESCOLA_API.Tests.Services
                 Assert.Equal("Professor Vinicius", created.NomeUsuario);
                 Assert.True(File.Exists(ToPhysicalPath(uploadRoot, created.Url)));
 
-                var notificacao = await context.Notificacoes
-                    .SingleAsync(item => item.IdUsuario == 2 && item.Tipo == "HoleriteLancado");
-                Assert.Contains("Administrador Sistema", notificacao.Mensagem);
-                Assert.Contains("05/2026", notificacao.Mensagem);
-                Assert.Contains("holerite.pdf", notificacao.Mensagem);
+                var professoresEsperados = await context.Usuarios
+                    .CountAsync(usuario => usuario.IdPerfil == PerfilSistema.ProfessorId);
+                var notificacoes = await context.Notificacoes
+                    .Include(item => item.Usuario)
+                    .Where(item => item.Tipo == "HoleriteLancado")
+                    .ToArrayAsync();
+                Assert.Equal(professoresEsperados, notificacoes.Length);
+                Assert.All(notificacoes, notificacao =>
+                {
+                    Assert.Equal(PerfilSistema.ProfessorId, notificacao.Usuario!.IdPerfil);
+                    Assert.Contains("Administrador Sistema", notificacao.Mensagem);
+                    Assert.Contains("05/2026", notificacao.Mensagem);
+                    Assert.Contains("holerite.pdf", notificacao.Mensagem);
+                    Assert.Contains("Professor Vinicius", notificacao.Mensagem);
+                });
+
+                var notificacaoFuncionario = Assert.Single(notificacoes, item => item.IdUsuario == 2);
+                Assert.Contains("para voce", notificacaoFuncionario.Mensagem);
+                Assert.Equal($"/holerite?holeriteId={created.IdHolerite}", notificacaoFuncionario.Link);
+
+                var notificacaoOutroProfessor = Assert.Single(notificacoes, item => item.IdUsuario == 3);
+                Assert.DoesNotContain("para voce", notificacaoOutroProfessor.Mensagem);
+                Assert.Equal("/holerite", notificacaoOutroProfessor.Link);
 
                 var meusHolerites = await service.GetMeusHoleritesAsync(CreatePrincipal(2, PerfilSistema.Professor));
                 Assert.Single(meusHolerites);

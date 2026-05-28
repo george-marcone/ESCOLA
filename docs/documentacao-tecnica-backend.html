@@ -542,7 +542,7 @@
     <tr><td><code>IAlunoQrCodeBancarioService</code></td><td>Contrato de QR Code bancario ficticio.</td><td>Define geracao dos dados ficticios e links de compartilhamento.</td></tr>
     <tr><td><code>AlunoQrCodeBancarioService</code></td><td>Regra de QR Code bancario ficticio.</td><td>Gera dados deterministas por aluno, QR Code PNG, Data URL, mailto e link do WhatsApp.</td></tr>
     <tr><td><code>IHoleriteService</code></td><td>Contrato de holerites.</td><td>Define listagem, upload, download e remocao de holerites de funcionarios.</td></tr>
-    <tr><td><code>HoleriteService</code></td><td>Regra de holerites.</td><td>Permite que professor/administrador consultem os proprios holerites e que administradores gerenciem PDFs de funcionarios.</td></tr>
+    <tr><td><code>HoleriteService</code></td><td>Regra de holerites.</td><td>Permite que professor/administrador consultem os proprios holerites, que administradores gerenciem PDFs de funcionarios e que todos os professores sejam notificados quando um holerite for lancado pelo administrador.</td></tr>
     <tr><td><code>INotificacaoService</code></td><td>Contrato de notificacoes.</td><td>Lista, conta e marca notificacoes como lidas.</td></tr>
     <tr><td><code>NotificacaoService</code></td><td>Regra de notificacoes.</td><td>Controla notificacoes por usuario e permite envio manual individual ou por perfis pelo administrador.</td></tr>
     <tr><td><code>IUsuarioArquivoService</code></td><td>Contrato de arquivos de usuario.</td><td>Define upload/download/listagem/remocao de foto e certificados.</td></tr>
@@ -664,7 +664,7 @@
     <li>Calendario escolar retorna ano completo, mes selecionado e feriados nacionais brasileiros.</li>
     <li>QR Code bancario do aluno usa dados ficticios e links de compartilhamento; nao executa pagamento real nem envio direto por provedor externo.</li>
     <li>QR Code bancario e exclusivo de aluno; professor e administrador usam o modulo de holerites quando houver PDFs vinculados.</li>
-    <li>Holerites aceitam apenas PDF, sao limitados a 10 MB, possuem competencia mes/ano e podem ser vinculados somente a professores e administradores.</li>
+    <li>Holerites aceitam apenas PDF, sao limitados a 10 MB, possuem competencia mes/ano e podem ser vinculados somente a professores e administradores; o lancamento por administrador gera notificacoes para todos os professores com competencia, arquivo, funcionario e responsavel pelo lancamento.</li>
     <li>A caderneta calcula media aritmetica das notas e retorna situacao/cor: reprovado, recuperacao, aprovado ou reprovado por faltas quando atingir 10 faltas.</li>
     <li>Fotos, certificados e holerites sao salvos em storage local ou Azure Blob; no banco ficam apenas URL e metadados do arquivo.</li>
     <li>Notificacoes ficam persistidas na tabela <code>Notificacao</code>; o Service Bus e opcional para consumo de mensagens externas.</li>
