@@ -1,25 +1,25 @@
 # Escola High Tech - Frontend
 
-Documentacao tecnica do frontend da aplicacao Escola High Tech. Este README cobre somente o projeto do front, separado do backend/API.
+Frontend da aplicacao Escola High Tech, construido em Nuxt 3. Este README cobre somente o projeto do front, separado do backend/API.
 
 ## Visao geral
 
-O projeto e uma SPA em Nuxt 3 para gerenciamento escolar. A aplicacao consome uma API REST externa e oferece telas de autenticacao, painel inicial, alteracao de senha e um CRUD unico de usuarios.
+O projeto e uma SPA para gestao escolar. A aplicacao consome uma API REST externa e oferece autenticacao, painel inicial, gestao de usuarios, caderneta digital, notificacoes, QR Code bancario ficticio e calendario escolar.
 
-O layout atual usa uma identidade visual com fundo claro, cards brancos, destaque laranja para marca/secao, botoes em verde/teal e icones Lucide.
+O layout usa fundo claro, cards brancos, destaque laranja para marca/secao, botoes em verde/teal e icones Lucide.
 
 ## Tecnologias usadas
 
 | Tecnologia | Uso |
 | --- | --- |
 | Nuxt 3.21.6 | Framework Vue, roteamento por arquivos, plugins e build |
-| Vite | Bundler e dev server usado pelo Nuxt 3 |
-| Vue 3 | Camada de componentes e Composition API |
-| TypeScript strict | Tipagem de stores, API e componentes |
-| Pinia | Estado global de autenticacao e stores de entidades |
-| Tailwind CSS | Estilizacao utilitaria das telas |
+| Vue 3 | Componentes e Composition API |
+| TypeScript strict | Tipagem de stores, API, paginas e utilitarios |
+| Pinia | Estado global de autenticacao |
+| Tailwind CSS | Estilizacao utilitaria |
 | ofetch / `$fetch` | Cliente HTTP usado pelo wrapper `$api` |
 | @lucide/vue | Icones de interface |
+| qrcode | Geracao local de QR Code ficticio |
 | Vitest | Testes unitarios |
 | happy-dom | Ambiente DOM para testes |
 | @nuxt/test-utils | Configuracao de testes Nuxt |
@@ -29,18 +29,20 @@ O layout atual usa uma identidade visual com fundo claro, cards brancos, destaqu
 
 ```text
 ESCOLA_FRONT/
-|-- assets/css/main.css          # Tailwind e estilos globais legados
-|-- components/                  # Componentes reutilizaveis
-|-- layouts/                     # Layouts default e auth
-|-- middleware/auth.global.ts    # Guarda global de autenticacao/autorizacao
-|-- pages/                       # Rotas Nuxt
-|-- plugins/api.ts               # Injeta o cliente HTTP $api
-|-- stores/                      # Stores Pinia
-|-- tests/                       # Testes unitarios
-|-- types/api.ts                 # Contratos TypeScript da API
-|-- utils/                       # Utilitarios de API e senha
-|-- Dockerfile                   # Build estatico + Nginx
-`-- nuxt.config.ts               # Configuracao Nuxt
+|-- assets/css/main.css              # Tailwind e estilos globais
+|-- components/                      # Componentes reutilizaveis
+|   `-- DatePicker.vue               # Campo de data com digitacao e calendario
+|-- docs/                            # Documentacao tecnica em PDF/Markdown
+|-- layouts/                         # Layouts default e auth
+|-- middleware/auth.global.ts        # Guarda global de autenticacao/autorizacao
+|-- pages/                           # Rotas Nuxt
+|-- plugins/api.ts                   # Injeta o cliente HTTP $api
+|-- stores/                          # Stores Pinia
+|-- tests/                           # Testes unitarios
+|-- types/api.ts                     # Contratos TypeScript da API
+|-- utils/                           # Utilitarios compartilhados
+|-- Dockerfile                       # Build estatico + Nginx
+`-- nuxt.config.ts                   # Configuracao Nuxt
 ```
 
 ## Configuracao
@@ -52,9 +54,7 @@ Variaveis suportadas:
 | `NUXT_PUBLIC_API_BASE` | `http://localhost:5001/api` em dev, `/api` em build sem variavel | URL base da API consumida pelo front |
 | `NUXT_APP_BASE_URL` | `/` | Base URL da aplicacao Nuxt |
 
-No Docker Compose do projeto, o front e publicado em `http://localhost:8080` e a API e apontada para `http://localhost:5000/api`.
-
-Em deploy na Vercel ou GitHub Pages, configure `NUXT_PUBLIC_API_BASE` nas variaveis de ambiente do projeto com a URL publica do backend, por exemplo `https://sua-api-publica.com/api`. Nao use `localhost` em producao, porque no navegador ele aponta para a maquina do usuario.
+Em deploy na Vercel, Render ou GitHub Pages, configure `NUXT_PUBLIC_API_BASE` com a URL publica do backend. Nao use `localhost` em producao, porque no navegador ele aponta para a maquina do usuario.
 
 No Render, crie o front como `Static Site` e use:
 
@@ -72,10 +72,6 @@ Tambem adicione uma regra de rewrite para a SPA:
 | Rewrite | `/*` | `/index.html` |
 
 O repositorio inclui `render.yaml` com essa configuracao. Se o servico ja existir no Render, ajuste os mesmos campos em `Settings` e execute `Manual Deploy > Clear build cache & deploy`.
-
-Para compatibilidade com servicos do Render que ja estejam configurados com `Publish Directory = dist`, o `postinstall` detecta o ambiente Render, executa `nuxt generate` e copia `.output/public` para `dist`. Ainda assim, a configuracao recomendada continua sendo `Build Command = npm run generate` e `Publish Directory = .output/public`.
-
-No GitHub Pages, crie uma variavel ou secret de Actions chamada `NUXT_PUBLIC_API_BASE` em `Settings > Secrets and variables > Actions` e execute o workflow novamente. Sem essa variavel, o build usa `/api` como fallback, que so funciona se houver proxy ou backend no mesmo dominio.
 
 ## Como executar
 
@@ -115,12 +111,6 @@ Rodar testes:
 npm run test
 ```
 
-Com Docker Compose, a partir da pasta `docker` do repositorio:
-
-```bash
-docker compose up -d --build front
-```
-
 ## Fluxo de navegacao
 
 ```mermaid
@@ -132,10 +122,13 @@ flowchart TD
   C -- Sim --> D{Senha padrao?}
   B -- Sim --> D
   D -- Sim --> S[/alterar-senha]
-  S --> P[/ Painel Escola High Tech]
-  D -- Nao --> P
+  D -- Nao --> P[/ Painel Escola High Tech]
+  S --> P
 
   P --> US[/usuarios]
+  P --> CD[/caderneta-digital]
+  P --> CE[/calendario-escolar]
+  P --> QR[/qr-code-bancario]
   P --> AS[/alterar-senha]
 
   US --> USN[/usuarios/novo]
@@ -146,75 +139,156 @@ flowchart TD
 
 | Rota | Finalidade |
 | --- | --- |
-| `/login` | Login e troca obrigatoria da senha padrao apos autenticacao |
+| `/login` | Login e recuperacao/reset da senha padrao |
 | `/` | Painel com atalhos para os modulos |
 | `/alterar-senha` | Alteracao manual de senha |
 | `/usuarios` | Consulta e CRUD de usuarios conforme perfil |
 | `/usuarios/novo` | Cadastro dedicado de usuario |
 | `/usuarios/:id` | Visualizacao, edicao e exclusao de usuario conforme perfil |
+| `/caderneta-digital` | Cadastro de disciplinas, lancamento de notas/frequencia e consulta da caderneta |
+| `/calendario-escolar` | Calendario anual, feriados nacionais e agenda de avaliacoes/trabalhos |
+| `/qr-code-bancario` | Geracao de QR Code com dados bancarios ficticios |
 
 ## Perfis de acesso
 
-A sessao autenticada guarda o usuario logado, token JWT, data de expiracao e flag de senha padrao no `localStorage`, usando a chave `form-escola-auth`.
+A sessao autenticada guarda usuario, token JWT, data de expiracao e flag de senha padrao no `localStorage`, usando a chave `form-escola-auth`.
 
 Os perfis reconhecidos no front sao:
 
-- `Administrador` ou `Membro da Diretoria`: acesso completo ao CRUD de usuarios; pode cadastrar, editar, alterar tipo e excluir usuarios.
-- `Professor`: pode cadastrar usuarios apenas com tipo `Aluno`, consultar usuarios permitidos e corrigir dados de alunos.
-- `Aluno`: pode acessar o proprio cadastro e corrigir nome, e-mail e telefone.
+- `Administrador` ou `Membro da Diretoria`: acesso completo a usuarios, notificacoes, consulta geral e documentos permitidos.
+- `Professor`: consulta usuarios permitidos, administra caderneta, agenda avaliacoes/trabalhos, consulta documentos conforme regra e edita dados permitidos.
+- `Aluno`: consulta o proprio cadastro, caderneta, calendario escolar e QR Code ficticio.
 
 Matriz resumida:
 
 | Area | Administrador / Diretoria | Professor | Aluno |
 | --- | --- | --- | --- |
-| Login | Sim | Sim | Sim |
+| Login / senha | Sim | Sim | Sim |
 | Painel | Sim | Sim | Sim |
-| Alterar senha | Sim | Sim | Sim |
-| Usuarios | Criar, visualizar, editar, alterar tipo e excluir | Criar alunos e editar usuarios permitidos | Editar o proprio nome, e-mail e telefone |
+| Usuarios | Criar, visualizar, editar, alterar tipo e excluir | Visualizar permitidos e editar conforme regra | Editar o proprio cadastro |
+| Foto de perfil | Edita conforme permissao | Edita conforme permissao | Edita propria foto quando permitido |
+| Certificados PDF | Consulta/gerencia conforme regra | Consulta/gerencia conforme regra | Consulta conforme regra |
+| Caderneta Digital | Consulta | Administra disciplinas, notas e frequencia | Consulta dados associados |
+| Calendario Escolar | Consulta | Marca avaliacoes e trabalhos | Consulta |
+| QR Code ficticio | Gera | Gera | Gera |
 
-Observacao importante: o front controla a experiencia e evita acoes indevidas na UI, mas a API deve continuar sendo a fonte final de autorizacao.
+Observacao: o front controla a experiencia e evita acoes indevidas na UI, mas a API deve continuar sendo a fonte final de autorizacao.
 
-## Autenticacao e autorizacao
+## Modulos principais
+
+### Autenticacao
 
 Arquivos principais:
 
-- `stores/auth.ts`: controla login, logout, persistencia da sessao e perfil do usuario logado.
+- `stores/auth.ts`: login, logout, persistencia da sessao, validacao via `/auth/me` e alteracao de senha.
 - `middleware/auth.global.ts`: guarda global de rotas.
 - `plugins/api.ts`: injeta `$api` com token JWT e tratamento de `401`.
 - `utils/api-client.ts`: monta headers, normaliza erros e executa chamadas HTTP.
 
-Regras do middleware:
+### Usuarios
 
-1. Rotas publicas, como `/login`, nao exigem sessao.
-2. Usuario autenticado que acessa `/login` e redirecionado para o painel ou para `/alterar-senha`.
-3. Rotas protegidas sem token redirecionam para `/login`.
-4. Usuario com senha padrao e forcado a acessar `/alterar-senha`.
-5. Rotas com `meta.roles` validam `usuario.descricaoPerfil`.
+O modulo de usuarios permite cadastrar, listar, filtrar, editar e excluir conforme perfil. O cadastro inclui:
+
+- Nome.
+- E-mail.
+- Telefone com mascara brasileira `+55 (xx) xxxxx-xxxx`.
+- Data de aniversario com `DatePicker`.
+- Tipo de usuario.
+- Foto de perfil.
+- Certificados PDF para professores, quando permitido.
+- Envio manual de notificacoes para usuarios permitidos.
+
+O campo `dataNascimento` e enviado como `yyyy-mm-dd` ou `null`. Para persistencia definitiva, o backend precisa aceitar esse campo nos DTOs de criacao/edicao e retornar o valor nas consultas.
+
+### Caderneta Digital
+
+Disponivel em `/caderneta-digital`.
+
+- Professores administram disciplinas.
+- Professores lancam notas, presencas e faltas.
+- A situacao e exibida com base nos dados retornados pela API.
+- Alunos visualizam apenas registros associados ao proprio cadastro.
+
+### Notificacoes
+
+O layout principal carrega notificacoes via API, exibe contador de nao lidas, permite abrir detalhes, marcar uma notificacao como lida e marcar todas como lidas.
+
+Mensagens longas, URLs de fotos e URLs de PDF sao quebradas dentro do popup para evitar rolagem horizontal.
+
+### QR Code bancario ficticio
+
+Disponivel em `/qr-code-bancario`.
+
+O front gera dados bancarios demonstrativos por aluno e transforma o payload em QR Code com a biblioteca `qrcode`.
+
+A tela permite:
+
+- Escolher banco ficticio.
+- Informar valor ficticio.
+- Gerar QR Code.
+- Compartilhar texto por WhatsApp.
+- Abrir e-mail via `mailto`.
+- Copiar dados.
+- Baixar imagem PNG do QR.
+
+Todo payload e marcado como `SEM VALOR BANCARIO`.
+
+### Calendario Escolar
+
+Disponivel em `/calendario-escolar`.
+
+O painel exibe:
+
+- Calendario do ano selecionado.
+- Mes vigente selecionado por padrao.
+- Feriados nacionais brasileiros.
+- Agenda mensal com avaliacoes e trabalhos.
+- Formulario para professor marcar datas por disciplina.
+
+Os feriados ficam em `utils/feriados-brasil.ts` e incluem feriados nacionais fixos e a Paixao de Cristo calculada a partir da Pascoa.
+
+A agenda de avaliacoes/trabalhos atualmente persiste no `localStorage` por usuario autenticado. Para uso multiusuario real, o backend deve receber endpoints de agenda escolar.
+
+## Componentes e utilitarios relevantes
+
+| Arquivo | Responsabilidade |
+| --- | --- |
+| `components/DatePicker.vue` | Entrada de data com digitacao `dd/mm/aaaa`, selecao visual, hoje e limpar |
+| `utils/date-utils.ts` | Parse, mascara e formatacao de datas |
+| `utils/feriados-brasil.ts` | Feriados nacionais brasileiros por ano |
+| `utils/qr-code-bancario.ts` | Dados ficticios, payload e mensagem de compartilhamento do QR |
+| `utils/br-phone.ts` | Mascara e normalizacao de telefone brasileiro |
+| `utils/password-strength.ts` | Regras de forca de senha |
+| `utils/usuario-permissions.ts` | Normalizacao de perfis e regras de permissao da UI |
+| `utils/usuario-validation.ts` | Validacao de e-mail duplicado no front |
 
 ## Integracao com a API
 
-O cliente `$api` usa `NUXT_PUBLIC_API_BASE` como baseURL e envia `Authorization: Bearer <token>` quando existe token.
+O cliente `$api` usa `NUXT_PUBLIC_API_BASE` como `baseURL` e envia `Authorization: Bearer <token>` quando existe token.
 
-Endpoints consumidos pelo front:
+Endpoints consumidos:
 
 | Modulo | Endpoints |
 | --- | --- |
-| Auth | `POST /auth/login`, `GET /auth/me`, `POST /auth/alterar-senha` |
+| Auth | `POST /auth/login`, `GET /auth/me`, `POST /auth/alterar-senha`, `POST /auth/esqueci-senha` |
 | Usuarios | `GET /usuarios`, `GET /usuarios/:id`, `POST /usuarios`, `PUT /usuarios/:id`, `DELETE /usuarios/:id`, `GET /usuarios/perfis` |
+| Arquivos de usuario | `GET /usuarios/:id/arquivos`, `GET /usuarios/:id/foto`, `POST /usuarios/:id/foto`, `POST /usuarios/:id/certificados`, `GET /usuarios/:id/arquivos/:arquivoId/download`, `DELETE /usuarios/:id/arquivos/:arquivoId` |
+| Notificacoes | `GET /notificacoes`, `PATCH /notificacoes/:id/lida`, `PATCH /notificacoes/lidas`, `POST /notificacoes` |
+| Caderneta Digital | `GET /caderneta-digital`, `POST /caderneta-digital`, `PUT /caderneta-digital/:id`, `DELETE /caderneta-digital/:id`, `GET /caderneta-digital/disciplinas`, `POST /caderneta-digital/disciplinas`, `PUT /caderneta-digital/disciplinas/:id`, `DELETE /caderneta-digital/disciplinas/:id` |
 
-Os contratos esperados das respostas ficam em `types/api.ts`.
+Contratos TypeScript ficam em `types/api.ts`.
 
 ## Validacoes
 
-Nao ha uma biblioteca externa dedicada a validacao de formularios, como Zod, Yup ou VeeValidate. O projeto usa:
+O projeto usa validacoes locais simples:
 
 - Validacao nativa do HTML (`required`, `type`, `maxlength`).
-- Tipagem TypeScript para contratos de payload e resposta.
-- Utilitario proprio `utils/password-strength.ts` para avaliar forca da senha.
-- Utilitario proprio `utils/usuario-validation.ts` para impedir cadastro/edicao com e-mail ja usado por outro usuario.
-- Utilitario proprio `utils/br-phone.ts` para mascara `+55 (xx) xxxxx-xxxx` e envio do telefone como `+55xxxxxxxxxxx`.
-- Utilitario proprio `utils/usuario-permissions.ts` para filtrar acoes e tipos de usuario conforme o perfil logado.
-- `normalizeApiError` em `utils/api-client.ts` para exibir mensagens de erro da API, incluindo erros de validacao retornados no formato `{ errors: ... }`.
+- Tipagem TypeScript para contratos de payload/resposta.
+- Mascara e validacao de telefone em `utils/br-phone.ts`.
+- Mascara, parse e validacao de data em `utils/date-utils.ts`.
+- Validacao de e-mail duplicado em `utils/usuario-validation.ts`.
+- Regras de permissao de UI em `utils/usuario-permissions.ts`.
+- Normalizacao de erros da API em `utils/api-client.ts`.
 
 Regras de forca de senha:
 
@@ -224,15 +298,13 @@ Regras de forca de senha:
 - Pelo menos um numero.
 - Pelo menos um caractere especial.
 
-O componente `components/PasswordStrengthMeter.vue` mostra a classificacao: `Nao informada`, `Fraca`, `Media` ou `Forte`.
-
 ## Testes unitarios
 
 Configuracao:
 
 - `vitest.config.ts` usa `defineVitestConfig` de `@nuxt/test-utils/config`.
-- Ambiente de teste: `happy-dom`.
-- Setup global: `tests/setup.ts`, limpando `localStorage` e mocks antes de cada teste.
+- Ambiente: `happy-dom`.
+- Setup global: `tests/setup.ts`.
 
 Cobertura atual:
 
@@ -240,15 +312,16 @@ Cobertura atual:
 | --- | --- |
 | `tests/stores/auth.spec.ts` | Login, persistencia de JWT, logout e alteracao de senha |
 | `tests/utils/api-client.spec.ts` | Header Authorization, preservacao de headers, callback de 401 e normalizacao de erros |
-| `tests/utils/password-strength.spec.ts` | Classificacao de senha vazia, fraca e forte |
+| `tests/utils/br-phone.spec.ts` | Mascara e normalizacao de telefone |
+| `tests/utils/caderneta-digital.spec.ts` | Parse de notas, media e situacao |
+| `tests/utils/date-utils.spec.ts` | Mascara, parse e formatacao de datas |
+| `tests/utils/feriados-brasil.spec.ts` | Feriados nacionais e Paixao de Cristo |
+| `tests/utils/password-strength.spec.ts` | Classificacao de senha |
+| `tests/utils/qr-code-bancario.spec.ts` | Dados ficticios e payload do QR Code |
+| `tests/utils/usuario-permissions.spec.ts` | Regras de perfil/permissao |
+| `tests/utils/usuario-validation.spec.ts` | E-mail duplicado |
 
-Executar:
-
-```bash
-npm run test
-```
-
-## Build e deploy do front
+## Build e deploy
 
 O projeto esta configurado como SPA com `ssr: false`.
 
@@ -259,47 +332,30 @@ Fluxo do Dockerfile:
 3. Copia `.output/public` para uma imagem `nginx:alpine`.
 4. O Nginx serve a SPA e redireciona rotas internas para `index.html`.
 
-Comando local do container via Compose:
-
-```bash
-docker compose -f ..\docker\docker-compose.yml up -d --build front
-```
-
-## Padrao visual
-
-O layout principal fica em `layouts/default.vue`:
-
-- Marca `GM Tech Solutions` no topo.
-- Titulo dinamico conforme a rota.
-- Nome do usuario autenticado.
-- Botoes `Alterar senha` e `Sair` com icones.
-
-O layout de autenticacao fica em `layouts/auth.vue` e centraliza a tela de login.
-
-As telas principais de CRUD seguem o padrao:
-
-- Card de cadastro/edicao a esquerda.
-- Card de listagem a direita.
-- Campo de busca.
-- Tabela com acoes por icone.
-- Paginacao visual.
-- Botao de atualizar lista.
-
 ## Scripts disponiveis
 
 | Script | Acao |
 | --- | --- |
 | `npm run dev` | Sobe o servidor de desenvolvimento Nuxt |
 | `npm run build` | Build de producao Nuxt |
-| `npm run generate` | Gera build estatico para hospedagem |
+| `npm run generate` | Gera build estatico |
 | `npm run preview` | Preview do build |
+| `npm run typecheck` | Checagem TypeScript/Nuxt |
 | `npm run test` | Executa testes unitarios |
 | `npm run test:watch` | Executa Vitest em modo watch |
 | `npm run postinstall` | Gera tipos Nuxt apos instalar dependencias |
 
+## Pendencias para backend
+
+As funcionalidades abaixo ja possuem front, mas precisam de apoio do backend para uso persistente/multiusuario:
+
+- Persistir `dataNascimento` nos DTOs e modelos de usuario.
+- Criar endpoints de agenda escolar para avaliacoes e trabalhos.
+- Envio real de e-mail/WhatsApp para QR Code, caso necessario.
+
 ## Observacoes de manutencao
 
-- Este README documenta somente o front. Regras de banco de dados, migrations e endpoints internos pertencem ao backend.
-- O controle de acesso no front melhora a experiencia, mas nao substitui validacao/autorizacao no backend.
-- Ao adicionar nova rota protegida, definir `definePageMeta({ roles: [...] })` quando a tela tiver restricao por perfil.
-- Ao adicionar novos endpoints, atualizar `types/api.ts`, stores/paginas correspondentes e testes quando houver logica compartilhada.
+- Este README documenta somente o front.
+- Regras de banco, migrations e seguranca definitiva pertencem ao backend.
+- Ao adicionar nova rota protegida, definir `definePageMeta({ roles: [...] })` quando houver restricao por perfil.
+- Ao adicionar novos endpoints, atualizar `types/api.ts`, paginas/stores correspondentes e testes quando houver logica compartilhada.
