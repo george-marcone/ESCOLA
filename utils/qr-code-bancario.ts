@@ -29,7 +29,7 @@ export interface DadosBancariosFicticios {
 
 export const BANCOS_FICTICIOS: BancoFicticio[] = [
   { nome: 'Banco Escola Demo', codigo: '900' },
-  { nome: 'Banco High Tech Simulado', codigo: '901' },
+  { nome: 'Banco Conectado Simulado', codigo: '901' },
   { nome: 'Cooperativa Aula Ficticia', codigo: '902' }
 ]
 
@@ -57,7 +57,7 @@ export function criarDadosBancariosFicticios(
     codigoBanco: banco.codigo,
     agencia,
     conta: `${contaBase}-${digitoConta}`,
-    chaveDemonstracao: `demo-${usuario.idUsuario || hash}-${alunoSlug}@escola-high-tech.invalid`,
+    chaveDemonstracao: `demo-${usuario.idUsuario || hash}-${alunoSlug}@escola-conectada.invalid`,
     documentoFicticio: `DOC-DEMO-${padNumber(hash % 999999999, 9)}`,
     valor: normalizarValorQrCode(input.valor),
     descricao: input.descricao?.trim() || 'Mensalidade escolar ficticia',
@@ -68,7 +68,7 @@ export function criarDadosBancariosFicticios(
 
 export function montarPayloadQrCode(dados: DadosBancariosFicticios) {
   return [
-    'ESCOLA HIGH TECH - QR CODE BANCARIO FICTICIO',
+    'ESCOLA CONECTADA - QR CODE BANCARIO FICTICIO',
     AVISO_FICTICIO,
     `Referencia: ${dados.referencia}`,
     `Aluno: ${dados.aluno}`,
@@ -86,7 +86,7 @@ export function montarPayloadQrCode(dados: DadosBancariosFicticios) {
 
 export function montarMensagemCompartilhamento(dados: DadosBancariosFicticios) {
   return [
-    'QR Code bancario ficticio - Escola High Tech',
+    'QR Code bancario ficticio - Escola Conectada',
     AVISO_FICTICIO,
     '',
     `Aluno: ${dados.aluno}`,

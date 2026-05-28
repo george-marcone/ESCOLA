@@ -105,7 +105,7 @@ export function montarHolerite(input: {
 
 export function montarResumoHolerite(holerite: HoleriteFicticio) {
   return [
-    'Holerite - Escola High Tech',
+    'Holerite - Escola Conectada',
     'Documento gerado pelo sistema escolar.',
     '',
     `Funcionario: ${holerite.funcionario}`,
@@ -127,7 +127,7 @@ export function gerarHoleritePdfBlob(holerite: HoleriteFicticio) {
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(16)
-  doc.text('Escola High Tech', 14, y)
+  doc.text('Escola Conectada', 14, y)
   doc.setFontSize(12)
   doc.text('Holerite', 14, y + 8)
 
@@ -176,7 +176,7 @@ export function gerarHoleritePdfBlob(holerite: HoleriteFicticio) {
 
   doc.setFontSize(8)
   doc.setFont('helvetica', 'normal')
-  doc.text('Documento gerado eletronicamente pelo sistema Escola High Tech.', 14, 286)
+  doc.text('Documento gerado eletronicamente pelo sistema Escola Conectada.', 14, 286)
 
   return doc.output('blob')
 }

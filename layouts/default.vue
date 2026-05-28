@@ -8,13 +8,15 @@
         <NuxtLink class="mt-2 block text-3xl font-normal leading-tight text-[#071d3b] no-underline sm:text-4xl" to="/">
           {{ tituloPagina }}
         </NuxtLink>
-        <NuxtLink
-          v-if="route.path !== '/'"
-          class="mt-3 inline-flex min-h-9 items-center rounded-md border border-[#d4dee9] bg-white px-3 text-sm font-extrabold text-[#51627a] no-underline shadow-sm transition hover:bg-[#edf3f8]"
-          to="/"
-        >
-          Painel
-        </NuxtLink>
+        <div v-if="route.path !== '/'" class="mt-3 flex flex-wrap items-center gap-2">
+          <NuxtLink
+            class="inline-flex min-h-9 items-center rounded-md border border-[#d4dee9] bg-white px-3 text-sm font-extrabold text-[#51627a] no-underline shadow-sm transition hover:bg-[#edf3f8]"
+            to="/"
+          >
+            Painel
+          </NuxtLink>
+          <AppBreadcrumbs />
+        </div>
       </div>
 
       <div class="flex shrink-0 flex-col items-start gap-3 lg:items-end">
@@ -170,7 +172,7 @@ const tituloPagina = computed(() => {
   if (route.path.startsWith('/holerite')) return 'Holerite'
   if (route.path.startsWith('/alterar-senha')) return 'Alterar senha'
 
-  return 'Escola High Tech'
+  return 'Escola Conectada'
 })
 
 onMounted(() => {

@@ -155,6 +155,9 @@
 
           <div v-if="podeEnviarNotificacao" class="grid gap-3 border-t border-[#d4dee9] pt-4">
             <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Notificacao</p>
+            <p class="m-0 rounded-md border border-[#d4dee9] bg-[#f8fbfd] p-3 text-sm font-semibold text-[#51627a]">
+              Destinatarios: todos os perfis.
+            </p>
             <label class="grid gap-2 text-sm font-extrabold text-[#071d3b]">
               <span>Titulo</span>
               <input v-model.trim="notificacaoForm.titulo" class="min-h-11 rounded-md border border-[#ccd8e5] px-3 text-[#071d3b] outline-none focus:border-[#147f72] focus:ring-4 focus:ring-[#147f72]/10" type="text" maxlength="120" />
@@ -677,10 +680,7 @@ const podeEnviarCertificado = computed(() =>
   getUsuarioPerfilTipo(usuarioEmEdicao.value?.descricaoPerfil) === 'professor'
 )
 const podeEnviarNotificacao = computed(() => {
-  if (!usuarioEmEdicao.value) return false
-  if (auth.isAdmin) return true
-
-  return auth.isProfessor && getUsuarioPerfilTipo(usuarioEmEdicao.value.descricaoPerfil) === 'aluno'
+  return auth.isAdmin
 })
 const exibeFormulario = computed(() => podeCadastrarUsuarios.value || Boolean(editandoId.value))
 const perfisFormulario = computed<Perfil[]>(() => {
@@ -1264,8 +1264,6 @@ async function excluirArquivo(arquivo: UsuarioArquivo) {
 }
 
 async function enviarNotificacao() {
-  if (!editandoId.value) return
-
   if (!notificacaoForm.titulo.trim() || !notificacaoForm.mensagem.trim()) {
     erroArquivos.value = 'Informe titulo e mensagem da notificacao.'
     return
@@ -1276,18 +1274,23 @@ async function enviarNotificacao() {
   mensagemArquivos.value = ''
 
   try {
-    await $api('/notificacoes', {
+    const body = {
+      titulo: notificacaoForm.titulo.trim(),
+      mensagem: notificacaoForm.mensagem.trim(),
+      tipo: 'Geral'
+    }
+
+    await $api('/notificacoes/perfis', {
       method: 'POST',
       body: {
-        idUsuario: editandoId.value,
-        titulo: notificacaoForm.titulo.trim(),
-        mensagem: notificacaoForm.mensagem.trim(),
-        tipo: 'Geral'
+        ...body,
+        todosOsPerfis: true
       }
     })
+
     notificacaoForm.titulo = ''
     notificacaoForm.mensagem = ''
-    mensagemArquivos.value = 'Notificacao enviada.'
+    mensagemArquivos.value = 'Notificacao enviada para todos os perfis.'
   } catch (err) {
     erroArquivos.value = normalizeApiError(err)
   } finally {

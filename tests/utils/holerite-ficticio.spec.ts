@@ -50,7 +50,7 @@ describe('montarResumoHolerite', () => {
     const holerite = criarHoleriteFicticio(professor, '2026-05')
     const resumo = montarResumoHolerite(holerite)
 
-    expect(resumo).toContain('Holerite - Escola High Tech')
+    expect(resumo).toContain('Holerite - Escola Conectada')
     expect(resumo).toContain('Valor liquido:')
   })
 })

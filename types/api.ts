@@ -86,6 +86,21 @@ export interface Notificacao {
   lidaEmUtc?: string | null
 }
 
+export interface NotificacaoPerfisPayload {
+  idsPerfis?: number[]
+  tiposUsuario?: string[]
+  todosOsPerfis?: boolean
+  titulo: string
+  mensagem: string
+  tipo?: string
+  link?: string | null
+}
+
+export interface NotificacaoEnvio {
+  total: number
+  notificacoes: Notificacao[]
+}
+
 export interface Perfil {
   idPerfil: number
   descricaoPerfil: string
@@ -153,17 +168,51 @@ export interface CadernetaDigitalPayload {
   faltas: number
 }
 
-export interface Holerite {
-  idHolerite: number
-  idUsuario: number
-  nomeUsuario: string
-  perfilUsuario: string
-  competenciaMes: number
-  competenciaAno: number
-  competencia: string
-  nomeOriginal: string
-  url: string
-  contentType: string
-  tamanhoBytes: number
+export interface DisciplinaEvento {
+  idEventoDisciplina: number
+  idDisciplina: number
+  nomeDisciplina: string
+  idProfessorUsuario: number
+  nomeProfessor: string
+  tipo: string
+  titulo: string
+  descricao?: string | null
+  data: string
   criadoEmUtc: string
+  atualizadoEmUtc?: string | null
+}
+
+export interface DisciplinaEventoPayload {
+  tipo: string
+  titulo: string
+  descricao?: string | null
+  data: string
+}
+
+export interface CalendarioEscolarEvento {
+  idEventoCalendarioEscolar: number
+  data: string
+  tipo: string
+  titulo: string
+  descricao?: string | null
+  publicoAlvo: string
+  perfisDestinatarios: string[]
+  idUsuarioCriador: number
+  nomeUsuarioCriador: string
+  totalNotificados: number
+  criadoEmUtc: string
+}
+
+export interface CalendarioEscolarAno {
+  ano: number
+  mesSelecionado: number
+  eventos: CalendarioEscolarEvento[]
+}
+
+export interface CalendarioEscolarEventoPayload {
+  data: string
+  tipo: string
+  titulo: string
+  descricao?: string | null
+  publicoAlvo?: string | null
 }

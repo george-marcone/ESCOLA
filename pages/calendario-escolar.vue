@@ -98,11 +98,11 @@
         class="rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6"
         @submit.prevent="salvarAgenda"
       >
-        <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Disciplinas</p>
-        <h2 class="mb-6 mt-2 text-xl font-normal text-[#071d3b]">Avaliacoes e trabalhos</h2>
+        <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">{{ agendaFormCategoria }}</p>
+        <h2 class="mb-6 mt-2 text-xl font-normal text-[#071d3b]">{{ agendaFormTitulo }}</h2>
 
         <div class="grid gap-4">
-          <label class="grid gap-2 text-sm font-extrabold text-[#071d3b]">
+          <label v-if="podeGerenciarEventoDisciplina" class="grid gap-2 text-sm font-extrabold text-[#071d3b]">
             <span>Disciplina</span>
             <select
               v-model.number="agendaForm.idDisciplina"
@@ -134,8 +134,13 @@
               class="min-h-11 rounded-md border border-[#ccd8e5] px-3 text-[#071d3b] outline-none focus:border-[#147f72] focus:ring-4 focus:ring-[#147f72]/10"
               required
             >
-              <option value="avaliacao">Avaliacao</option>
-              <option value="trabalho">Trabalho</option>
+              <option
+                v-for="tipo in tiposAgendaDisponiveis"
+                :key="tipo.value"
+                :value="tipo.value"
+              >
+                {{ tipo.label }}
+              </option>
             </select>
           </label>
 
@@ -168,7 +173,7 @@
               type="submit"
             >
               <CalendarCheck class="h-5 w-5" aria-hidden="true" />
-              {{ editandoAgendaId ? 'Atualizar data' : 'Marcar data' }}
+              {{ editandoAgendaId ? 'Atualizar evento' : textoBotaoAgenda }}
             </button>
             <button
               v-if="editandoAgendaId"
@@ -189,7 +194,7 @@
         <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Consulta</p>
         <h2 class="mb-3 mt-2 text-xl font-normal text-[#071d3b]">Calendario escolar</h2>
         <p class="m-0 text-sm font-semibold text-[#62728a]">
-          Seu perfil permite visualizar feriados, avaliacoes e trabalhos marcados pelos professores.
+          Seu perfil permite visualizar feriados, eventos escolares, avaliacoes e trabalhos marcados pelos professores.
         </p>
       </aside>
 
@@ -202,9 +207,9 @@
           <button
             class="inline-flex h-10 w-10 items-center justify-center rounded-md bg-[#edf3f8] text-[#071d3b] transition hover:bg-[#dfe8f1]"
             type="button"
-            title="Atualizar disciplinas"
-            aria-label="Atualizar disciplinas"
-            @click="carregarDisciplinas"
+            title="Atualizar calendario"
+            aria-label="Atualizar calendario"
+            @click="carregarDadosCalendario"
           >
             <RefreshCcw class="h-5 w-5" aria-hidden="true" />
           </button>
@@ -270,7 +275,7 @@
                   <strong class="mt-1 block break-words text-sm text-[#071d3b]">{{ evento.titulo }}</strong>
                   <span class="mt-1 block text-xs font-extrabold text-[#62728a]">{{ formatIsoDateLongBr(evento.data) }}</span>
                 </div>
-                <div v-if="podeGerenciarAgenda" class="flex shrink-0 gap-2">
+                <div v-if="podeEditarEvento(evento)" class="flex shrink-0 gap-2">
                   <button
                     class="inline-flex h-9 w-9 items-center justify-center rounded-md bg-[#edf3f8] text-[#071d3b] transition hover:bg-[#dfe8f1]"
                     type="button"
@@ -309,16 +314,25 @@
 
 <script setup lang="ts">
 import { CalendarCheck, ChevronLeft, ChevronRight, Pencil, RefreshCcw, Trash2 } from '@lucide/vue'
-import type { DisciplinaCaderneta } from '~/types/api'
+import type {
+  CalendarioEscolarAno,
+  CalendarioEscolarEvento,
+  CalendarioEscolarEventoPayload,
+  DisciplinaCaderneta,
+  DisciplinaEvento,
+  DisciplinaEventoPayload
+} from '~/types/api'
 import { formatDateToIso, formatIsoDateLongBr, parseIsoDate } from '~/utils/date-utils'
 import { getFeriadosNacionaisBrasil, getFeriadosPorData } from '~/utils/feriados-brasil'
 import { normalizeApiError } from '~/utils/api-client'
+import { getUsuarioPerfilTipo } from '~/utils/usuario-permissions'
 
 definePageMeta({
   roles: []
 })
 
-type TipoAgenda = 'avaliacao' | 'trabalho'
+type TipoAgenda = 'avaliacao' | 'trabalho' | 'festa_escola' | 'reuniao_professores' | 'reuniao_pais_mestres'
+type OrigemAgenda = 'disciplina' | 'escolar'
 
 interface DiaCalendario {
   date: Date
@@ -328,12 +342,16 @@ interface DiaCalendario {
 
 interface AgendaAcademicaEvento {
   id: string
-  idDisciplina: number
+  idEventoDisciplina?: number
+  idDisciplina?: number
   disciplinaNome: string
+  idProfessorUsuario?: number
+  nomeProfessor?: string
   tipo: TipoAgenda
   data: string
   titulo: string
   observacao: string
+  origem: OrigemAgenda
 }
 
 const auth = useAuthStore()
@@ -343,11 +361,12 @@ const selectedYear = ref(hoje.getFullYear())
 const selectedMonth = ref(hoje.getMonth())
 const selectedDate = ref(formatDateToIso(hoje))
 const disciplinas = ref<DisciplinaCaderneta[]>([])
-const eventos = ref<AgendaAcademicaEvento[]>([])
 const erroDisciplinas = ref('')
 const erroAgenda = ref('')
 const mensagemAgenda = ref('')
 const editandoAgendaId = ref('')
+const eventosDisciplina = ref<AgendaAcademicaEvento[]>([])
+const eventosEscolares = ref<AgendaAcademicaEvento[]>([])
 const diasSemanaCurtos = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab']
 const months = Array.from({ length: 12 }, (_, index) => ({
   index,
@@ -361,8 +380,25 @@ const agendaForm = reactive({
   observacao: ''
 })
 
-const storageKey = computed(() => `escola-agenda-academica-${auth.usuario?.idUsuario ?? 'anon'}`)
-const podeGerenciarAgenda = computed(() => auth.isProfessor)
+const perfilTipo = computed(() => getUsuarioPerfilTipo(auth.usuario?.descricaoPerfil))
+const podeGerenciarEventoDisciplina = computed(() => perfilTipo.value === 'professor')
+const podeGerenciarEventoEscolar = computed(() => perfilTipo.value === 'administrador')
+const podeGerenciarAgenda = computed(() => podeGerenciarEventoDisciplina.value || podeGerenciarEventoEscolar.value)
+const eventos = computed(() => [...eventosDisciplina.value, ...eventosEscolares.value])
+const agendaFormCategoria = computed(() => podeGerenciarEventoEscolar.value ? 'Eventos escolares' : 'Disciplinas')
+const agendaFormTitulo = computed(() => podeGerenciarEventoEscolar.value ? 'Comunicados e reunioes' : 'Avaliacoes e trabalhos')
+const textoBotaoAgenda = computed(() => podeGerenciarEventoEscolar.value ? 'Lancar evento' : 'Marcar data')
+const tiposAgendaDisponiveis = computed(() => podeGerenciarEventoEscolar.value
+  ? [
+      { value: 'festa_escola', label: 'Festa da escola' },
+      { value: 'reuniao_professores', label: 'Reuniao com professores' },
+      { value: 'reuniao_pais_mestres', label: 'Reuniao de pais e mestres' }
+    ]
+  : [
+      { value: 'avaliacao', label: 'Avaliacao' },
+      { value: 'trabalho', label: 'Trabalho' }
+    ]
+)
 const feriadosAno = computed(() => getFeriadosNacionaisBrasil(selectedYear.value))
 const feriadosPorData = computed(() => getFeriadosPorData(selectedYear.value))
 const eventosPorData = computed(() => {
@@ -404,9 +440,16 @@ watch(() => agendaForm.data, (value) => {
 })
 
 onMounted(async () => {
-  carregarAgendaLocal()
-  await carregarDisciplinas()
+  await carregarDadosCalendario()
 })
+
+async function carregarDadosCalendario() {
+  await Promise.all([
+    carregarDisciplinas(),
+    carregarEventosDisciplina(),
+    carregarEventosEscolares()
+  ])
+}
 
 async function carregarDisciplinas() {
   erroDisciplinas.value = ''
@@ -418,40 +461,125 @@ async function carregarDisciplinas() {
   }
 }
 
-function salvarAgenda() {
+async function carregarEventosDisciplina() {
+  erroDisciplinas.value = ''
+
+  try {
+    const eventosApi = await $api<DisciplinaEvento[]>('/caderneta-digital/disciplinas/eventos', {
+      query: {
+        ano: selectedYear.value
+      }
+    })
+
+    eventosDisciplina.value = eventosApi.map(mapDisciplinaEvento)
+  } catch (err) {
+    erroDisciplinas.value = normalizeApiError(err)
+    eventosDisciplina.value = []
+  }
+}
+
+async function carregarEventosEscolares() {
+  erroDisciplinas.value = ''
+
+  try {
+    const calendario = await $api<CalendarioEscolarAno>('/calendario-escolar', {
+      query: {
+        ano: selectedYear.value,
+        mesSelecionado: selectedMonth.value + 1
+      }
+    })
+
+    eventosEscolares.value = calendario.eventos.map(mapCalendarioEscolarEvento)
+  } catch (err) {
+    erroDisciplinas.value = normalizeApiError(err)
+    eventosEscolares.value = []
+  }
+}
+
+async function salvarAgenda() {
   erroAgenda.value = ''
   mensagemAgenda.value = ''
 
   if (!podeGerenciarAgenda.value) return
 
+  if (podeGerenciarEventoEscolar.value) {
+    await salvarEventoEscolar()
+    return
+  }
+
+  await salvarEventoDisciplina()
+}
+
+async function salvarEventoDisciplina() {
   const disciplina = disciplinas.value.find((item) => item.idDisciplina === agendaForm.idDisciplina)
   if (!disciplina || !agendaForm.data || !agendaForm.titulo.trim()) {
     erroAgenda.value = 'Informe disciplina, data e titulo.'
     return
   }
 
-  const evento: AgendaAcademicaEvento = {
-    id: editandoAgendaId.value || crypto.randomUUID(),
-    idDisciplina: disciplina.idDisciplina,
-    disciplinaNome: disciplina.nome,
-    tipo: agendaForm.tipo,
+  const payload: DisciplinaEventoPayload = {
+    tipo: agendaForm.tipo === 'trabalho' ? 'Trabalho' : 'Avaliacao',
     data: agendaForm.data,
     titulo: agendaForm.titulo.trim(),
-    observacao: agendaForm.observacao.trim()
+    descricao: agendaForm.observacao.trim() || null
   }
 
-  eventos.value = editandoAgendaId.value
-    ? eventos.value.map((item) => item.id === editandoAgendaId.value ? evento : item)
-    : [...eventos.value, evento]
+  try {
+    const saved = editandoAgendaId.value
+      ? await $api<DisciplinaEvento>(`/caderneta-digital/disciplinas/${disciplina.idDisciplina}/eventos/${editandoAgendaId.value}`, {
+          method: 'PUT',
+          body: payload
+        })
+      : await $api<DisciplinaEvento>(`/caderneta-digital/disciplinas/${disciplina.idDisciplina}/eventos`, {
+          method: 'POST',
+          body: payload
+        })
 
-  persistirAgendaLocal()
-  mensagemAgenda.value = editandoAgendaId.value ? 'Data atualizada.' : 'Data marcada.'
-  limparAgendaForm()
+    const evento = mapDisciplinaEvento(saved)
+    eventosDisciplina.value = editandoAgendaId.value
+      ? eventosDisciplina.value.map((item) => item.id === editandoAgendaId.value ? evento : item)
+      : [...eventosDisciplina.value, evento]
+
+    mensagemAgenda.value = editandoAgendaId.value
+      ? 'Evento atualizado e alunos matriculados notificados.'
+      : 'Evento marcado e alunos matriculados notificados.'
+    limparAgendaForm()
+  } catch (err) {
+    erroAgenda.value = normalizeApiError(err)
+  }
+}
+
+async function salvarEventoEscolar() {
+  if (!agendaForm.data || !agendaForm.titulo.trim()) {
+    erroAgenda.value = 'Informe data e titulo.'
+    return
+  }
+
+  const payload: CalendarioEscolarEventoPayload = {
+    data: agendaForm.data,
+    tipo: mapTipoEventoEscolarApi(agendaForm.tipo),
+    titulo: agendaForm.titulo.trim(),
+    descricao: agendaForm.observacao.trim() || null,
+    publicoAlvo: mapPublicoAlvoEventoEscolar(agendaForm.tipo)
+  }
+
+  try {
+    const saved = await $api<CalendarioEscolarEvento>('/calendario-escolar/eventos', {
+      method: 'POST',
+      body: payload
+    })
+
+    eventosEscolares.value = [...eventosEscolares.value, mapCalendarioEscolarEvento(saved)]
+    mensagemAgenda.value = `Evento escolar lancado e ${saved.totalNotificados} notificacao(oes) enviada(s).`
+    limparAgendaForm()
+  } catch (err) {
+    erroAgenda.value = normalizeApiError(err)
+  }
 }
 
 function editarEvento(evento: AgendaAcademicaEvento) {
   editandoAgendaId.value = evento.id
-  agendaForm.idDisciplina = evento.idDisciplina
+  agendaForm.idDisciplina = evento.idDisciplina ?? 0
   agendaForm.data = evento.data
   agendaForm.tipo = evento.tipo
   agendaForm.titulo = evento.titulo
@@ -461,41 +589,39 @@ function editarEvento(evento: AgendaAcademicaEvento) {
 function excluirEvento(evento: AgendaAcademicaEvento) {
   if (!confirm(`Excluir ${evento.titulo}?`)) return
 
-  eventos.value = eventos.value.filter((item) => item.id !== evento.id)
-  persistirAgendaLocal()
-  if (editandoAgendaId.value === evento.id) limparAgendaForm()
+  if (evento.origem === 'escolar') {
+    erroAgenda.value = 'Eventos escolares lancados pela administracao ainda nao possuem exclusao pela tela.'
+    return
+  }
+
+  if (!evento.idDisciplina || !evento.idEventoDisciplina) return
+
+  $api(`/caderneta-digital/disciplinas/${evento.idDisciplina}/eventos/${evento.idEventoDisciplina}`, {
+    method: 'DELETE'
+  })
+    .then(() => {
+      eventosDisciplina.value = eventosDisciplina.value.filter((item) => item.id !== evento.id)
+      if (editandoAgendaId.value === evento.id) limparAgendaForm()
+    })
+    .catch((err) => {
+      erroAgenda.value = normalizeApiError(err)
+    })
 }
 
 function limparAgendaForm() {
   editandoAgendaId.value = ''
   agendaForm.idDisciplina = 0
   agendaForm.data = selectedDate.value
-  agendaForm.tipo = 'avaliacao'
+  agendaForm.tipo = podeGerenciarEventoEscolar.value ? 'festa_escola' : 'avaliacao'
   agendaForm.titulo = ''
   agendaForm.observacao = ''
-}
-
-function carregarAgendaLocal() {
-  if (typeof localStorage === 'undefined') return
-
-  try {
-    const raw = localStorage.getItem(storageKey.value)
-    eventos.value = raw ? JSON.parse(raw) as AgendaAcademicaEvento[] : []
-  } catch {
-    eventos.value = []
-  }
-}
-
-function persistirAgendaLocal() {
-  if (typeof localStorage === 'undefined') return
-
-  localStorage.setItem(storageKey.value, JSON.stringify(eventos.value))
 }
 
 function mudarAno(amount: number) {
   selectedYear.value += amount
   selectedDate.value = formatDateToIso(new Date(selectedYear.value, selectedMonth.value, 1))
   agendaForm.data = selectedDate.value
+  void carregarDadosCalendario()
 }
 
 function selecionarHoje() {
@@ -564,6 +690,92 @@ function diaSelecionadoClasses(day: DiaCalendario) {
 }
 
 function tipoAgendaLabel(tipo: TipoAgenda) {
-  return tipo === 'avaliacao' ? 'Avaliacao' : 'Trabalho'
+  const labels: Record<TipoAgenda, string> = {
+    avaliacao: 'Avaliacao',
+    trabalho: 'Trabalho',
+    festa_escola: 'Festa da escola',
+    reuniao_professores: 'Reuniao com professores',
+    reuniao_pais_mestres: 'Reuniao de pais e mestres'
+  }
+
+  return labels[tipo] ?? 'Evento'
+}
+
+function podeEditarEvento(evento: AgendaAcademicaEvento) {
+  if (podeGerenciarEventoEscolar.value) return false
+
+  return podeGerenciarEventoDisciplina.value
+    && evento.origem === 'disciplina'
+    && evento.idProfessorUsuario === auth.usuario?.idUsuario
+}
+
+function mapDisciplinaEvento(evento: DisciplinaEvento): AgendaAcademicaEvento {
+  return {
+    id: String(evento.idEventoDisciplina),
+    idEventoDisciplina: evento.idEventoDisciplina,
+    idDisciplina: evento.idDisciplina,
+    disciplinaNome: evento.nomeDisciplina,
+    idProfessorUsuario: evento.idProfessorUsuario,
+    nomeProfessor: evento.nomeProfessor,
+    tipo: evento.tipo.toLowerCase() === 'trabalho' ? 'trabalho' : 'avaliacao',
+    data: evento.data,
+    titulo: evento.titulo,
+    observacao: evento.descricao ?? '',
+    origem: 'disciplina'
+  }
+}
+
+function mapCalendarioEscolarEvento(evento: CalendarioEscolarEvento): AgendaAcademicaEvento {
+  return {
+    id: `escolar-${evento.idEventoCalendarioEscolar}`,
+    disciplinaNome: evento.nomeUsuarioCriador
+      ? `Evento escolar por ${evento.nomeUsuarioCriador}`
+      : 'Evento escolar',
+    tipo: mapTipoEventoEscolarFront(evento.tipo),
+    data: evento.data,
+    titulo: evento.titulo,
+    observacao: evento.descricao ?? '',
+    origem: 'escolar'
+  }
+}
+
+function mapTipoEventoEscolarApi(tipo: TipoAgenda) {
+  const tipos: Partial<Record<TipoAgenda, string>> = {
+    festa_escola: 'FestaEscola',
+    reuniao_professores: 'ReuniaoProfessores',
+    reuniao_pais_mestres: 'ReuniaoPaisMestres'
+  }
+
+  return tipos[tipo] ?? 'Evento'
+}
+
+function mapPublicoAlvoEventoEscolar(tipo: TipoAgenda) {
+  if (tipo === 'reuniao_professores') {
+    return 'Professores'
+  }
+
+  if (tipo === 'reuniao_pais_mestres') {
+    return 'AlunosEProfessores'
+  }
+
+  return 'Todos'
+}
+
+function mapTipoEventoEscolarFront(tipo: string): TipoAgenda {
+  const normalized = tipo.toLowerCase()
+
+  if (normalized.includes('professor')) {
+    return 'reuniao_professores'
+  }
+
+  if (normalized.includes('pais') || normalized.includes('mestres')) {
+    return 'reuniao_pais_mestres'
+  }
+
+  if (normalized.includes('festa')) {
+    return 'festa_escola'
+  }
+
+  return 'festa_escola'
 }
 </script>

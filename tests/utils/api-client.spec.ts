@@ -26,9 +26,9 @@ describe('api-client', () => {
   })
 
   it('does not keep a localhost API URL when rendered on a public host', () => {
-    expect(resolveApiBase('http://localhost:5001/api', 'escola-high-tech.vercel.app')).toBe('/api')
+    expect(resolveApiBase('http://localhost:5001/api', 'escola-conectada.vercel.app')).toBe('/api')
     expect(resolveApiBase('http://localhost:5001/api', 'localhost')).toBe('http://localhost:5001/api')
-    expect(resolveApiBase('', 'escola-high-tech.vercel.app')).toBe('/api')
+    expect(resolveApiBase('', 'escola-conectada.vercel.app')).toBe('/api')
   })
 
   it('calls the unauthorized handler on 401 responses', async () => {
@@ -67,7 +67,7 @@ describe('api-client', () => {
         request: 'http://localhost:5001/api/auth/login',
         message: '[POST] "http://localhost:5001/api/auth/login": <no response> Failed to fetch'
       },
-      'escola-high-tech.vercel.app'
+      'escola-conectada.vercel.app'
     )
 
     expect(message).toContain('NUXT_PUBLIC_API_BASE')

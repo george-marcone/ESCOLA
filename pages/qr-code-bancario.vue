@@ -218,7 +218,7 @@ const whatsappHref = computed(() =>
 )
 const emailHref = computed(() =>
   mensagemCompartilhamento.value
-    ? `mailto:?subject=${encodeURIComponent('QR Code bancario ficticio - Escola High Tech')}&body=${encodeURIComponent(mensagemCompartilhamento.value)}`
+    ? `mailto:?subject=${encodeURIComponent('QR Code bancario ficticio - Escola Conectada')}&body=${encodeURIComponent(mensagemCompartilhamento.value)}`
     : '#'
 )
 

@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: escola-high-tech-front
+    name: escola-conectada-front
     runtime: static
     buildCommand: npm run generate
     staticPublishPath: .output/public

@@ -1,6 +1,6 @@
-# Escola High Tech - Frontend
+# Escola Conectada - Frontend
 
-Frontend da aplicacao Escola High Tech, construido em Nuxt 3. Este README cobre somente o projeto do front, separado do backend/API.
+Frontend da aplicacao Escola Conectada, construido em Nuxt 3. Este README cobre somente o projeto do front, separado do backend/API.
 
 ## Visao geral
 
@@ -125,7 +125,7 @@ flowchart TD
   C -- Sim --> D{Senha padrao?}
   B -- Sim --> D
   D -- Sim --> S[/alterar-senha]
-  D -- Nao --> P[/ Painel Escola High Tech]
+  D -- Nao --> P[/ Painel Escola Conectada]
   S --> P
 
   P --> US[/usuarios]
@@ -144,13 +144,13 @@ flowchart TD
 | Rota | Finalidade |
 | --- | --- |
 | `/login` | Login e recuperacao/reset da senha padrao |
-| `/` | Painel com atalhos para os modulos |
+| `/` | Painel com atalhos para os modulos e ordenacao por drag and drop |
 | `/alterar-senha` | Alteracao manual de senha |
 | `/usuarios` | Consulta e CRUD de usuarios conforme perfil |
 | `/usuarios/novo` | Cadastro dedicado de usuario |
 | `/usuarios/:id` | Visualizacao, edicao e exclusao de usuario conforme perfil |
 | `/caderneta-digital` | Cadastro de disciplinas, lancamento de notas/frequencia e consulta da caderneta |
-| `/calendario-escolar` | Calendario anual, feriados nacionais e agenda de avaliacoes/trabalhos |
+| `/calendario-escolar` | Calendario anual, feriados nacionais, eventos escolares e agenda de avaliacoes/trabalhos |
 | `/qr-code-bancario` | Geracao de QR Code com dados bancarios ficticios, exclusiva para aluno |
 | `/holerite` | Consulta e lancamento de holerites, exclusivo para professor e administrador |
 
@@ -160,7 +160,7 @@ A sessao autenticada guarda usuario, token JWT, data de expiracao e flag de senh
 
 Os perfis reconhecidos no front sao:
 
-- `Administrador`: acesso completo a usuarios, notificacoes, consulta geral, documentos permitidos e lancamento/consulta de holerites.
+- `Administrador`: acesso completo a usuarios, notificacoes para todos os perfis, consulta geral, documentos permitidos, eventos escolares e lancamento/consulta de holerites.
 - `Membro da Diretoria`: acesso completo a usuarios, notificacoes, consulta geral e documentos permitidos.
 - `Professor`: consulta usuarios permitidos, administra caderneta, agenda avaliacoes/trabalhos, consulta documentos conforme regra, edita dados permitidos e visualiza seus proprios holerites.
 - `Aluno`: consulta o proprio cadastro, caderneta, calendario escolar e QR Code ficticio.
@@ -175,7 +175,7 @@ Matriz resumida:
 | Foto de perfil | Edita conforme permissao | Edita conforme permissao | Edita conforme permissao | Edita propria foto quando permitido |
 | Certificados PDF | Consulta/gerencia conforme regra | Consulta/gerencia conforme regra | Consulta/gerencia conforme regra | Consulta conforme regra |
 | Caderneta Digital | Consulta | Consulta | Administra disciplinas, notas e frequencia | Consulta dados associados |
-| Calendario Escolar | Consulta | Consulta | Marca avaliacoes e trabalhos | Consulta somente leitura |
+| Calendario Escolar | Lanca eventos escolares e consulta | Consulta | Marca avaliacoes e trabalhos | Consulta somente leitura |
 | QR Code ficticio | Nao acessa | Nao acessa | Nao acessa | Gera |
 | Holerite | Lanca, consulta, exporta, envia e exclui | Nao acessa | Consulta, exporta e envia os proprios | Nao acessa |
 
@@ -203,7 +203,7 @@ O modulo de usuarios permite cadastrar, listar, filtrar, editar e excluir confor
 - Tipo de usuario.
 - Foto de perfil.
 - Certificados PDF para professores, quando permitido.
-- Envio manual de notificacoes para usuarios permitidos.
+- Envio manual de notificacoes administrativas para todos os perfis.
 
 O campo `dataNascimento` e enviado como `yyyy-mm-dd` ou `null`. Para persistencia definitiva, o backend precisa aceitar esse campo nos DTOs de criacao/edicao e retornar o valor nas consultas.
 
@@ -220,7 +220,17 @@ Disponivel em `/caderneta-digital`.
 
 O layout principal carrega notificacoes via API, exibe contador de nao lidas, permite abrir detalhes, marcar uma notificacao como lida e marcar todas como lidas.
 
+Administradores podem enviar notificacoes para todos os perfis pelo endpoint `POST /notificacoes/perfis`.
+
 Mensagens longas, URLs de fotos e URLs de PDF sao quebradas dentro do popup para evitar rolagem horizontal.
+
+### Painel inicial
+
+Disponivel em `/`.
+
+O painel exibe os modulos permitidos para cada perfil e permite reorganizar os cards por drag and drop. A ordem e salva no `localStorage` por usuario autenticado, usando uma chave especifica da Escola Conectada. Para sincronizar essa preferencia entre navegadores ou dispositivos, sera necessario um endpoint de preferencias no backend.
+
+As telas internas exibem breadcrumbs ao lado do botao `Painel`, montados a partir da rota atual.
 
 ### QR Code bancario ficticio
 
@@ -274,8 +284,9 @@ Integracao com API:
 - `POST /holerites/usuarios/{usuarioId}`: administrador envia PDF gerado pelo front com `arquivo`, `competenciaMes` e `competenciaAno`.
 - `GET /holerites/usuarios/{usuarioId}/{holeriteId}/download`: administrador baixa PDF de um funcionario.
 - `DELETE /holerites/usuarios/{usuarioId}/{holeriteId}`: administrador exclui holerite.
+- `POST /holerites/me/{holeriteId}/compartilhamento` e `POST /holerites/usuarios/{usuarioId}/{holeriteId}/compartilhamento`: criam link temporario para compartilhamento externo quando suportado pela API/storage.
 
-O compartilhamento por e-mail e WhatsApp abre o cliente externo com mensagem e link publico quando a API/storage retornar `url`. Quando nao houver URL publica, a mensagem orienta o usuario a baixar o PDF pelo sistema.
+O compartilhamento por e-mail e WhatsApp abre o cliente externo com mensagem e link temporario retornado pela API. Ao lancar holerite, a API cria a notificacao para o funcionario informando quem lancou, competencia, arquivo e link para `/holerite`.
 
 ### Calendario Escolar
 
@@ -286,18 +297,20 @@ O painel exibe:
 - Calendario do ano selecionado.
 - Mes vigente selecionado por padrao.
 - Feriados nacionais brasileiros.
-- Agenda mensal com avaliacoes e trabalhos.
+- Agenda mensal com eventos escolares, avaliacoes e trabalhos.
 - Formulario para professor marcar datas por disciplina.
+- Formulario para administrador lancar festas, reunioes com professores e reunioes de pais e mestres.
 - Visualizacao somente leitura para alunos e demais perfis que nao gerenciam agenda.
 
 Os feriados ficam em `utils/feriados-brasil.ts` e incluem feriados nacionais fixos e a Paixao de Cristo calculada a partir da Pascoa.
 
-A agenda de avaliacoes/trabalhos atualmente persiste no `localStorage` por usuario autenticado. Para uso multiusuario real, o backend deve receber endpoints de agenda escolar e disparar notificacoes para alunos matriculados nas disciplinas marcadas pelo professor.
+A agenda de avaliacoes/trabalhos por disciplina usa endpoints da API e o backend notifica os alunos matriculados na disciplina quando o professor marca ou atualiza um evento. Eventos escolares lancados pelo administrador usam `GET /calendario-escolar` e `POST /calendario-escolar/eventos`; a API persiste o criador, publico-alvo e dispara as notificacoes conforme o tipo do evento.
 
 ## Componentes e utilitarios relevantes
 
 | Arquivo | Responsabilidade |
 | --- | --- |
+| `components/AppBreadcrumbs.vue` | Breadcrumbs globais exibidos ao lado do botao Painel |
 | `components/DatePicker.vue` | Entrada de data com digitacao `dd/mm/aaaa`, selecao visual, hoje e limpar |
 | `utils/date-utils.ts` | Parse, mascara e formatacao de datas |
 | `utils/feriados-brasil.ts` | Feriados nacionais brasileiros por ano |
@@ -319,9 +332,9 @@ Endpoints consumidos:
 | Auth | `POST /auth/login`, `GET /auth/me`, `POST /auth/alterar-senha`, `POST /auth/esqueci-senha` |
 | Usuarios | `GET /usuarios`, `GET /usuarios/:id`, `POST /usuarios`, `PUT /usuarios/:id`, `DELETE /usuarios/:id`, `GET /usuarios/perfis` |
 | Arquivos de usuario | `GET /usuarios/:id/arquivos`, `GET /usuarios/:id/foto`, `POST /usuarios/:id/foto`, `POST /usuarios/:id/certificados`, `GET /usuarios/:id/arquivos/:arquivoId/download`, `DELETE /usuarios/:id/arquivos/:arquivoId` |
-| Notificacoes | `GET /notificacoes`, `PATCH /notificacoes/:id/lida`, `PATCH /notificacoes/lidas`, `POST /notificacoes` |
-| Caderneta Digital | `GET /caderneta-digital`, `POST /caderneta-digital`, `PUT /caderneta-digital/:id`, `DELETE /caderneta-digital/:id`, `GET /caderneta-digital/disciplinas`, `POST /caderneta-digital/disciplinas`, `PUT /caderneta-digital/disciplinas/:id`, `DELETE /caderneta-digital/disciplinas/:id` |
-| Holerites | `GET /holerites/me`, `GET /holerites/me/:id/download`, `GET /holerites/usuarios/:usuarioId`, `POST /holerites/usuarios/:usuarioId`, `GET /holerites/usuarios/:usuarioId/:id/download`, `DELETE /holerites/usuarios/:usuarioId/:id` |
+| Notificacoes | `GET /notificacoes`, `POST /notificacoes`, `POST /notificacoes/perfis`, `PATCH /notificacoes/:id/lida`, `PATCH /notificacoes/lidas` |
+| Caderneta Digital | `GET /caderneta-digital`, `POST /caderneta-digital`, `PUT /caderneta-digital/:id`, `DELETE /caderneta-digital/:id`, `GET /caderneta-digital/disciplinas`, `POST /caderneta-digital/disciplinas`, `PUT /caderneta-digital/disciplinas/:id`, `DELETE /caderneta-digital/disciplinas/:id`, `GET /caderneta-digital/disciplinas/eventos`, `POST /caderneta-digital/disciplinas/:id/eventos`, `PUT /caderneta-digital/disciplinas/:id/eventos/:eventoId`, `DELETE /caderneta-digital/disciplinas/:id/eventos/:eventoId` |
+| Holerites | `GET /holerites/me`, `GET /holerites/me/:id/download`, `POST /holerites/me/:id/compartilhamento`, `GET /holerites/usuarios/:usuarioId`, `POST /holerites/usuarios/:usuarioId`, `GET /holerites/usuarios/:usuarioId/:id/download`, `POST /holerites/usuarios/:usuarioId/:id/compartilhamento`, `DELETE /holerites/usuarios/:usuarioId/:id` |
 
 Contratos TypeScript ficam em `types/api.ts`.
 
@@ -398,9 +411,9 @@ Fluxo do Dockerfile:
 As funcionalidades abaixo ja possuem front, mas precisam de apoio do backend para uso persistente/multiusuario:
 
 - Persistir `dataNascimento` nos DTOs e modelos de usuario.
-- Criar endpoints de agenda escolar para avaliacoes e trabalhos.
-- Disparar notificacoes para alunos matriculados quando o professor marcar avaliacao ou trabalho.
-- Criar endpoints de envio real de holerite por e-mail/WhatsApp, caso o envio precise acontecer pelo servidor com anexo/auditoria.
+- Endpoints `PUT`/`DELETE` para eventos escolares institucionais, caso seja necessario editar ou excluir eventos ja lancados.
+- Endpoint de preferencias de usuario, caso a ordenacao drag and drop do painel precise sincronizar entre dispositivos.
+- Envio real server-side de e-mail/WhatsApp para holerite com anexo, auditoria e fila de envio, caso seja necessario sair do compartilhamento via cliente externo.
 - Envio real de e-mail/WhatsApp para QR Code, caso necessario.
 
 ## Observacoes de manutencao

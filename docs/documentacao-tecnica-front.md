@@ -1,11 +1,11 @@
-# Documentacao Tecnica - Escola High Tech Frontend
+# Documentacao Tecnica - Escola Conectada Frontend
 
 Versao: 0.2.0
 Data de revisao: 2026-05-28
 
 ## 1. Objetivo
 
-Este documento descreve a arquitetura, os modulos, os contratos e os pontos de manutencao do frontend da aplicacao Escola High Tech.
+Este documento descreve a arquitetura, os modulos, os contratos e os pontos de manutencao do frontend da aplicacao Escola Conectada.
 
 O frontend e uma SPA Nuxt 3 que consome uma API REST externa. Ele controla a experiencia de usuario, roteamento, autenticacao no navegador, validacoes locais, permissoes visuais e integracoes de tela. A API continua sendo a fonte final de dados, autorizacao e persistencia.
 
@@ -133,6 +133,10 @@ Exibe atalhos para:
 - Holerite, somente para professor e administrador.
 - Alterar senha.
 
+Os cards do painel podem ser reorganizados por drag and drop. A ordem fica salva no `localStorage` por usuario autenticado; sincronizacao entre dispositivos depende de um futuro endpoint de preferencias.
+
+As telas internas exibem breadcrumbs ao lado do botao `Painel` no cabecalho global.
+
 ### 7.3 Usuarios
 
 Rotas:
@@ -150,7 +154,7 @@ Funcionalidades:
 - Upload, download e exclusao de certificados PDF.
 - Popup de contatos.
 - Popup de documentos.
-- Envio manual de notificacao.
+- Envio manual de notificacao administrativa para todos os perfis.
 - Campo `dataNascimento` com DatePicker.
 
 Campo de aniversario:
@@ -185,6 +189,7 @@ Funcionalidades:
 - Marcar notificacao como lida.
 - Marcar todas como lidas.
 - Quebra de mensagens longas, URLs de fotos e URLs de PDFs sem overflow horizontal.
+- Envio para todos os perfis via `POST /notificacoes/perfis`, usado por administradores no envio manual.
 
 ### 7.6 QR Code bancario ficticio
 
@@ -225,15 +230,16 @@ Funcionalidades:
 - Lista feriados nacionais brasileiros.
 - Exibe grade mensal detalhada.
 - Permite professor marcar avaliacoes e trabalhos por disciplina.
+- Permite administrador lancar festas da escola, reunioes com professores e reunioes de pais e mestres.
 - Permite editar/excluir eventos.
 - Mantem alunos e demais perfis sem permissao de gerenciamento em modo somente leitura.
 
 Persistencia atual:
 
-- A agenda de avaliacoes/trabalhos usa `localStorage`.
-- A chave e separada por usuario autenticado.
-- Para uso multiusuario real, criar endpoints no backend.
-- Para notificar alunos matriculados quando o professor marcar avaliacao ou trabalho, o backend deve relacionar disciplina, matriculas e notificacoes.
+- Avaliacoes e trabalhos por disciplina usam endpoints da API em `/caderneta-digital/disciplinas/.../eventos`.
+- O backend relaciona disciplina, matriculas e notificacoes para alunos matriculados.
+- Eventos escolares administrativos usam `GET /calendario-escolar` e `POST /calendario-escolar/eventos`.
+- O backend persiste criador, tipo, publico-alvo e dispara notificacoes conforme o evento escolar cadastrado pelo administrador.
 
 Feriados:
 
@@ -259,6 +265,7 @@ Funcionalidades:
 - Administrador salva o PDF gerado em `POST /holerites/usuarios/{usuarioId}` usando `multipart/form-data`.
 - Administrador lista, baixa e exclui holerites de funcionarios permitidos.
 - Professor e administrador baixam PDF, exportam e compartilham dados por e-mail/WhatsApp.
+- Ao lancar holerite, a API envia notificacao com administrador responsavel, competencia, arquivo e link para `/holerite`.
 
 Rubricas padrao sugeridas:
 
@@ -278,6 +285,7 @@ Observacoes:
 - Os valores sao preenchidos no front pelo administrador antes da geracao do PDF.
 - A API atual recebe e persiste o PDF; nao recebe rubricas estruturadas em JSON.
 - E-mail/WhatsApp abrem clientes externos com mensagem e link publico quando o storage retornar `url`.
+- Links publicos usam os endpoints de compartilhamento de holerite quando disponiveis.
 - Envio server-side real com anexo/auditoria precisa de endpoint dedicado no backend.
 
 ## 8. Componentes reutilizaveis
@@ -299,6 +307,7 @@ Responsabilidades:
 
 | Arquivo | Responsabilidade |
 | --- | --- |
+| `components/AppBreadcrumbs.vue` | Breadcrumbs globais por rota |
 | `utils/api-client.ts` | Cliente HTTP e normalizacao de erros |
 | `utils/api-file.ts` | Download de blobs protegidos por token |
 | `utils/api-url.ts` | Resolucao de URLs da API |
@@ -327,8 +336,10 @@ Principais interfaces:
 - `Perfil`
 - `AuthResponse`
 - `DisciplinaCaderneta`
+- `DisciplinaEvento`
 - `CadernetaDigitalSummary`
 - `Holerite`
+- `NotificacaoEnvio`
 
 Campo novo:
 
@@ -338,7 +349,6 @@ Funcionalidades locais sem contrato de API:
 
 - QR Code bancario ficticio.
 - Rubricas editaveis usadas para gerar PDF de holerite antes do upload.
-- Agenda escolar de avaliacoes/trabalhos enquanto persistir em `localStorage`.
 
 ## 11. Endpoints consumidos
 
@@ -347,10 +357,10 @@ Funcionalidades locais sem contrato de API:
 | Auth | `POST /auth/login`, `GET /auth/me`, `POST /auth/alterar-senha`, `POST /auth/esqueci-senha` |
 | Usuarios | `GET /usuarios`, `GET /usuarios/:id`, `POST /usuarios`, `PUT /usuarios/:id`, `DELETE /usuarios/:id`, `GET /usuarios/perfis` |
 | Arquivos | `GET /usuarios/:id/arquivos`, `GET /usuarios/:id/foto`, `POST /usuarios/:id/foto`, `POST /usuarios/:id/certificados`, `GET /usuarios/:id/arquivos/:arquivoId/download`, `DELETE /usuarios/:id/arquivos/:arquivoId` |
-| Notificacoes | `GET /notificacoes`, `POST /notificacoes`, `PATCH /notificacoes/:id/lida`, `PATCH /notificacoes/lidas` |
+| Notificacoes | `GET /notificacoes`, `POST /notificacoes`, `POST /notificacoes/perfis`, `PATCH /notificacoes/:id/lida`, `PATCH /notificacoes/lidas` |
 | Caderneta | `GET /caderneta-digital`, `POST /caderneta-digital`, `PUT /caderneta-digital/:id`, `DELETE /caderneta-digital/:id` |
-| Disciplinas | `GET /caderneta-digital/disciplinas`, `POST /caderneta-digital/disciplinas`, `PUT /caderneta-digital/disciplinas/:id`, `DELETE /caderneta-digital/disciplinas/:id` |
-| Holerites | `GET /holerites/me`, `GET /holerites/me/:id/download`, `GET /holerites/usuarios/:usuarioId`, `POST /holerites/usuarios/:usuarioId`, `GET /holerites/usuarios/:usuarioId/:id/download`, `DELETE /holerites/usuarios/:usuarioId/:id` |
+| Disciplinas | `GET /caderneta-digital/disciplinas`, `POST /caderneta-digital/disciplinas`, `PUT /caderneta-digital/disciplinas/:id`, `DELETE /caderneta-digital/disciplinas/:id`, `GET /caderneta-digital/disciplinas/eventos`, `POST /caderneta-digital/disciplinas/:id/eventos`, `PUT /caderneta-digital/disciplinas/:id/eventos/:eventoId`, `DELETE /caderneta-digital/disciplinas/:id/eventos/:eventoId` |
+| Holerites | `GET /holerites/me`, `GET /holerites/me/:id/download`, `POST /holerites/me/:id/compartilhamento`, `GET /holerites/usuarios/:usuarioId`, `POST /holerites/usuarios/:usuarioId`, `GET /holerites/usuarios/:usuarioId/:id/download`, `POST /holerites/usuarios/:usuarioId/:id/compartilhamento`, `DELETE /holerites/usuarios/:usuarioId/:id` |
 
 ## 12. Validacoes
 
@@ -411,16 +421,11 @@ Docker:
 ## 15. Pendencias e integracoes futuras
 
 1. Persistir `dataNascimento` no backend.
-2. Criar endpoints de agenda escolar:
-   - `GET /agenda-escolar`
-   - `POST /agenda-escolar`
-   - `PUT /agenda-escolar/:id`
-   - `DELETE /agenda-escolar/:id`
-3. Sincronizar agenda entre professores/alunos.
-4. Disparar notificacoes para alunos matriculados quando o professor marcar avaliacao ou trabalho.
-5. Criar endpoints de envio real de holerite por e-mail/WhatsApp caso seja necessario envio server-side com anexo/auditoria.
-6. Opcionalmente criar envio real de e-mail/WhatsApp para QR Code.
-7. Opcionalmente mover feriados para endpoint configuravel, caso haja feriados estaduais/municipais.
+2. Criar `PUT`/`DELETE` para eventos escolares institucionais caso seja necessario editar ou excluir eventos ja lancados.
+3. Criar endpoint de preferencias de usuario caso a ordenacao drag and drop do painel precise sincronizar entre dispositivos.
+4. Criar endpoints de envio real de holerite por e-mail/WhatsApp caso seja necessario envio server-side com anexo/auditoria.
+5. Opcionalmente criar envio real de e-mail/WhatsApp para QR Code.
+6. Opcionalmente mover feriados para endpoint configuravel, caso haja feriados estaduais/municipais.
 
 ## 16. Manutencao
 

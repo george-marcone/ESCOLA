@@ -378,7 +378,7 @@ async function lancarHolerite() {
       method: 'POST',
       body: formData
     })
-    mensagem.value = 'Holerite lancado.'
+    mensagem.value = 'Holerite lancado e notificacao enviada pela API.'
     await carregarHolerites()
   } catch (err) {
     erro.value = normalizeApiError(err)
@@ -498,7 +498,7 @@ async function criarLinkCompartilhamento(holerite: Holerite) {
 
 function montarMensagemCompartilhamento(holerite: Holerite, link: string) {
   return [
-    'Escola High Tech',
+    'Escola Conectada',
     `Holerite: ${holerite.competencia}`,
     `Funcionario: ${holerite.nomeUsuario}`,
     `Arquivo: ${holerite.nomeOriginal}`,
