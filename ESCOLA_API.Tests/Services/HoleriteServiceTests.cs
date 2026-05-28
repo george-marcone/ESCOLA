@@ -36,6 +36,12 @@ namespace ESCOLA_API.Tests.Services
                 Assert.Equal("Professor Vinicius", created.NomeUsuario);
                 Assert.True(File.Exists(ToPhysicalPath(uploadRoot, created.Url)));
 
+                var notificacao = await context.Notificacoes
+                    .SingleAsync(item => item.IdUsuario == 2 && item.Tipo == "HoleriteLancado");
+                Assert.Contains("Administrador Sistema", notificacao.Mensagem);
+                Assert.Contains("05/2026", notificacao.Mensagem);
+                Assert.Contains("holerite.pdf", notificacao.Mensagem);
+
                 var meusHolerites = await service.GetMeusHoleritesAsync(CreatePrincipal(2, PerfilSistema.Professor));
                 Assert.Single(meusHolerites);
 
@@ -103,6 +109,46 @@ namespace ESCOLA_API.Tests.Services
             }
         }
 
+        [Fact]
+        public async Task CriarCompartilhamentoMeuHoleriteAsync_WhenProfessorOwnsHolerite_AllowsSharedDownload()
+        {
+            var uploadRoot = CreateUploadRoot();
+
+            try
+            {
+                await using var connection = new SqliteConnection("DataSource=:memory:");
+                await connection.OpenAsync();
+                await using var context = CreateContext(connection);
+                await context.Database.EnsureCreatedAsync();
+
+                var service = CreateService(context, uploadRoot);
+                var arquivo = CreateFormFile("holerite.pdf", "application/pdf", new byte[] { 37, 80, 68, 70 });
+                var created = await service.UploadHoleriteAsync(2, 5, 2026, arquivo, CreatePrincipal(1, PerfilSistema.Administrador));
+
+                var compartilhamento = await service.CriarCompartilhamentoMeuHoleriteAsync(
+                    created.IdHolerite,
+                    CreatePrincipal(2, PerfilSistema.Professor));
+
+                Assert.NotNull(compartilhamento);
+                Assert.False(string.IsNullOrWhiteSpace(compartilhamento!.Token));
+                Assert.True(compartilhamento.ExpiraEmUtc > DateTime.UtcNow);
+
+                var download = await service.DownloadHoleriteCompartilhadoAsync(compartilhamento.Token);
+
+                Assert.NotNull(download);
+                Assert.Equal("application/pdf", download!.ContentType);
+                Assert.Equal("holerite.pdf", download.NomeArquivo);
+                await using (download.Stream)
+                {
+                    Assert.True(download.Stream.Length > 0);
+                }
+            }
+            finally
+            {
+                DeleteDirectory(uploadRoot);
+            }
+        }
+
         private static IFormFile CreateFormFile(string fileName, string contentType, byte[] content)
         {
             var stream = new MemoryStream(content);
@@ -136,11 +182,15 @@ namespace ESCOLA_API.Tests.Services
         private static HoleriteService CreateService(DataContext context, string uploadRoot)
         {
             var configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(new[] { new KeyValuePair<string, string?>("Uploads:RootPath", uploadRoot) })
+                .AddInMemoryCollection(new[]
+                {
+                    new KeyValuePair<string, string?>("Uploads:RootPath", uploadRoot),
+                    new KeyValuePair<string, string?>("Jwt:Key", "chave-de-teste-para-compartilhamento-de-holerites")
+                })
                 .Build();
             var storage = new LocalUsuarioArquivoStorage(new TestHostEnvironment(), configuration);
 
-            return new HoleriteService(context, storage);
+            return new HoleriteService(context, storage, configuration);
         }
 
         private static string CreateUploadRoot()

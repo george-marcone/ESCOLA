@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using ESCOLA_API.Data;
 using ESCOLA_API.Models;
 using ESCOLA_API.ViewModels;
@@ -10,13 +12,18 @@ namespace ESCOLA_API.Services
     public class HoleriteService : IHoleriteService
     {
         private const long PdfMaxBytes = 10 * 1024 * 1024;
+        private static readonly TimeSpan CompartilhamentoValidade = TimeSpan.FromDays(7);
         private readonly DataContext _context;
         private readonly IUsuarioArquivoStorage _storage;
+        private readonly string _shareSecret;
 
-        public HoleriteService(DataContext context, IUsuarioArquivoStorage storage)
+        public HoleriteService(DataContext context, IUsuarioArquivoStorage storage, IConfiguration configuration)
         {
             _context = context;
             _storage = storage;
+            _shareSecret = configuration["Holerites:ShareSecret"]
+                ?? configuration["Jwt:Key"]
+                ?? throw new InvalidOperationException("Jwt:Key nao configurada para compartilhamento de holerites.");
         }
 
         public async Task<HoleriteViewModel[]> GetMeusHoleritesAsync(ClaimsPrincipal principal)
@@ -90,7 +97,9 @@ namespace ESCOLA_API.Services
             var created = await GetHoleritesQuery()
                 .FirstAsync(item => item.IdHolerite == holerite.IdHolerite);
 
-            return ToViewModel(created);
+            var createdViewModel = ToViewModel(created);
+            await CriarNotificacaoLancamentoHoleriteAsync(usuario, createdViewModel, principal);
+            return createdViewModel;
         }
 
         public async Task<bool> DeleteHoleriteAsync(int usuarioId, int holeriteId, ClaimsPrincipal principal)
@@ -112,6 +121,35 @@ namespace ESCOLA_API.Services
             return true;
         }
 
+        public async Task<HoleriteCompartilhamentoViewModel?> CriarCompartilhamentoMeuHoleriteAsync(
+            int holeriteId,
+            ClaimsPrincipal principal)
+        {
+            var usuarioId = ValidarFuncionario(principal);
+            return await CriarCompartilhamentoAsync(usuarioId, holeriteId);
+        }
+
+        public async Task<HoleriteCompartilhamentoViewModel?> CriarCompartilhamentoHoleriteUsuarioAsync(
+            int usuarioId,
+            int holeriteId,
+            ClaimsPrincipal principal)
+        {
+            ValidarAdministrador(principal);
+            await ValidarUsuarioFuncionarioAsync(usuarioId);
+            return await CriarCompartilhamentoAsync(usuarioId, holeriteId);
+        }
+
+        public async Task<ArquivoDownload?> DownloadHoleriteCompartilhadoAsync(string token)
+        {
+            var dados = ValidarTokenCompartilhamento(token);
+            if (dados == null)
+            {
+                return null;
+            }
+
+            return await DownloadHoleriteAsync(dados.Value.UsuarioId, dados.Value.HoleriteId);
+        }
+
         private async Task<ArquivoDownload?> DownloadHoleriteAsync(int usuarioId, int holeriteId)
         {
             var holerite = await _context.Holerites
@@ -124,6 +162,120 @@ namespace ESCOLA_API.Services
             }
 
             return await _storage.AbrirAsync(holerite.NomeBlob, holerite.Url, holerite.NomeOriginal, holerite.ContentType);
+        }
+
+        private async Task<HoleriteCompartilhamentoViewModel?> CriarCompartilhamentoAsync(int usuarioId, int holeriteId)
+        {
+            var existe = await _context.Holerites
+                .AsNoTracking()
+                .AnyAsync(item => item.IdUsuario == usuarioId && item.IdHolerite == holeriteId);
+
+            if (!existe)
+            {
+                return null;
+            }
+
+            var expiraEmUtc = DateTime.UtcNow.Add(CompartilhamentoValidade);
+            return new HoleriteCompartilhamentoViewModel
+            {
+                Token = CriarTokenCompartilhamento(usuarioId, holeriteId, expiraEmUtc),
+                ExpiraEmUtc = expiraEmUtc
+            };
+        }
+
+        private async Task CriarNotificacaoLancamentoHoleriteAsync(
+            Usuario funcionario,
+            HoleriteViewModel holerite,
+            ClaimsPrincipal principal)
+        {
+            var idLancador = GetUsuarioAtualId(principal);
+            var nomeLancador = await _context.Usuarios
+                .AsNoTracking()
+                .Where(usuario => usuario.IdUsuario == idLancador)
+                .Select(usuario => usuario.Nome)
+                .FirstOrDefaultAsync();
+
+            if (string.IsNullOrWhiteSpace(nomeLancador))
+            {
+                nomeLancador = "Administrador";
+            }
+
+            _context.Notificacoes.Add(new Notificacao
+            {
+                IdUsuario = funcionario.IdUsuario,
+                Tipo = "HoleriteLancado",
+                Titulo = $"Holerite {holerite.Competencia} lancado",
+                Mensagem = $"O administrador {nomeLancador} lancou um holerite para voce. "
+                    + $"Competencia: {holerite.Competencia}. Arquivo: {holerite.NomeOriginal}. "
+                    + $"Funcionario: {funcionario.Nome} ({PerfilSistema.ObterDescricaoPorId(funcionario.IdPerfil)}).",
+                Link = $"/holerite?holeriteId={holerite.IdHolerite}",
+                CriadaEmUtc = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+        }
+
+        private string CriarTokenCompartilhamento(int usuarioId, int holeriteId, DateTime expiraEmUtc)
+        {
+            var expiraUnix = new DateTimeOffset(expiraEmUtc).ToUnixTimeSeconds();
+            var payload = $"{usuarioId}:{holeriteId}:{expiraUnix}";
+            var assinatura = Assinar(payload);
+
+            return $"{Base64UrlEncode(Encoding.UTF8.GetBytes(payload))}.{Base64UrlEncode(assinatura)}";
+        }
+
+        private (int UsuarioId, int HoleriteId)? ValidarTokenCompartilhamento(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return null;
+            }
+
+            var partes = token.Split('.', StringSplitOptions.RemoveEmptyEntries);
+            if (partes.Length != 2)
+            {
+                return null;
+            }
+
+            string payload;
+            byte[] assinaturaInformada;
+            try
+            {
+                payload = Encoding.UTF8.GetString(Base64UrlDecode(partes[0]));
+                assinaturaInformada = Base64UrlDecode(partes[1]);
+            }
+            catch
+            {
+                return null;
+            }
+
+            var dados = payload.Split(':');
+            if (dados.Length != 3
+                || !int.TryParse(dados[0], out var usuarioId)
+                || !int.TryParse(dados[1], out var holeriteId)
+                || !long.TryParse(dados[2], out var expiraUnix))
+            {
+                return null;
+            }
+
+            if (DateTimeOffset.UtcNow.ToUnixTimeSeconds() > expiraUnix)
+            {
+                return null;
+            }
+
+            var assinaturaEsperada = Assinar(payload);
+            if (!CryptographicOperations.FixedTimeEquals(assinaturaInformada, assinaturaEsperada))
+            {
+                return null;
+            }
+
+            return (usuarioId, holeriteId);
+        }
+
+        private byte[] Assinar(string payload)
+        {
+            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(_shareSecret));
+            return hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
         }
 
         private IQueryable<Holerite> GetHoleritesQuery()
@@ -237,6 +389,33 @@ namespace ESCOLA_API.Services
         {
             var idClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             return int.TryParse(idClaim, out var idUsuario) ? idUsuario : 0;
+        }
+
+        private static string Base64UrlEncode(byte[] value)
+        {
+            return Convert.ToBase64String(value)
+                .TrimEnd('=')
+                .Replace('+', '-')
+                .Replace('/', '_');
+        }
+
+        private static byte[] Base64UrlDecode(string value)
+        {
+            var base64 = value
+                .Replace('-', '+')
+                .Replace('_', '/');
+
+            switch (base64.Length % 4)
+            {
+                case 2:
+                    base64 += "==";
+                    break;
+                case 3:
+                    base64 += "=";
+                    break;
+            }
+
+            return Convert.FromBase64String(base64);
         }
     }
 }

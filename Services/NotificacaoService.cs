@@ -181,7 +181,9 @@ namespace ESCOLA_API.Services
 
         private async Task<int[]> ResolverIdsPerfisAsync(NotificacaoPerfisCreateViewModel viewModel)
         {
-            if (viewModel.TodosOsPerfis)
+            if (viewModel.TodosOsPerfis
+                || (viewModel.IdsPerfis.Length == 0
+                    && viewModel.TiposUsuario.All(string.IsNullOrWhiteSpace)))
             {
                 return await _context.Perfis
                     .AsNoTracking()

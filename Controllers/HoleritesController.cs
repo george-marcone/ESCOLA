@@ -2,6 +2,7 @@ using ESCOLA_API.Services;
 using ESCOLA_API.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
 
 namespace ESCOLA_API.Controllers
 {
@@ -76,6 +77,36 @@ namespace ESCOLA_API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao baixar holerite {HoleriteId} do usuario logado", holeriteId);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
+            }
+        }
+
+        /// <summary>
+        /// Gera um link temporario para compartilhar um holerite do funcionario logado.
+        /// </summary>
+        [Authorize(Roles = "Administrador,Professor")]
+        [HttpPost("me/{holeriteId:int}/compartilhamento")]
+        [ProducesResponseType(typeof(HoleriteCompartilhamentoViewModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CompartilharMeuHolerite(int holeriteId)
+        {
+            try
+            {
+                var compartilhamento = await _holeriteService.CriarCompartilhamentoMeuHoleriteAsync(holeriteId, User);
+                if (compartilhamento == null) return NotFound();
+
+                compartilhamento.Url = CriarUrlCompartilhamento(compartilhamento.Token);
+                return Ok(compartilhamento);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao compartilhar holerite {HoleriteId} do usuario logado", holeriteId);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
@@ -192,6 +223,71 @@ namespace ESCOLA_API.Controllers
         }
 
         /// <summary>
+        /// Gera um link temporario para compartilhar holerite de um funcionario. Disponivel apenas para administradores.
+        /// </summary>
+        [Authorize(Roles = "Administrador")]
+        [HttpPost("usuarios/{usuarioId:int}/{holeriteId:int}/compartilhamento")]
+        [ProducesResponseType(typeof(HoleriteCompartilhamentoViewModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> CompartilharHoleriteUsuario(int usuarioId, int holeriteId)
+        {
+            try
+            {
+                var compartilhamento = await _holeriteService.CriarCompartilhamentoHoleriteUsuarioAsync(usuarioId, holeriteId, User);
+                if (compartilhamento == null) return NotFound();
+
+                compartilhamento.Url = CriarUrlCompartilhamento(compartilhamento.Token);
+                return Ok(compartilhamento);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao compartilhar holerite {HoleriteId} do usuario {UsuarioId}", holeriteId, usuarioId);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
+            }
+        }
+
+        /// <summary>
+        /// Baixa um holerite por link temporario de compartilhamento.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("compartilhados/{token}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DownloadHoleriteCompartilhado(string token)
+        {
+            try
+            {
+                var arquivo = await _holeriteService.DownloadHoleriteCompartilhadoAsync(token);
+                if (arquivo == null) return NotFound();
+
+                Response.Headers[HeaderNames.ContentDisposition] =
+                    new ContentDispositionHeaderValue("inline")
+                    {
+                        FileNameStar = arquivo.NomeArquivo
+                    }.ToString();
+
+                return File(arquivo.Stream, arquivo.ContentType, enableRangeProcessing: true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao baixar holerite compartilhado");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
+            }
+        }
+
+        /// <summary>
         /// Remove holerite de um funcionario. Disponivel apenas para administradores.
         /// </summary>
         [Authorize(Roles = "Administrador")]
@@ -222,5 +318,15 @@ namespace ESCOLA_API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }
+
+    private string CriarUrlCompartilhamento(string token)
+    {
+        return Url.Action(
+            nameof(DownloadHoleriteCompartilhado),
+            null,
+            new { token },
+            Request.Scheme,
+            Request.Host.Value) ?? string.Empty;
     }
+}
 }

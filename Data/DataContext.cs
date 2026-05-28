@@ -20,6 +20,7 @@ namespace ESCOLA_API.Data
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Disciplina> Disciplinas { get; set; }
         public DbSet<DisciplinaEvento> DisciplinaEventos { get; set; }
+        public DbSet<CalendarioEscolarEvento> CalendarioEscolarEventos { get; set; }
         public DbSet<CadernetaDigital> CadernetasDigitais { get; set; }
         public DbSet<UsuarioArquivo> UsuarioArquivos { get; set; }
         public DbSet<Holerite> Holerites { get; set; }
@@ -130,6 +131,33 @@ namespace ESCOLA_API.Data
                     .WithMany(disciplina => disciplina.Eventos)
                     .HasForeignKey(evento => evento.IdDisciplina)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<CalendarioEscolarEvento>(entity =>
+            {
+                entity.ToTable("CalendarioEscolarEvento");
+                entity.HasKey(evento => evento.IdEventoCalendarioEscolar);
+                entity.Property(evento => evento.Tipo)
+                    .IsRequired()
+                    .HasMaxLength(50);
+                entity.Property(evento => evento.Titulo)
+                    .IsRequired()
+                    .HasMaxLength(120);
+                entity.Property(evento => evento.Descricao)
+                    .HasMaxLength(500);
+                entity.Property(evento => evento.PublicoAlvo)
+                    .IsRequired()
+                    .HasMaxLength(50);
+                entity.Property(evento => evento.NomeUsuarioCriador)
+                    .IsRequired()
+                    .HasMaxLength(100);
+                entity.Property(evento => evento.Data)
+                    .HasColumnType("date");
+                entity.HasIndex(evento => evento.Data);
+                entity.HasOne(evento => evento.UsuarioCriador)
+                    .WithMany()
+                    .HasForeignKey(evento => evento.IdUsuarioCriador)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             builder.Entity<CadernetaDigital>(entity =>

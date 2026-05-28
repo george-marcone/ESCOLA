@@ -12,5 +12,8 @@ namespace ESCOLA_API.Services
         Task<ArquivoDownload?> DownloadHoleriteUsuarioAsync(int usuarioId, int holeriteId, ClaimsPrincipal principal);
         Task<HoleriteViewModel> UploadHoleriteAsync(int usuarioId, int competenciaMes, int competenciaAno, IFormFile arquivo, ClaimsPrincipal principal);
         Task<bool> DeleteHoleriteAsync(int usuarioId, int holeriteId, ClaimsPrincipal principal);
+        Task<HoleriteCompartilhamentoViewModel?> CriarCompartilhamentoMeuHoleriteAsync(int holeriteId, ClaimsPrincipal principal);
+        Task<HoleriteCompartilhamentoViewModel?> CriarCompartilhamentoHoleriteUsuarioAsync(int usuarioId, int holeriteId, ClaimsPrincipal principal);
+        Task<ArquivoDownload?> DownloadHoleriteCompartilhadoAsync(string token);
     }
 }

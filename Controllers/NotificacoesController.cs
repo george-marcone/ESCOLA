@@ -113,6 +113,38 @@ namespace ESCOLA_API.Controllers
             }
         }
 
+        /// <summary>
+        /// Envia uma notificacao manual do administrador para todos os perfis cadastrados.
+        /// </summary>
+        [Authorize(Roles = "Administrador")]
+        [HttpPost("todos")]
+        [ProducesResponseType(typeof(NotificacaoEnvioViewModel), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> PostTodos(NotificacaoPerfisCreateViewModel model)
+        {
+            try
+            {
+                model.TodosOsPerfis = true;
+                var created = await _notificacaoService.AddParaPerfisAsync(model, User);
+                return CreatedAtAction(nameof(GetMinhas), null, created);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao criar notificacoes manuais para todos os perfis");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
+            }
+        }
+
         [HttpPatch("{notificacaoId:int}/lida")]
         [ProducesResponseType(typeof(NotificacaoViewModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

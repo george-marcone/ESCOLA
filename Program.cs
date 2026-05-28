@@ -86,7 +86,7 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "ESCOLA_API - Escola High Tech",
+        Title = "ESCOLA_API - Escola Conectada",
         Version = "v1",
         Description = "API para gerenciamento escolar com usuarios, caderneta digital, disciplinas, agenda de avaliacoes e trabalhos com notificacoes aos alunos, calendario escolar, QR Code bancario ficticio para alunos, holerites de funcionarios, notificacoes, uploads de arquivos e autenticacao JWT."
     });
@@ -179,7 +179,7 @@ app.UseSwaggerUI(options =>
 });
 app.MapScalarApiReference(options =>
 {
-    options.WithTitle("ESCOLA_API - Escola High Tech");
+    options.WithTitle("ESCOLA_API - Escola Conectada");
     options.WithOpenApiRoutePattern("/swagger/{documentName}/swagger.json");
     options.AddPreferredSecuritySchemes(new[] { "Bearer" });
 });

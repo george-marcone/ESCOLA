@@ -34,11 +34,11 @@ namespace ESCOLA_API.Controllers
         [ProducesResponseType(typeof(CalendarioEscolarAnoViewModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult Get([FromQuery] int? ano, [FromQuery] int? mesSelecionado)
+        public async Task<IActionResult> Get([FromQuery] int? ano, [FromQuery] int? mesSelecionado)
         {
             try
             {
-                return Ok(_service.GetCalendarioAnual(ano, mesSelecionado));
+                return Ok(await _service.GetCalendarioAnualAsync(ano, mesSelecionado));
             }
             catch (InvalidOperationException ex)
             {
@@ -47,6 +47,38 @@ namespace ESCOLA_API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao gerar calendario escolar");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
+            }
+        }
+
+        /// <summary>
+        /// Cadastra um evento geral no calendario escolar e notifica os perfis destinatarios.
+        /// </summary>
+        /// <param name="model">Dados do evento geral do calendario escolar.</param>
+        [Authorize(Roles = "Administrador")]
+        [HttpPost("eventos")]
+        [ProducesResponseType(typeof(CalendarioEscolarEventoViewModel), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> PostEvento(CalendarioEscolarEventoCreateViewModel model)
+        {
+            try
+            {
+                var created = await _service.AddEventoAsync(model, User);
+                return CreatedAtAction(nameof(Get), new { ano = created.Data.Year, mesSelecionado = created.Data.Month }, created);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao cadastrar evento no calendario escolar");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }

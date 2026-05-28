@@ -1,4 +1,4 @@
-# ESCOLA_API - Escola High Tech
+# ESCOLA_API - Escola Conectada
 
 API REST em ASP.NET Core 10 para gerenciamento escolar com autenticacao JWT, autorizacao por perfis, CRUD centralizado de usuarios, caderneta digital, calendario escolar, agenda de avaliacoes/trabalhos com notificacoes aos alunos, QR Code bancario ficticio para alunos e holerites de funcionarios.
 

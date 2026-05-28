@@ -65,4 +65,25 @@ namespace ESCOLA_API.ViewModels
         /// </summary>
         public DateTime CriadoEmUtc { get; set; }
     }
+
+    /// <summary>
+    /// Link temporario de compartilhamento de holerite.
+    /// </summary>
+    public class HoleriteCompartilhamentoViewModel
+    {
+        /// <summary>
+        /// Token assinado usado pela rota publica de download temporario.
+        /// </summary>
+        public string Token { get; set; } = string.Empty;
+
+        /// <summary>
+        /// URL temporaria para abrir ou baixar o holerite sem cabecalho Authorization.
+        /// </summary>
+        public string Url { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Data e hora UTC de expiracao do link.
+        /// </summary>
+        public DateTime ExpiraEmUtc { get; set; }
+    }
 }

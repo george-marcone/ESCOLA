@@ -98,6 +98,29 @@ namespace ESCOLA_API.Tests.Services
         }
 
         [Fact]
+        public async Task AddParaPerfisAsync_WhenAdminDoesNotChooseProfiles_CreatesNotificationForAllProfiles()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var destinatariosEsperados = await context.Usuarios.CountAsync();
+
+            var service = new NotificacaoService(context);
+            var envio = await service.AddParaPerfisAsync(new NotificacaoPerfisCreateViewModel
+            {
+                Titulo = "Aviso para todos",
+                Mensagem = "Mensagem enviada pelo administrador"
+            }, CreatePrincipal(1, PerfilSistema.Administrador));
+
+            Assert.Equal(destinatariosEsperados, envio.Total);
+            Assert.Contains(envio.Notificacoes, notificacao => notificacao.IdUsuario == 1);
+            Assert.Contains(envio.Notificacoes, notificacao => notificacao.IdUsuario == 2);
+            Assert.Contains(envio.Notificacoes, notificacao => notificacao.IdUsuario == 12);
+        }
+
+        [Fact]
         public async Task AddParaPerfisAsync_WhenProfessorSendsNotification_ThrowsUnauthorizedAccessException()
         {
             await using var connection = new SqliteConnection("DataSource=:memory:");
