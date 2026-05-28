@@ -2,10 +2,10 @@
   <section class="grid gap-6">
     <div>
       <p class="eyebrow">Usuarios</p>
-      <h1 class="m-0 text-3xl font-extrabold text-slate-900">Novo usuario</h1>
+      <h1 class="m-0 break-words text-[1.75rem] font-extrabold leading-tight text-slate-900 sm:text-3xl">Novo usuario</h1>
     </div>
 
-    <form class="grid gap-5 rounded-lg border border-slate-200 bg-white p-5" @submit.prevent="salvar">
+    <form class="grid gap-5 rounded-lg border border-slate-200 bg-white p-4 sm:p-5" @submit.prevent="salvar">
       <div class="grid gap-4 md:grid-cols-2">
         <label>
           <span>Nome</span>
@@ -61,11 +61,11 @@
 
       <p v-if="erro" class="alert alert-error">{{ erro }}</p>
 
-      <div class="flex flex-wrap justify-end gap-2">
-        <NuxtLink class="rounded-md border border-slate-200 px-4 py-2 text-sm font-bold no-underline hover:bg-slate-100" to="/usuarios">
+      <div class="grid gap-2 sm:flex sm:flex-wrap sm:justify-end">
+        <NuxtLink class="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-200 px-4 py-2 text-sm font-bold no-underline hover:bg-slate-100" to="/usuarios">
           Cancelar
         </NuxtLink>
-        <button class="rounded-md bg-[#147f72] px-4 py-2 text-sm font-bold text-white hover:bg-[#0f6c61]" type="submit" :disabled="salvando">
+        <button class="inline-flex min-h-11 items-center justify-center rounded-md bg-[#147f72] px-4 py-2 text-sm font-bold text-white hover:bg-[#0f6c61]" type="submit" :disabled="salvando">
           {{ salvando ? 'Salvando...' : 'Salvar usuario' }}
         </button>
       </div>

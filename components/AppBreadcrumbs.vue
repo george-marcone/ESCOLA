@@ -1,14 +1,14 @@
 <template>
   <nav
     v-if="items.length"
-    class="flex min-w-0 flex-wrap items-center gap-1 text-sm font-extrabold text-[#62728a]"
+    class="flex min-w-0 max-w-full flex-wrap items-center gap-1 text-sm font-extrabold text-[#62728a]"
     aria-label="Caminho da pagina"
   >
     <template v-for="(item, index) in items" :key="`${item.label}-${item.to || index}`">
       <ChevronRight class="h-4 w-4 shrink-0 text-[#9aa7b7]" aria-hidden="true" />
       <NuxtLink
         v-if="item.to && index < items.length - 1"
-        class="min-w-0 rounded-md px-2 py-1 text-[#51627a] no-underline transition hover:bg-[#edf3f8] hover:text-[#071d3b]"
+        class="min-w-0 break-words rounded-md px-2 py-1 text-[#51627a] no-underline transition hover:bg-[#edf3f8] hover:text-[#071d3b]"
         :to="item.to"
       >
         {{ item.label }}

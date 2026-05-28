@@ -38,8 +38,8 @@
 
     <div v-if="usuario" class="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)] xl:items-start">
       <aside class="form-panel min-w-0 overflow-hidden">
-        <div class="flex min-w-0 items-center gap-4">
-          <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#edf3f8] text-2xl font-extrabold text-[#071d3b]">
+        <div class="grid min-w-0 gap-4 min-[420px]:flex min-[420px]:items-center">
+          <div class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#edf3f8] text-xl font-extrabold text-[#071d3b] min-[420px]:h-24 min-[420px]:w-24 min-[420px]:text-2xl">
             <img
               v-if="fotoUsuarioUrl"
               class="h-full w-full object-cover"

@@ -225,8 +225,8 @@
     </aside>
 
     <article class="min-w-0 rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6" :aria-busy="carregandoArquivosLista">
-      <div class="flex items-start justify-between gap-4">
-        <div>
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div class="min-w-0">
           <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">{{ usuariosVisiveis.length }} usuario(s)</p>
           <h2 class="m-0 mt-2 text-xl font-normal text-[#071d3b]">Usuarios</h2>
         </div>
@@ -381,7 +381,7 @@
                 <h3 class="m-0 truncate text-base font-extrabold text-[#071d3b]">{{ usuario.nome }}</h3>
               </div>
             </div>
-            <span class="rounded-md bg-[#eaf4f1] px-2 py-1 text-xs font-extrabold text-[#006b61]">
+            <span class="max-w-[42%] break-words rounded-md bg-[#eaf4f1] px-2 py-1 text-right text-xs font-extrabold text-[#006b61]">
               {{ formatPerfilLabel(usuario.descricaoPerfil) }}
             </span>
           </div>

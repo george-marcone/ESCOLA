@@ -223,7 +223,7 @@
               <span
                 v-for="day in diasSemanaCurtos"
                 :key="day"
-                class="px-2 py-3 text-xs font-extrabold uppercase text-[#51627a]"
+              class="px-1 py-2 text-[11px] font-extrabold uppercase text-[#51627a] sm:px-2 sm:py-3 sm:text-xs"
               >
                 {{ day }}
               </span>
@@ -232,30 +232,30 @@
               <button
                 v-for="day in gradeMes(selectedMonth)"
                 :key="day.iso"
-                class="min-h-24 border-l border-t border-[#d4dee9] p-2 text-left transition first:border-l-0 hover:bg-[#f8fbfd]"
+                class="min-h-16 border-l border-t border-[#d4dee9] p-1 text-left transition first:border-l-0 hover:bg-[#f8fbfd] sm:min-h-24 sm:p-2"
                 :class="diaSelecionadoClasses(day)"
                 type="button"
                 @click="selecionarDia(day.iso)"
               >
                 <span class="flex items-center justify-between gap-2">
-                  <strong class="text-sm">{{ day.date.getDate() }}</strong>
+                  <strong class="text-xs sm:text-sm">{{ day.date.getDate() }}</strong>
                   <span
                     v-if="eventosPorData[day.iso]?.length"
-                    class="rounded-full bg-[#147f72] px-2 py-0.5 text-[11px] font-extrabold text-white"
+                    class="rounded-full bg-[#147f72] px-1.5 py-0.5 text-[10px] font-extrabold text-white sm:px-2 sm:text-[11px]"
                   >
                     {{ eventosPorData[day.iso].length }}
                   </span>
                 </span>
                 <span
                   v-if="feriadosPorData[day.iso]"
-                  class="mt-2 block break-words text-[11px] font-extrabold text-[#b45309]"
+                  class="mt-2 hidden break-words text-[11px] font-extrabold text-[#b45309] sm:block"
                 >
                   {{ feriadosPorData[day.iso].name }}
                 </span>
                 <span
                   v-for="evento in eventosPorData[day.iso]?.slice(0, 2)"
                   :key="evento.id"
-                  class="mt-1 block truncate rounded bg-[#eaf4f1] px-1.5 py-0.5 text-[11px] font-extrabold text-[#006b61]"
+                  class="mt-1 hidden truncate rounded bg-[#eaf4f1] px-1.5 py-0.5 text-[11px] font-extrabold text-[#006b61] sm:block"
                 >
                   {{ tipoAgendaLabel(evento.tipo) }}: {{ evento.disciplinaNome }}
                 </span>

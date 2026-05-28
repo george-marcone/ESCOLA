@@ -85,11 +85,11 @@
         </button>
       </div>
 
-      <div class="mt-5 grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
-        <div class="grid min-h-[320px] place-items-center rounded-lg border border-[#d4dee9] bg-[#f5f8fb] p-4">
+      <div class="mt-5 grid gap-5 sm:gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <div class="grid min-h-[260px] place-items-center rounded-lg border border-[#d4dee9] bg-[#f5f8fb] p-3 sm:min-h-[320px] sm:p-4">
           <img
             v-if="qrCodeDataUrl"
-            class="h-72 w-72 rounded-md bg-white p-3 shadow-sm"
+            class="aspect-square h-auto w-full max-w-72 rounded-md bg-white p-3 shadow-sm"
             :src="qrCodeDataUrl"
             alt="QR Code bancario ficticio"
           />

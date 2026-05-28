@@ -1,6 +1,6 @@
 <template>
-  <section class="grid gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
-    <aside class="rounded-lg border border-[#d4dee9] bg-white p-6 shadow-[0_22px_55px_rgba(14,30,53,0.08)]">
+  <section class="grid gap-4 sm:gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
+    <aside class="rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6">
       <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Painel</p>
       <h2 class="mb-8 mt-2 text-xl font-normal text-[#071d3b]">Sessao ativa</h2>
 
@@ -16,7 +16,7 @@
       </div>
     </aside>
 
-    <article class="rounded-lg border border-[#d4dee9] bg-white p-6 shadow-[0_22px_55px_rgba(14,30,53,0.08)]">
+    <article class="rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6">
       <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Modulos</p>
       <h2 class="m-0 mt-2 text-xl font-normal text-[#071d3b]">Cadastros da escola</h2>
 
@@ -24,6 +24,7 @@
         <div
           v-for="item in modulos"
           :key="item.id"
+          :data-modulo-id="item.id"
           class="relative rounded-lg transition"
           :class="{
             'opacity-60': draggedModuloId === item.id,
@@ -42,6 +43,10 @@
             @click.prevent
             @dragstart.stop="iniciarArrasteModulo(item.id, $event)"
             @dragend="encerrarArrasteModulo"
+            @pointerdown.stop="iniciarArrasteModuloPorToque(item.id, $event)"
+            @pointermove.stop="moverArrasteModuloPorToque"
+            @pointerup.stop="soltarArrasteModuloPorToque"
+            @pointercancel.stop="encerrarArrasteModuloPorToque"
           >
             <GripVertical class="h-5 w-5" aria-hidden="true" />
           </button>
@@ -74,6 +79,7 @@ const perfilTipo = computed(() => getUsuarioPerfilTipo(auth.usuario?.descricaoPe
 const ordemModulos = ref<string[]>([])
 const draggedModuloId = ref('')
 const dragOverModuloId = ref('')
+const toqueModuloId = ref('')
 
 interface ModuloPainel {
   id: string
@@ -133,9 +139,12 @@ function marcarAlvoArraste(id: string) {
 
 function soltarModulo(targetId: string, event: DragEvent) {
   const sourceId = event.dataTransfer?.getData('text/plain') || draggedModuloId.value
+  reordenarModulo(sourceId, targetId)
+  encerrarArrasteModulo()
+}
 
+function reordenarModulo(sourceId: string, targetId: string) {
   if (!sourceId || sourceId === targetId) {
-    encerrarArrasteModulo()
     return
   }
 
@@ -144,25 +153,65 @@ function soltarModulo(targetId: string, event: DragEvent) {
   const targetIndex = ids.indexOf(targetId)
 
   if (sourceIndex < 0 || targetIndex < 0) {
-    encerrarArrasteModulo()
     return
   }
 
   const moved = ids.splice(sourceIndex, 1)[0]
   if (!moved) {
-    encerrarArrasteModulo()
     return
   }
 
   ids.splice(targetIndex, 0, moved)
   ordemModulos.value = normalizarOrdemModulos(ids)
   persistirOrdemModulos()
-  encerrarArrasteModulo()
 }
 
 function encerrarArrasteModulo() {
   draggedModuloId.value = ''
   dragOverModuloId.value = ''
+}
+
+function iniciarArrasteModuloPorToque(id: string, event: PointerEvent) {
+  if (event.pointerType === 'mouse') return
+
+  toqueModuloId.value = id
+  draggedModuloId.value = id
+  dragOverModuloId.value = id
+  ;(event.currentTarget as HTMLElement | null)?.setPointerCapture?.(event.pointerId)
+  event.preventDefault()
+}
+
+function moverArrasteModuloPorToque(event: PointerEvent) {
+  if (!toqueModuloId.value) return
+
+  const targetId = obterModuloIdPorPonto(event.clientX, event.clientY)
+  if (targetId) {
+    dragOverModuloId.value = targetId
+  }
+  event.preventDefault()
+}
+
+function soltarArrasteModuloPorToque(event: PointerEvent) {
+  if (!toqueModuloId.value) return
+
+  const targetId = obterModuloIdPorPonto(event.clientX, event.clientY)
+  if (targetId) {
+    reordenarModulo(toqueModuloId.value, targetId)
+  }
+  encerrarArrasteModuloPorToque()
+  event.preventDefault()
+}
+
+function encerrarArrasteModuloPorToque() {
+  toqueModuloId.value = ''
+  encerrarArrasteModulo()
+}
+
+function obterModuloIdPorPonto(x: number, y: number) {
+  if (typeof document === 'undefined') return ''
+
+  const element = document.elementFromPoint(x, y)?.closest('[data-modulo-id]')
+  return element instanceof HTMLElement ? element.dataset.moduloId ?? '' : ''
 }
 
 function carregarOrdemModulos() {

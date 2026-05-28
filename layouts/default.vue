@@ -1,11 +1,11 @@
 <template>
   <div class="min-h-screen bg-[#f3f7fb] text-[#071d3b]">
-    <header class="mx-auto flex max-w-7xl flex-col gap-5 px-4 pb-5 pt-6 sm:px-8 lg:flex-row lg:items-start lg:justify-between">
+    <header class="mx-auto flex max-w-7xl flex-col gap-4 px-3 pb-4 pt-5 min-[380px]:px-4 sm:gap-5 sm:px-8 sm:pb-5 sm:pt-6 lg:flex-row lg:items-start lg:justify-between">
       <div class="min-w-0">
         <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">
           GM Tech Solutions
         </p>
-        <NuxtLink class="mt-2 block text-3xl font-normal leading-tight text-[#071d3b] no-underline sm:text-4xl" to="/">
+        <NuxtLink class="mt-2 block break-words text-[1.75rem] font-normal leading-tight text-[#071d3b] no-underline min-[380px]:text-3xl sm:text-4xl" to="/">
           {{ tituloPagina }}
         </NuxtLink>
         <div v-if="route.path !== '/'" class="mt-3 flex flex-wrap items-center gap-2">
@@ -19,8 +19,8 @@
         </div>
       </div>
 
-      <div class="flex shrink-0 flex-col items-start gap-3 lg:items-end">
-        <p class="m-0 text-sm font-extrabold text-[#071d3b]">
+      <div class="flex w-full shrink-0 flex-col items-start gap-3 lg:w-auto lg:items-end">
+        <p class="m-0 max-w-full break-words text-sm font-extrabold text-[#071d3b]">
           {{ nomeUsuario }}
         </p>
         <div class="grid w-full grid-cols-1 gap-2 sm:w-auto sm:grid-cols-3">
@@ -86,14 +86,14 @@
             </div>
           </div>
           <NuxtLink
-            class="inline-flex min-h-11 items-center gap-2 rounded-md bg-[#eaf4f1] px-4 text-sm font-extrabold text-[#006b61] no-underline transition hover:bg-[#dcefeb]"
+            class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-[#eaf4f1] px-4 text-sm font-extrabold text-[#006b61] no-underline transition hover:bg-[#dcefeb]"
             to="/alterar-senha"
           >
             <KeyRound class="h-5 w-5" aria-hidden="true" />
             Alterar senha
           </NuxtLink>
           <button
-            class="inline-flex min-h-11 items-center gap-2 rounded-md bg-[#eaf4f1] px-4 text-sm font-extrabold text-[#006b61] transition hover:bg-[#dcefeb]"
+            class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-[#eaf4f1] px-4 text-sm font-extrabold text-[#006b61] transition hover:bg-[#dcefeb]"
             type="button"
             @click="sair"
           >
@@ -104,7 +104,7 @@
       </div>
     </header>
 
-    <main class="mx-auto w-full max-w-7xl px-4 pb-10 sm:px-8">
+    <main class="mx-auto w-full max-w-7xl px-3 pb-8 min-[380px]:px-4 sm:px-8 sm:pb-10">
       <slot />
     </main>
 

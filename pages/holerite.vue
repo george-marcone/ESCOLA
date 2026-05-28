@@ -179,7 +179,7 @@
               <span class="mt-2 block text-xs font-semibold text-[#7a8798]">Lancado em {{ formatarData(holerite.criadoEmUtc) }}</span>
             </div>
 
-            <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
+            <div class="grid gap-2 sm:flex sm:flex-wrap sm:justify-end">
               <button
                 class="inline-flex h-10 w-10 items-center justify-center rounded-md bg-[#147f72] text-white transition hover:bg-[#0f6c61]"
                 type="button"
