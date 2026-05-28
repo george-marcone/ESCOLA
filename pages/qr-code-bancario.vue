@@ -1,5 +1,5 @@
 <template>
-  <section class="grid gap-5 xl:grid-cols-[minmax(300px,420px)_minmax(0,1fr)]">
+  <section v-if="auth.isAluno" class="grid gap-5 xl:grid-cols-[minmax(300px,420px)_minmax(0,1fr)]">
     <form
       class="rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6"
       @submit.prevent="gerarQrCode"
@@ -173,7 +173,8 @@ import {
 } from '~/utils/qr-code-bancario'
 
 definePageMeta({
-  roles: []
+  roles: [],
+  middleware: ['aluno']
 })
 
 const auth = useAuthStore()
@@ -228,6 +229,8 @@ watch(() => auth.usuario, (usuario) => {
 }, { immediate: true })
 
 onMounted(() => {
+  if (!auth.isAluno) return
+
   void gerarQrCode()
 })
 

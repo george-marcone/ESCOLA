@@ -94,15 +94,12 @@
 
     <div class="grid gap-5 xl:grid-cols-[minmax(320px,420px)_minmax(0,1fr)]">
       <form
+        v-if="podeGerenciarAgenda"
         class="rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6"
         @submit.prevent="salvarAgenda"
       >
         <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Disciplinas</p>
         <h2 class="mb-6 mt-2 text-xl font-normal text-[#071d3b]">Avaliacoes e trabalhos</h2>
-
-        <p v-if="!podeGerenciarAgenda" class="alert alert-warning mb-4">
-          Somente professores podem marcar datas.
-        </p>
 
         <div class="grid gap-4">
           <label class="grid gap-2 text-sm font-extrabold text-[#071d3b]">
@@ -111,7 +108,6 @@
               v-model.number="agendaForm.idDisciplina"
               class="min-h-11 rounded-md border border-[#ccd8e5] px-3 text-[#071d3b] outline-none focus:border-[#147f72] focus:ring-4 focus:ring-[#147f72]/10"
               required
-              :disabled="!podeGerenciarAgenda"
             >
               <option :value="0">Selecione</option>
               <option
@@ -129,7 +125,6 @@
             label="Data"
             hint="Digite no formato dd/mm/aaaa ou selecione no calendario."
             required
-            :disabled="!podeGerenciarAgenda"
           />
 
           <label class="grid gap-2 text-sm font-extrabold text-[#071d3b]">
@@ -138,7 +133,6 @@
               v-model="agendaForm.tipo"
               class="min-h-11 rounded-md border border-[#ccd8e5] px-3 text-[#071d3b] outline-none focus:border-[#147f72] focus:ring-4 focus:ring-[#147f72]/10"
               required
-              :disabled="!podeGerenciarAgenda"
             >
               <option value="avaliacao">Avaliacao</option>
               <option value="trabalho">Trabalho</option>
@@ -153,7 +147,6 @@
               type="text"
               maxlength="120"
               required
-              :disabled="!podeGerenciarAgenda"
             />
           </label>
 
@@ -163,7 +156,6 @@
               v-model.trim="agendaForm.observacao"
               class="min-h-24 resize-y rounded-md border border-[#ccd8e5] px-3 py-2 text-[#071d3b] outline-none focus:border-[#147f72] focus:ring-4 focus:ring-[#147f72]/10"
               maxlength="500"
-              :disabled="!podeGerenciarAgenda"
             />
           </label>
 
@@ -174,7 +166,6 @@
             <button
               class="inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-[#147f72] px-4 text-sm font-extrabold text-white transition hover:bg-[#0f6c61] disabled:cursor-not-allowed disabled:opacity-70"
               type="submit"
-              :disabled="!podeGerenciarAgenda"
             >
               <CalendarCheck class="h-5 w-5" aria-hidden="true" />
               {{ editandoAgendaId ? 'Atualizar data' : 'Marcar data' }}
@@ -190,6 +181,17 @@
           </div>
         </div>
       </form>
+
+      <aside
+        v-else
+        class="rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6"
+      >
+        <p class="m-0 text-xs font-extrabold uppercase text-[#d64200]">Consulta</p>
+        <h2 class="mb-3 mt-2 text-xl font-normal text-[#071d3b]">Calendario escolar</h2>
+        <p class="m-0 text-sm font-semibold text-[#62728a]">
+          Seu perfil permite visualizar feriados, avaliacoes e trabalhos marcados pelos professores.
+        </p>
+      </aside>
 
       <article class="min-w-0 rounded-lg border border-[#d4dee9] bg-white p-4 shadow-[0_22px_55px_rgba(14,30,53,0.08)] sm:p-6">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
