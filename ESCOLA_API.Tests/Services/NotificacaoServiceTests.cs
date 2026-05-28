@@ -64,6 +64,59 @@ namespace ESCOLA_API.Tests.Services
                 service.AddAsync(model, CreatePrincipal(2, PerfilSistema.Professor)));
         }
 
+        [Fact]
+        public async Task AddParaPerfisAsync_WhenAdminSendsToAlunoAndProfessor_CreatesNotificationForEachUser()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var destinatariosEsperados = await context.Usuarios
+                .CountAsync(usuario => usuario.IdPerfil == PerfilSistema.AlunoId || usuario.IdPerfil == PerfilSistema.ProfessorId);
+
+            var service = new NotificacaoService(context);
+            var envio = await service.AddParaPerfisAsync(new NotificacaoPerfisCreateViewModel
+            {
+                TiposUsuario = new[] { PerfilSistema.Aluno, PerfilSistema.Professor },
+                Titulo = "Aviso geral",
+                Mensagem = "Mensagem para alunos e professores"
+            }, CreatePrincipal(1, PerfilSistema.Administrador));
+
+            Assert.Equal(destinatariosEsperados, envio.Total);
+            Assert.Equal(destinatariosEsperados, envio.Notificacoes.Length);
+            Assert.All(envio.Notificacoes, notificacao => Assert.False(notificacao.Lida));
+
+            var notificacoesPersistidas = await context.Notificacoes
+                .Include(notificacao => notificacao.Usuario)
+                .Where(notificacao => notificacao.Titulo == "Aviso geral")
+                .ToArrayAsync();
+
+            Assert.Equal(destinatariosEsperados, notificacoesPersistidas.Length);
+            Assert.All(notificacoesPersistidas, notificacao =>
+                Assert.Contains(notificacao.Usuario!.IdPerfil, new[] { PerfilSistema.AlunoId, PerfilSistema.ProfessorId }));
+        }
+
+        [Fact]
+        public async Task AddParaPerfisAsync_WhenProfessorSendsNotification_ThrowsUnauthorizedAccessException()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var service = new NotificacaoService(context);
+            var model = new NotificacaoPerfisCreateViewModel
+            {
+                IdsPerfis = new[] { PerfilSistema.AlunoId },
+                Titulo = "Aviso",
+                Mensagem = "Mensagem de teste"
+            };
+
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+                service.AddParaPerfisAsync(model, CreatePrincipal(2, PerfilSistema.Professor)));
+        }
+
         private static ClaimsPrincipal CreatePrincipal(int usuarioId, string perfil)
         {
             var identity = new ClaimsIdentity(new[]

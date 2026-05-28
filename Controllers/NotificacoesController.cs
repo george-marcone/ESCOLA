@@ -54,7 +54,7 @@ namespace ESCOLA_API.Controllers
             }
         }
 
-        [Authorize(Roles = "Administrador,Professor")]
+        [Authorize(Roles = "Administrador")]
         [HttpPost]
         [ProducesResponseType(typeof(NotificacaoViewModel), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -78,6 +78,37 @@ namespace ESCOLA_API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao criar notificacao manual");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
+            }
+        }
+
+        /// <summary>
+        /// Envia uma notificacao manual para todos os usuarios dos perfis informados.
+        /// </summary>
+        [Authorize(Roles = "Administrador")]
+        [HttpPost("perfis")]
+        [ProducesResponseType(typeof(NotificacaoEnvioViewModel), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> PostPerfis(NotificacaoPerfisCreateViewModel model)
+        {
+            try
+            {
+                var created = await _notificacaoService.AddParaPerfisAsync(model, User);
+                return CreatedAtAction(nameof(GetMinhas), null, created);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao criar notificacoes manuais por perfil");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Banco de Dados Falhou");
             }
         }

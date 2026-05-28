@@ -544,7 +544,7 @@
     <tr><td><code>IHoleriteService</code></td><td>Contrato de holerites.</td><td>Define listagem, upload, download e remocao de holerites de funcionarios.</td></tr>
     <tr><td><code>HoleriteService</code></td><td>Regra de holerites.</td><td>Permite que professor/administrador consultem os proprios holerites e que administradores gerenciem PDFs de funcionarios.</td></tr>
     <tr><td><code>INotificacaoService</code></td><td>Contrato de notificacoes.</td><td>Lista, conta e marca notificacoes como lidas.</td></tr>
-    <tr><td><code>NotificacaoService</code></td><td>Regra de notificacoes.</td><td>Controla notificacoes por usuario e permite envio manual por administrador/professor.</td></tr>
+    <tr><td><code>NotificacaoService</code></td><td>Regra de notificacoes.</td><td>Controla notificacoes por usuario e permite envio manual individual ou por perfis pelo administrador.</td></tr>
     <tr><td><code>IUsuarioArquivoService</code></td><td>Contrato de arquivos de usuario.</td><td>Define upload/download/listagem/remocao de foto e certificados.</td></tr>
     <tr><td><code>UsuarioArquivoService</code></td><td>Regra de arquivos de usuario.</td><td>Valida permissao, tipo/tamanho de arquivo e persiste metadados no banco.</td></tr>
     <tr><td><code>ServiceBusNotificacaoWorker</code></td><td>Worker opcional.</td><td>Consome mensagens do Azure Service Bus e grava notificacoes no banco quando configurado.</td></tr>
@@ -602,6 +602,8 @@
     <tr><td><code>AlunoQrCodeBancarioViewModel</code></td><td>Resposta com dados bancarios ficticios, QR Code e links de compartilhamento.</td></tr>
     <tr><td><code>HoleriteViewModel</code></td><td>Resposta com metadados do holerite, competencia, funcionario, URL e tamanho do PDF.</td></tr>
     <tr><td><code>NotificacaoCreateViewModel</code></td><td>Payload de notificacao manual.</td></tr>
+    <tr><td><code>NotificacaoPerfisCreateViewModel</code></td><td>Payload de notificacao manual em lote para perfis selecionados ou todos os perfis.</td></tr>
+    <tr><td><code>NotificacaoEnvioViewModel</code></td><td>Resposta do envio em lote com total e notificacoes criadas.</td></tr>
     <tr><td><code>NotificacaoViewModel</code></td><td>Resposta de notificacao para o painel do usuario.</td></tr>
     <tr><td><code>PerfilViewModel</code></td><td>Contrato de saida para perfis.</td></tr>
     <tr><td><code>LoginRequestViewModel</code></td><td>Payload de login.</td></tr>
@@ -666,6 +668,7 @@
     <li>A caderneta calcula media aritmetica das notas e retorna situacao/cor: reprovado, recuperacao, aprovado ou reprovado por faltas quando atingir 10 faltas.</li>
     <li>Fotos, certificados e holerites sao salvos em storage local ou Azure Blob; no banco ficam apenas URL e metadados do arquivo.</li>
     <li>Notificacoes ficam persistidas na tabela <code>Notificacao</code>; o Service Bus e opcional para consumo de mensagens externas.</li>
+    <li>Administrador pode enviar notificacao manual para um usuario especifico ou em lote para perfis como <code>Aluno</code>, <code>Professor</code> e <code>Administrador</code>.</li>
     <li>Aluno precisa apontar para professor valido.</li>
     <li><code>IdUsuario</code> em aluno, professor e diretoria e opcional; quando informado deve ser positivo.</li>
     <li>Data de nascimento de usuario e opcional, nao pode ser futura e deve trafegar no JSON como <code>yyyy-MM-dd</code>.</li>
@@ -692,7 +695,8 @@
     <tr><td>Disciplinas</td><td>GET/POST/PUT/DELETE <code>/api/caderneta-digital/disciplinas</code></td><td>Professor escreve; admin/aluno consultam conforme permissao.</td><td>Mantem disciplinas vinculadas aos professores.</td></tr>
     <tr><td>Eventos de disciplinas</td><td>GET/POST/PUT/DELETE <code>/api/caderneta-digital/disciplinas/eventos</code> e <code>/api/caderneta-digital/disciplinas/{disciplinaId}/eventos</code></td><td>Professor escreve; admin/aluno consultam conforme permissao.</td><td>Agenda avaliacoes e entregas de trabalhos por disciplina e notifica alunos matriculados.</td></tr>
     <tr><td>Notificacoes</td><td>GET/PATCH <code>/api/notificacoes</code></td><td>Autenticado</td><td>Lista, conta e marca notificacoes do usuario logado.</td></tr>
-    <tr><td>Notificacoes</td><td>POST <code>/api/notificacoes</code></td><td>Administrador e Professor</td><td>Envia notificacao manual para um usuario.</td></tr>
+    <tr><td>Notificacoes</td><td>POST <code>/api/notificacoes</code></td><td>Administrador</td><td>Envia notificacao manual para um usuario.</td></tr>
+    <tr><td>Notificacoes</td><td>POST <code>/api/notificacoes/perfis</code></td><td>Administrador</td><td>Envia notificacao manual em lote para usuarios dos perfis informados.</td></tr>
   </table>
 
   <h2>13. Migrations e Banco</h2>

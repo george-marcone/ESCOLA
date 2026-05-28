@@ -158,7 +158,7 @@ O backend usa arquitetura em camadas:
 | Caderneta Digital | `GET /api/caderneta-digital`, `GET /api/caderneta-digital/{id}`, `POST /api/caderneta-digital`, `PUT /api/caderneta-digital/{id}`, `DELETE /api/caderneta-digital/{id}` |
 | Disciplinas | `GET /api/caderneta-digital/disciplinas`, `POST /api/caderneta-digital/disciplinas`, `PUT /api/caderneta-digital/disciplinas/{id}`, `DELETE /api/caderneta-digital/disciplinas/{id}` |
 | Eventos de disciplinas | `GET /api/caderneta-digital/disciplinas/eventos`, `POST /api/caderneta-digital/disciplinas/{disciplinaId}/eventos`, `PUT /api/caderneta-digital/disciplinas/{disciplinaId}/eventos/{eventoId}`, `DELETE /api/caderneta-digital/disciplinas/{disciplinaId}/eventos/{eventoId}` |
-| Notificacoes | `GET /api/notificacoes`, `GET /api/notificacoes/nao-lidas/contador`, `POST /api/notificacoes`, `PATCH /api/notificacoes/{id}/lida`, `PATCH /api/notificacoes/lidas` |
+| Notificacoes | `GET /api/notificacoes`, `GET /api/notificacoes/nao-lidas/contador`, `POST /api/notificacoes`, `POST /api/notificacoes/perfis`, `PATCH /api/notificacoes/{id}/lida`, `PATCH /api/notificacoes/lidas` |
 
 ## Autorizacao
 
@@ -184,6 +184,18 @@ O endpoint de QR Code retorna dados bancarios ficticios, `qrCodeBase64`, `qrCode
 O endpoint de QR Code e exclusivo para usuarios com perfil `Aluno`. Professores e administradores nao acessam esse recurso; para funcionarios, a API disponibiliza holerites em PDF com listagem e download autenticados. O envio e a exclusao de holerites sao operacoes exclusivas de administradores, e holerites nao podem ser vinculados a alunos.
 
 Quando o professor cria ou atualiza uma avaliacao/trabalho em uma disciplina, a API identifica os alunos matriculados pela caderneta digital e cria notificacoes individuais para eles em `/api/notificacoes`.
+
+Para envio manual em lote, o administrador pode usar `POST /api/notificacoes/perfis` informando `idsPerfis`, `tiposUsuario` ou `todosOsPerfis`. Exemplo para alunos e professores:
+
+```json
+{
+  "tiposUsuario": ["Aluno", "Professor"],
+  "titulo": "Aviso escolar",
+  "mensagem": "Mensagem para alunos e professores",
+  "tipo": "Geral",
+  "link": "/notificacoes"
+}
+```
 
 ## Testes
 
