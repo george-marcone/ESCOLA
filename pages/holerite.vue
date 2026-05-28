@@ -249,6 +249,7 @@ import {
   nomeArquivoHolerite,
   separarCompetencia
 } from '~/utils/holerite-ficticio'
+import { openEmailCompose } from '~/utils/share-actions'
 import { formatPerfilLabel, getUsuarioPerfilTipo } from '~/utils/usuario-permissions'
 
 definePageMeta({
@@ -423,7 +424,10 @@ async function enviarEmail(holerite: Holerite) {
     const link = await criarLinkCompartilhamento(holerite)
     const subject = `Holerite ${holerite.competencia} - ${holerite.nomeUsuario}`
     const body = montarMensagemCompartilhamento(holerite, link)
-    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    const abriuEmail = await openEmailCompose({ subject, body })
+    mensagem.value = abriuEmail
+      ? 'Email aberto em uma nova aba.'
+      : 'O navegador bloqueou a abertura do email. Os dados foram copiados.'
   } catch (err) {
     erro.value = normalizeApiError(err)
   }

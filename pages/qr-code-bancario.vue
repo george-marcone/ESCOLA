@@ -124,16 +124,17 @@
               <MessageCircle class="h-5 w-5" aria-hidden="true" />
               WhatsApp
             </a>
-            <a
+            <button
               class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-[#eaf4f1] px-4 text-sm font-extrabold text-[#006b61] no-underline transition hover:bg-[#dcefeb]"
               :class="{ 'pointer-events-none opacity-60': !qrCodeDataUrl }"
-              :href="emailHref"
+              type="button"
+              :disabled="!qrCodeDataUrl"
               :aria-disabled="!qrCodeDataUrl"
-              @click="bloquearCompartilhamentoSemQr"
+              @click="enviarEmail"
             >
               <Mail class="h-5 w-5" aria-hidden="true" />
               Email
-            </a>
+            </button>
             <button
               class="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-[#d4dee9] bg-white px-4 text-sm font-extrabold text-[#51627a] transition hover:bg-[#edf3f8] disabled:opacity-60"
               type="button"
@@ -171,6 +172,7 @@ import {
   montarPayloadQrCode,
   type DadosBancariosFicticios
 } from '~/utils/qr-code-bancario'
+import { openEmailCompose } from '~/utils/share-actions'
 
 definePageMeta({
   roles: [],
@@ -216,12 +218,6 @@ const whatsappHref = computed(() =>
     ? `https://wa.me/?text=${encodeURIComponent(mensagemCompartilhamento.value)}`
     : '#'
 )
-const emailHref = computed(() =>
-  mensagemCompartilhamento.value
-    ? `mailto:?subject=${encodeURIComponent('QR Code bancario ficticio - Escola Conectada')}&body=${encodeURIComponent(mensagemCompartilhamento.value)}`
-    : '#'
-)
-
 watch(() => auth.usuario, (usuario) => {
   if (!form.nomeAluno && usuario?.nome) {
     form.nomeAluno = usuario.nome
@@ -272,6 +268,22 @@ async function copiarDados() {
     mensagem.value = 'Dados copiados.'
   } catch {
     erro.value = 'Nao foi possivel copiar os dados.'
+  }
+}
+
+async function enviarEmail() {
+  if (!mensagemCompartilhamento.value) return
+
+  try {
+    const abriuEmail = await openEmailCompose({
+      subject: 'QR Code bancario ficticio - Escola Conectada',
+      body: mensagemCompartilhamento.value
+    })
+    mensagem.value = abriuEmail
+      ? 'Email aberto em uma nova aba.'
+      : 'O navegador bloqueou a abertura do email. Os dados foram copiados.'
+  } catch {
+    erro.value = 'Nao foi possivel abrir o email.'
   }
 }
 
