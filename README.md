@@ -4,7 +4,7 @@ Frontend da aplicacao Escola High Tech, construido em Nuxt 3. Este README cobre 
 
 ## Visao geral
 
-O projeto e uma SPA para gestao escolar. A aplicacao consome uma API REST externa e oferece autenticacao, painel inicial, gestao de usuarios, caderneta digital, notificacoes, QR Code bancario ficticio para alunos, calendario escolar e holerite demonstrativo ficticio para funcionarios.
+O projeto e uma SPA para gestao escolar. A aplicacao consome uma API REST externa e oferece autenticacao, painel inicial, gestao de usuarios, caderneta digital, notificacoes, QR Code bancario ficticio para alunos, calendario escolar e holerites para professores/administradores.
 
 O layout usa fundo claro, cards brancos, destaque laranja para marca/secao, botoes em verde/teal e icones Lucide.
 
@@ -20,6 +20,7 @@ O layout usa fundo claro, cards brancos, destaque laranja para marca/secao, boto
 | ofetch / `$fetch` | Cliente HTTP usado pelo wrapper `$api` |
 | @lucide/vue | Icones de interface |
 | qrcode | Geracao local de QR Code ficticio |
+| jsPDF | Geracao de PDF de holerite no cliente |
 | Vitest | Testes unitarios |
 | happy-dom | Ambiente DOM para testes |
 | @nuxt/test-utils | Configuracao de testes Nuxt |
@@ -151,7 +152,7 @@ flowchart TD
 | `/caderneta-digital` | Cadastro de disciplinas, lancamento de notas/frequencia e consulta da caderneta |
 | `/calendario-escolar` | Calendario anual, feriados nacionais e agenda de avaliacoes/trabalhos |
 | `/qr-code-bancario` | Geracao de QR Code com dados bancarios ficticios, exclusiva para aluno |
-| `/holerite` | Holerite demonstrativo ficticio, exclusivo para professor/administrador/diretoria/funcionario |
+| `/holerite` | Consulta e lancamento de holerites, exclusivo para professor e administrador |
 
 ## Perfis de acesso
 
@@ -159,23 +160,24 @@ A sessao autenticada guarda usuario, token JWT, data de expiracao e flag de senh
 
 Os perfis reconhecidos no front sao:
 
-- `Administrador` ou `Membro da Diretoria`: acesso completo a usuarios, notificacoes, consulta geral, documentos permitidos e holerite demonstrativo.
-- `Professor`: consulta usuarios permitidos, administra caderneta, agenda avaliacoes/trabalhos, consulta documentos conforme regra, edita dados permitidos e visualiza holerite demonstrativo.
+- `Administrador`: acesso completo a usuarios, notificacoes, consulta geral, documentos permitidos e lancamento/consulta de holerites.
+- `Membro da Diretoria`: acesso completo a usuarios, notificacoes, consulta geral e documentos permitidos.
+- `Professor`: consulta usuarios permitidos, administra caderneta, agenda avaliacoes/trabalhos, consulta documentos conforme regra, edita dados permitidos e visualiza seus proprios holerites.
 - `Aluno`: consulta o proprio cadastro, caderneta, calendario escolar e QR Code ficticio.
 
 Matriz resumida:
 
-| Area | Administrador / Diretoria | Professor | Aluno |
-| --- | --- | --- | --- |
-| Login / senha | Sim | Sim | Sim |
-| Painel | Sim | Sim | Sim |
-| Usuarios | Criar, visualizar, editar, alterar tipo e excluir | Visualizar permitidos e editar conforme regra | Editar o proprio cadastro |
-| Foto de perfil | Edita conforme permissao | Edita conforme permissao | Edita propria foto quando permitido |
-| Certificados PDF | Consulta/gerencia conforme regra | Consulta/gerencia conforme regra | Consulta conforme regra |
-| Caderneta Digital | Consulta | Administra disciplinas, notas e frequencia | Consulta dados associados |
-| Calendario Escolar | Consulta | Marca avaliacoes e trabalhos | Consulta somente leitura |
-| QR Code ficticio | Nao acessa | Nao acessa | Gera |
-| Holerite ficticio | Consulta | Consulta | Nao acessa |
+| Area | Administrador | Diretoria | Professor | Aluno |
+| --- | --- | --- | --- | --- |
+| Login / senha | Sim | Sim | Sim | Sim |
+| Painel | Sim | Sim | Sim | Sim |
+| Usuarios | Criar, visualizar, editar, alterar tipo e excluir | Criar, visualizar, editar, alterar tipo e excluir | Visualizar permitidos e editar conforme regra | Editar o proprio cadastro |
+| Foto de perfil | Edita conforme permissao | Edita conforme permissao | Edita conforme permissao | Edita propria foto quando permitido |
+| Certificados PDF | Consulta/gerencia conforme regra | Consulta/gerencia conforme regra | Consulta/gerencia conforme regra | Consulta conforme regra |
+| Caderneta Digital | Consulta | Consulta | Administra disciplinas, notas e frequencia | Consulta dados associados |
+| Calendario Escolar | Consulta | Consulta | Marca avaliacoes e trabalhos | Consulta somente leitura |
+| QR Code ficticio | Nao acessa | Nao acessa | Nao acessa | Gera |
+| Holerite | Lanca, consulta, exporta, envia e exclui | Nao acessa | Consulta, exporta e envia os proprios | Nao acessa |
 
 Observacao: o front controla a experiencia e evita acoes indevidas na UI, mas a API deve continuar sendo a fonte final de autorizacao.
 
@@ -240,21 +242,18 @@ A tela permite:
 
 Todo payload e marcado como `SEM VALOR BANCARIO`.
 
-### Holerite demonstrativo ficticio
+### Holerite
 
 Disponivel em `/holerite`.
 
-Disponivel somente para perfis nao alunos. O painel exibe o modulo para professor/administrador/diretoria/funcionario, e a rota usa `middleware/funcionario.ts` para redirecionar alunos.
+Disponivel somente para professor e administrador. O painel exibe o modulo conforme perfil, e a rota usa `middleware/funcionario.ts` para redirecionar alunos e perfis sem acesso.
 
-O holerite e gerado localmente no front e possui valores demonstrativos, sem valor trabalhista, fiscal, contabil ou oficial. A tela permite:
+A tela possui duas visoes:
 
-- Selecionar competencia dos ultimos 12 meses.
-- Visualizar dados do funcionario, cargo e matricula ficticia.
-- Visualizar proventos, descontos, informativos e valor liquido ficticio.
-- Copiar resumo do demonstrativo.
-- Imprimir a tela.
+- Professor: consulta os proprios holerites retornados pela API, baixa PDF e compartilha por e-mail/WhatsApp.
+- Administrador: seleciona professor/administrador, lanca rubricas editaveis, gera PDF no cliente, salva o PDF na API, baixa, compartilha e exclui holerites.
 
-Rubricas ficticias incluidas:
+Rubricas padrao sugeridas para lancamento:
 
 - Salario base.
 - Gratificacao pedagogica ou administrativa.
@@ -266,6 +265,17 @@ Rubricas ficticias incluidas:
 - Plano de saude.
 - Contribuicao associativa.
 - FGTS apenas informativo.
+
+Integracao com API:
+
+- `GET /holerites/me`: lista holerites do professor/administrador logado.
+- `GET /holerites/me/{holeriteId}/download`: baixa PDF do proprio holerite.
+- `GET /holerites/usuarios/{usuarioId}`: administrador lista holerites de um funcionario.
+- `POST /holerites/usuarios/{usuarioId}`: administrador envia PDF gerado pelo front com `arquivo`, `competenciaMes` e `competenciaAno`.
+- `GET /holerites/usuarios/{usuarioId}/{holeriteId}/download`: administrador baixa PDF de um funcionario.
+- `DELETE /holerites/usuarios/{usuarioId}/{holeriteId}`: administrador exclui holerite.
+
+O compartilhamento por e-mail e WhatsApp abre o cliente externo com mensagem e link publico quando a API/storage retornar `url`. Quando nao houver URL publica, a mensagem orienta o usuario a baixar o PDF pelo sistema.
 
 ### Calendario Escolar
 
@@ -292,7 +302,7 @@ A agenda de avaliacoes/trabalhos atualmente persiste no `localStorage` por usuar
 | `utils/date-utils.ts` | Parse, mascara e formatacao de datas |
 | `utils/feriados-brasil.ts` | Feriados nacionais brasileiros por ano |
 | `utils/qr-code-bancario.ts` | Dados ficticios, payload e mensagem de compartilhamento do QR |
-| `utils/holerite-ficticio.ts` | Rubricas, totais e resumo do holerite demonstrativo ficticio |
+| `utils/holerite-ficticio.ts` | Rubricas, totais, resumo e geracao de PDF de holerite |
 | `utils/br-phone.ts` | Mascara e normalizacao de telefone brasileiro |
 | `utils/password-strength.ts` | Regras de forca de senha |
 | `utils/usuario-permissions.ts` | Normalizacao de perfis e regras de permissao da UI |
@@ -311,6 +321,7 @@ Endpoints consumidos:
 | Arquivos de usuario | `GET /usuarios/:id/arquivos`, `GET /usuarios/:id/foto`, `POST /usuarios/:id/foto`, `POST /usuarios/:id/certificados`, `GET /usuarios/:id/arquivos/:arquivoId/download`, `DELETE /usuarios/:id/arquivos/:arquivoId` |
 | Notificacoes | `GET /notificacoes`, `PATCH /notificacoes/:id/lida`, `PATCH /notificacoes/lidas`, `POST /notificacoes` |
 | Caderneta Digital | `GET /caderneta-digital`, `POST /caderneta-digital`, `PUT /caderneta-digital/:id`, `DELETE /caderneta-digital/:id`, `GET /caderneta-digital/disciplinas`, `POST /caderneta-digital/disciplinas`, `PUT /caderneta-digital/disciplinas/:id`, `DELETE /caderneta-digital/disciplinas/:id` |
+| Holerites | `GET /holerites/me`, `GET /holerites/me/:id/download`, `GET /holerites/usuarios/:usuarioId`, `POST /holerites/usuarios/:usuarioId`, `GET /holerites/usuarios/:usuarioId/:id/download`, `DELETE /holerites/usuarios/:usuarioId/:id` |
 
 Contratos TypeScript ficam em `types/api.ts`.
 
@@ -352,7 +363,7 @@ Cobertura atual:
 | `tests/utils/caderneta-digital.spec.ts` | Parse de notas, media e situacao |
 | `tests/utils/date-utils.spec.ts` | Mascara, parse e formatacao de datas |
 | `tests/utils/feriados-brasil.spec.ts` | Feriados nacionais e Paixao de Cristo |
-| `tests/utils/holerite-ficticio.spec.ts` | Rubricas, totais e resumo do holerite ficticio |
+| `tests/utils/holerite-ficticio.spec.ts` | Rubricas, totais, resumo e geracao de PDF do holerite |
 | `tests/utils/password-strength.spec.ts` | Classificacao de senha |
 | `tests/utils/qr-code-bancario.spec.ts` | Dados ficticios e payload do QR Code |
 | `tests/utils/usuario-permissions.spec.ts` | Regras de perfil/permissao |
@@ -389,7 +400,7 @@ As funcionalidades abaixo ja possuem front, mas precisam de apoio do backend par
 - Persistir `dataNascimento` nos DTOs e modelos de usuario.
 - Criar endpoints de agenda escolar para avaliacoes e trabalhos.
 - Disparar notificacoes para alunos matriculados quando o professor marcar avaliacao ou trabalho.
-- Criar endpoints reais de holerite caso os demonstrativos deixem de ser ficticios.
+- Criar endpoints de envio real de holerite por e-mail/WhatsApp, caso o envio precise acontecer pelo servidor com anexo/auditoria.
 - Envio real de e-mail/WhatsApp para QR Code, caso necessario.
 
 ## Observacoes de manutencao

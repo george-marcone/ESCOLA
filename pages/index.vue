@@ -43,15 +43,17 @@
 
 <script setup lang="ts">
 import { ArrowRight, BookOpen, CalendarDays, FileText, QrCode, ShieldCheck, UserCog } from '@lucide/vue'
+import { getUsuarioPerfilTipo } from '~/utils/usuario-permissions'
 
 const auth = useAuthStore()
+const perfilTipo = computed(() => getUsuarioPerfilTipo(auth.usuario?.descricaoPerfil))
 
 const modulos = computed(() => [
   { label: 'Usuarios', title: auth.isAluno ? 'Corrigir meu cadastro' : 'Gerenciar usuarios', to: '/usuarios', icon: UserCog, show: true },
   { label: 'Caderneta Digital', title: auth.isProfessor ? 'Administrar notas e frequencia' : 'Visualizar boletim e frequencia', to: '/caderneta-digital', icon: BookOpen, show: true },
   { label: 'Calendario Escolar', title: auth.isProfessor ? 'Planejar avaliacoes e trabalhos' : 'Consultar agenda escolar', to: '/calendario-escolar', icon: CalendarDays, show: true },
   { label: 'QR Code', title: 'Gerar dados bancarios ficticios', to: '/qr-code-bancario', icon: QrCode, show: auth.isAluno },
-  { label: 'Holerite', title: 'Visualizar demonstrativo ficticio', to: '/holerite', icon: FileText, show: !auth.isAluno },
+  { label: 'Holerite', title: perfilTipo.value === 'administrador' || perfilTipo.value === 'diretoria' ? 'Lancar e consultar PDFs' : 'Consultar meus PDFs', to: '/holerite', icon: FileText, show: ['administrador', 'diretoria', 'professor'].includes(perfilTipo.value) },
   { label: 'Seguranca', title: 'Alterar senha', to: '/alterar-senha', icon: ShieldCheck, show: true }
 ].filter((item) => item.show))
 </script>

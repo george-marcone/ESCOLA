@@ -9,7 +9,7 @@ Este documento descreve a arquitetura, os modulos, os contratos e os pontos de m
 
 O frontend e uma SPA Nuxt 3 que consome uma API REST externa. Ele controla a experiencia de usuario, roteamento, autenticacao no navegador, validacoes locais, permissoes visuais e integracoes de tela. A API continua sendo a fonte final de dados, autorizacao e persistencia.
 
-As funcionalidades ficticias atuais sao QR Code bancario para alunos e holerite demonstrativo para funcionarios. Ambas sao geradas localmente no front e nao possuem valor oficial.
+As funcionalidades de QR Code bancario para alunos e geracao de PDF de holerite no cliente ficam no front. Holerites salvos, listados, baixados e excluidos usam os endpoints da API.
 
 ## 2. Stack tecnica
 
@@ -23,6 +23,7 @@ As funcionalidades ficticias atuais sao QR Code bancario para alunos e holerite 
 | ofetch / `$fetch` | Cliente HTTP |
 | @lucide/vue | Iconografia |
 | qrcode | Geracao de QR Code no cliente |
+| jsPDF | Geracao de PDF de holerite no cliente |
 | Vitest + happy-dom | Testes unitarios |
 | Nginx | Servir build estatico no Docker |
 
@@ -129,7 +130,7 @@ Exibe atalhos para:
 - Caderneta Digital.
 - Calendario Escolar.
 - QR Code, somente para aluno.
-- Holerite, somente para perfis nao alunos.
+- Holerite, somente para professor e administrador.
 - Alterar senha.
 
 ### 7.3 Usuarios
@@ -240,7 +241,7 @@ Feriados:
 - Paixao de Cristo calculada a partir da Pascoa.
 - Dia Nacional de Zumbi e da Consciencia Negra incluido como feriado nacional.
 
-### 7.8 Holerite demonstrativo ficticio
+### 7.8 Holerite
 
 Rota: `/holerite`.
 
@@ -252,14 +253,14 @@ Arquivos:
 
 Funcionalidades:
 
-- Disponivel somente para professor, administrador, diretoria e demais perfis nao alunos.
-- Gera contracheque demonstrativo localmente no front.
-- Permite selecionar competencia dos ultimos 12 meses.
-- Exibe funcionario, cargo, matricula ficticia, proventos, descontos, informativos e valor liquido ficticio.
-- Permite copiar resumo textual.
-- Permite imprimir a tela pelo navegador.
+- Disponivel somente para professor e administrador.
+- Professor consulta somente os proprios holerites retornados por `GET /holerites/me`.
+- Administrador seleciona professor/administrador, lanca rubricas editaveis e gera PDF no cliente.
+- Administrador salva o PDF gerado em `POST /holerites/usuarios/{usuarioId}` usando `multipart/form-data`.
+- Administrador lista, baixa e exclui holerites de funcionarios permitidos.
+- Professor e administrador baixam PDF, exportam e compartilham dados por e-mail/WhatsApp.
 
-Rubricas ficticias:
+Rubricas padrao sugeridas:
 
 - Salario base.
 - Gratificacao pedagogica ou administrativa.
@@ -274,9 +275,10 @@ Rubricas ficticias:
 
 Observacoes:
 
-- O demonstrativo sempre informa que nao possui valor trabalhista, fiscal ou contabil.
-- Nao ha endpoint de holerite no momento.
-- Para holerites oficiais, sera necessario backend com persistencia, autorizacao por usuario, armazenamento/geracao de documento e auditoria.
+- Os valores sao preenchidos no front pelo administrador antes da geracao do PDF.
+- A API atual recebe e persiste o PDF; nao recebe rubricas estruturadas em JSON.
+- E-mail/WhatsApp abrem clientes externos com mensagem e link publico quando o storage retornar `url`.
+- Envio server-side real com anexo/auditoria precisa de endpoint dedicado no backend.
 
 ## 8. Componentes reutilizaveis
 
@@ -304,7 +306,7 @@ Responsabilidades:
 | `utils/caderneta-digital.ts` | Parse de notas e regras locais da caderneta |
 | `utils/date-utils.ts` | Mascara, parse e formatacao de datas |
 | `utils/feriados-brasil.ts` | Feriados nacionais brasileiros |
-| `utils/holerite-ficticio.ts` | Rubricas, totais e resumo do holerite ficticio |
+| `utils/holerite-ficticio.ts` | Rubricas, totais, resumo e geracao de PDF de holerite |
 | `utils/password-strength.ts` | Regras de forca de senha |
 | `utils/qr-code-bancario.ts` | Dados ficticios e payload de QR Code |
 | `utils/usuario-permissions.ts` | Regras visuais de permissao |
@@ -326,6 +328,7 @@ Principais interfaces:
 - `AuthResponse`
 - `DisciplinaCaderneta`
 - `CadernetaDigitalSummary`
+- `Holerite`
 
 Campo novo:
 
@@ -334,7 +337,7 @@ Campo novo:
 Funcionalidades locais sem contrato de API:
 
 - QR Code bancario ficticio.
-- Holerite demonstrativo ficticio.
+- Rubricas editaveis usadas para gerar PDF de holerite antes do upload.
 - Agenda escolar de avaliacoes/trabalhos enquanto persistir em `localStorage`.
 
 ## 11. Endpoints consumidos
@@ -347,6 +350,7 @@ Funcionalidades locais sem contrato de API:
 | Notificacoes | `GET /notificacoes`, `POST /notificacoes`, `PATCH /notificacoes/:id/lida`, `PATCH /notificacoes/lidas` |
 | Caderneta | `GET /caderneta-digital`, `POST /caderneta-digital`, `PUT /caderneta-digital/:id`, `DELETE /caderneta-digital/:id` |
 | Disciplinas | `GET /caderneta-digital/disciplinas`, `POST /caderneta-digital/disciplinas`, `PUT /caderneta-digital/disciplinas/:id`, `DELETE /caderneta-digital/disciplinas/:id` |
+| Holerites | `GET /holerites/me`, `GET /holerites/me/:id/download`, `GET /holerites/usuarios/:usuarioId`, `POST /holerites/usuarios/:usuarioId`, `GET /holerites/usuarios/:usuarioId/:id/download`, `DELETE /holerites/usuarios/:usuarioId/:id` |
 
 ## 12. Validacoes
 
@@ -375,7 +379,7 @@ Cobertura:
 - Caderneta digital.
 - Date utils.
 - Feriados brasileiros.
-- Holerite demonstrativo ficticio.
+- Holerite, totais e geracao de PDF.
 - Forca de senha.
 - QR Code bancario ficticio.
 - Permissoes de usuario.
@@ -414,7 +418,7 @@ Docker:
    - `DELETE /agenda-escolar/:id`
 3. Sincronizar agenda entre professores/alunos.
 4. Disparar notificacoes para alunos matriculados quando o professor marcar avaliacao ou trabalho.
-5. Criar endpoints reais de holerite caso deixe de ser demonstrativo ficticio.
+5. Criar endpoints de envio real de holerite por e-mail/WhatsApp caso seja necessario envio server-side com anexo/auditoria.
 6. Opcionalmente criar envio real de e-mail/WhatsApp para QR Code.
 7. Opcionalmente mover feriados para endpoint configuravel, caso haja feriados estaduais/municipais.
 

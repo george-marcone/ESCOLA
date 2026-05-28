@@ -47,6 +47,21 @@ export interface UsuarioArquivo {
   criadoEmUtc?: string | null
 }
 
+export interface Holerite {
+  idHolerite: number
+  idUsuario: number
+  nomeUsuario: string
+  perfilUsuario: string
+  competenciaMes: number
+  competenciaAno: number
+  competencia: string
+  nomeOriginal: string
+  url: string
+  contentType: string
+  tamanhoBytes: number
+  criadoEmUtc: string
+}
+
 export interface Notificacao {
   idNotificacao: number
   idUsuario: number
@@ -130,4 +145,19 @@ export interface CadernetaDigitalPayload {
   notas: number[]
   presencas: number
   faltas: number
+}
+
+export interface Holerite {
+  idHolerite: number
+  idUsuario: number
+  nomeUsuario: string
+  perfilUsuario: string
+  competenciaMes: number
+  competenciaAno: number
+  competencia: string
+  nomeOriginal: string
+  url: string
+  contentType: string
+  tamanhoBytes: number
+  criadoEmUtc: string
 }

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   criarHoleriteFicticio,
   formatarCompetencia,
+  gerarHoleritePdfBlob,
   montarResumoHolerite
 } from '~/utils/holerite-ficticio'
 
@@ -45,10 +46,22 @@ describe('criarHoleriteFicticio', () => {
 })
 
 describe('montarResumoHolerite', () => {
-  it('marca o resumo como sem valor oficial', () => {
+  it('monta resumo com totais do holerite', () => {
     const holerite = criarHoleriteFicticio(professor, '2026-05')
+    const resumo = montarResumoHolerite(holerite)
 
-    expect(montarResumoHolerite(holerite)).toContain('SEM VALOR TRABALHISTA OU FISCAL')
+    expect(resumo).toContain('Holerite - Escola High Tech')
+    expect(resumo).toContain('Valor liquido:')
+  })
+})
+
+describe('gerarHoleritePdfBlob', () => {
+  it('gera um blob PDF para upload/exportacao', () => {
+    const holerite = criarHoleriteFicticio(professor, '2026-05')
+    const blob = gerarHoleritePdfBlob(holerite)
+
+    expect(blob.type).toBe('application/pdf')
+    expect(blob.size).toBeGreaterThan(0)
   })
 })
 
