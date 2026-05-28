@@ -95,7 +95,9 @@ namespace ESCOLA_API.Services
             var created = await EventosQuery()
                 .FirstAsync(item => item.IdEventoDisciplina == evento.IdEventoDisciplina);
 
-            return ToViewModel(created);
+            var createdViewModel = ToViewModel(created);
+            await CriarNotificacoesEventoAsync(createdViewModel, "Marcacao");
+            return createdViewModel;
         }
 
         public async Task<DisciplinaEventoViewModel?> UpdateAsync(
@@ -130,7 +132,9 @@ namespace ESCOLA_API.Services
             var updated = await EventosQuery()
                 .FirstAsync(item => item.IdEventoDisciplina == eventoId);
 
-            return ToViewModel(updated);
+            var updatedViewModel = ToViewModel(updated);
+            await CriarNotificacoesEventoAsync(updatedViewModel, "Atualizacao");
+            return updatedViewModel;
         }
 
         public async Task<bool> DeleteAsync(int disciplinaId, int eventoId, ClaimsPrincipal principal)
@@ -211,6 +215,51 @@ namespace ESCOLA_API.Services
                 CriadoEmUtc = evento.CriadoEmUtc,
                 AtualizadoEmUtc = evento.AtualizadoEmUtc
             };
+        }
+
+        private async Task CriarNotificacoesEventoAsync(DisciplinaEventoViewModel evento, string operacao)
+        {
+            var alunosIds = await _context.CadernetasDigitais
+                .AsNoTracking()
+                .Where(caderneta => caderneta.IdDisciplina == evento.IdDisciplina)
+                .Select(caderneta => caderneta.IdAlunoUsuario)
+                .Distinct()
+                .ToArrayAsync();
+
+            if (alunosIds.Length == 0)
+            {
+                return;
+            }
+
+            var trabalho = evento.Tipo.Equals(TipoEventoDisciplina.Trabalho, StringComparison.OrdinalIgnoreCase);
+            var atualizacao = operacao.Equals("Atualizacao", StringComparison.OrdinalIgnoreCase);
+            var titulo = trabalho
+                ? $"Trabalho {(atualizacao ? "atualizado" : "marcado")}"
+                : $"Avaliacao {(atualizacao ? "atualizada" : "marcada")}";
+            var descricao = string.IsNullOrWhiteSpace(evento.Descricao)
+                ? string.Empty
+                : $" Descricao: {evento.Descricao}.";
+            var mensagem = $"{titulo} em {evento.NomeDisciplina} pelo professor {evento.NomeProfessor}. "
+                + $"Data: {evento.Data:dd/MM/yyyy}. Titulo: {evento.Titulo}.{descricao}";
+
+            foreach (var alunoId in alunosIds)
+            {
+                _context.Notificacoes.Add(new Notificacao
+                {
+                    IdUsuario = alunoId,
+                    Tipo = atualizacao
+                        ? "EventoDisciplinaAtualizado"
+                        : "EventoDisciplinaMarcado",
+                    Titulo = titulo,
+                    Mensagem = mensagem,
+                    Link = $"/calendario-escolar?disciplinaId={evento.IdDisciplina}&eventoId={evento.IdEventoDisciplina}",
+                    IdDisciplina = evento.IdDisciplina,
+                    NomeDisciplina = evento.NomeDisciplina,
+                    CriadaEmUtc = DateTime.UtcNow
+                });
+            }
+
+            await _context.SaveChangesAsync();
         }
 
         private static void ValidarPeriodo(int? ano, int? mes)

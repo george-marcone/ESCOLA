@@ -39,6 +39,45 @@ namespace ESCOLA_API.Tests.Services
         }
 
         [Fact]
+        public async Task AddAsync_WhenDisciplinaHasAssociatedAlunos_CreatesNotifications()
+        {
+            await using var connection = new SqliteConnection("DataSource=:memory:");
+            await connection.OpenAsync();
+            await using var context = CreateContext(connection);
+            await context.Database.EnsureCreatedAsync();
+
+            var disciplina = await CriarDisciplinaAsync(context, 2);
+            context.CadernetasDigitais.Add(new CadernetaDigital
+            {
+                IdAlunoUsuario = 12,
+                IdDisciplina = disciplina.IdDisciplina,
+                Notas = "8",
+                Presencas = 10
+            });
+            await context.SaveChangesAsync();
+
+            var service = new DisciplinaEventoService(context);
+            var model = new DisciplinaEventoCreateUpdateViewModel
+            {
+                Tipo = TipoEventoDisciplina.Trabalho,
+                Titulo = "Entrega de trabalho",
+                Descricao = "Pesquisa em grupo",
+                Data = new DateOnly(2026, 6, 12)
+            };
+
+            var created = await service.AddAsync(disciplina.IdDisciplina, model, CreatePrincipal(2, PerfilSistema.Professor));
+            var notificacao = await context.Notificacoes.SingleAsync(item => item.IdUsuario == 12);
+
+            Assert.Equal("EventoDisciplinaMarcado", notificacao.Tipo);
+            Assert.Equal("Trabalho marcado", notificacao.Titulo);
+            Assert.Contains("Entrega de trabalho", notificacao.Mensagem);
+            Assert.Contains("Professor Vinicius", notificacao.Mensagem);
+            Assert.Equal(disciplina.IdDisciplina, notificacao.IdDisciplina);
+            Assert.Equal("Matematica", notificacao.NomeDisciplina);
+            Assert.Equal($"/calendario-escolar?disciplinaId={disciplina.IdDisciplina}&eventoId={created.IdEventoDisciplina}", notificacao.Link);
+        }
+
+        [Fact]
         public async Task GetEventosAsync_WhenAlunoIsAssociatedToDisciplina_ReturnsOnlyRelatedEvents()
         {
             await using var connection = new SqliteConnection("DataSource=:memory:");

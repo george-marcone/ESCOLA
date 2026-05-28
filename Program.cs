@@ -43,6 +43,7 @@ builder.Services.AddScoped<ICalendarioEscolarService, CalendarioEscolarService>(
 builder.Services.AddScoped<INotificacaoService, NotificacaoService>();
 builder.Services.AddScoped<IUsuarioArquivoService, UsuarioArquivoService>();
 builder.Services.AddScoped<IAlunoQrCodeBancarioService, AlunoQrCodeBancarioService>();
+builder.Services.AddScoped<IHoleriteService, HoleriteService>();
 builder.Services.AddScoped<IUsuarioArquivoStorage>(serviceProvider =>
 {
     var configuration = serviceProvider.GetRequiredService<IConfiguration>();

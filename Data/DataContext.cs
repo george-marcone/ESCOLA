@@ -22,6 +22,7 @@ namespace ESCOLA_API.Data
         public DbSet<DisciplinaEvento> DisciplinaEventos { get; set; }
         public DbSet<CadernetaDigital> CadernetasDigitais { get; set; }
         public DbSet<UsuarioArquivo> UsuarioArquivos { get; set; }
+        public DbSet<Holerite> Holerites { get; set; }
         public DbSet<Notificacao> Notificacoes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -168,6 +169,29 @@ namespace ESCOLA_API.Data
                     .WithMany(usuario => usuario.Arquivos)
                     .HasForeignKey(arquivo => arquivo.IdUsuario)
                     .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            builder.Entity<Holerite>(entity =>
+            {
+                entity.ToTable("Holerite");
+                entity.HasKey(holerite => holerite.IdHolerite);
+                entity.Property(holerite => holerite.NomeBlob)
+                    .IsRequired()
+                    .HasMaxLength(500);
+                entity.Property(holerite => holerite.NomeOriginal)
+                    .IsRequired()
+                    .HasMaxLength(255);
+                entity.Property(holerite => holerite.Url)
+                    .IsRequired()
+                    .HasMaxLength(500);
+                entity.Property(holerite => holerite.ContentType)
+                    .IsRequired()
+                    .HasMaxLength(120);
+                entity.HasIndex(holerite => new { holerite.IdUsuario, holerite.CompetenciaAno, holerite.CompetenciaMes });
+                entity.HasOne(holerite => holerite.Usuario)
+                    .WithMany(usuario => usuario.Holerites)
+                    .HasForeignKey(holerite => holerite.IdUsuario)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             builder.Entity<Notificacao>(entity =>
