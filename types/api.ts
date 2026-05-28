@@ -62,6 +62,12 @@ export interface Holerite {
   criadoEmUtc: string
 }
 
+export interface HoleriteCompartilhamento {
+  token: string
+  url: string
+  expiraEmUtc: string
+}
+
 export interface Notificacao {
   idNotificacao: number
   idUsuario: number

@@ -236,7 +236,7 @@
 
 <script setup lang="ts">
 import { Download, FileText, Mail, MessageCircle, RefreshCcw, Trash2, Upload } from '@lucide/vue'
-import type { Holerite, UsuarioSummary } from '~/types/api'
+import type { Holerite, HoleriteCompartilhamento, UsuarioSummary } from '~/types/api'
 import type { HoleriteRubricaFicticia } from '~/utils/holerite-ficticio'
 import { normalizeApiError, resolveApiBase } from '~/utils/api-client'
 import {
@@ -416,15 +416,29 @@ async function abrirHolerite(holerite: Holerite) {
   }
 }
 
-function enviarEmail(holerite: Holerite) {
-  const subject = `Holerite ${holerite.competencia} - ${holerite.nomeUsuario}`
-  const body = montarMensagemCompartilhamento(holerite)
-  window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+async function enviarEmail(holerite: Holerite) {
+  erro.value = ''
+
+  try {
+    const link = await criarLinkCompartilhamento(holerite)
+    const subject = `Holerite ${holerite.competencia} - ${holerite.nomeUsuario}`
+    const body = montarMensagemCompartilhamento(holerite, link)
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+  } catch (err) {
+    erro.value = normalizeApiError(err)
+  }
 }
 
-function enviarWhatsapp(holerite: Holerite) {
-  const text = montarMensagemCompartilhamento(holerite)
-  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer')
+async function enviarWhatsapp(holerite: Holerite) {
+  erro.value = ''
+
+  try {
+    const link = await criarLinkCompartilhamento(holerite)
+    const text = montarMensagemCompartilhamento(holerite, link)
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer')
+  } catch (err) {
+    erro.value = normalizeApiError(err)
+  }
 }
 
 async function excluirHolerite(holerite: Holerite) {
@@ -471,14 +485,25 @@ function baixarBlob(blob: Blob, fileName: string) {
   URL.revokeObjectURL(url)
 }
 
-function montarMensagemCompartilhamento(holerite: Holerite) {
-  const link = holerite.url || `${window.location.origin}/holerite`
+async function criarLinkCompartilhamento(holerite: Holerite) {
+  const endpoint = auth.isAdmin
+    ? `/holerites/usuarios/${holerite.idUsuario}/${holerite.idHolerite}/compartilhamento`
+    : `/holerites/me/${holerite.idHolerite}/compartilhamento`
+  const compartilhamento = await $api<HoleriteCompartilhamento>(endpoint, {
+    method: 'POST'
+  })
+
+  return compartilhamento.url
+}
+
+function montarMensagemCompartilhamento(holerite: Holerite, link: string) {
   return [
     'Escola High Tech',
     `Holerite: ${holerite.competencia}`,
     `Funcionario: ${holerite.nomeUsuario}`,
     `Arquivo: ${holerite.nomeOriginal}`,
-    `Acesso: ${link}`
+    'Link temporario:',
+    link
   ].join('\n')
 }
 
