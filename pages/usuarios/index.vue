@@ -43,6 +43,12 @@
           <span class="text-xs font-extrabold text-[#62728a]">{{ form.telefone.length }}/{{ BRAZIL_PHONE_MASK_MAX_LENGTH }}</span>
         </label>
 
+        <DatePicker
+          v-model="form.dataNascimento"
+          label="Data de aniversario"
+          hint="Digite no formato dd/mm/aaaa ou selecione no calendario."
+        />
+
         <label class="grid gap-2 text-sm font-extrabold text-[#071d3b]">
           <span>Tipo de usuario</span>
           <select
@@ -629,6 +635,7 @@ const form = reactive<UsuarioForm>({
   nome: '',
   email: '',
   telefone: '',
+  dataNascimento: '',
   idPerfil: 0
 })
 
@@ -955,6 +962,7 @@ function editar(usuario: UsuarioSummary) {
   form.nome = usuario.nome
   form.email = usuario.email
   form.telefone = formatBrazilPhone(usuario.telefone)
+  form.dataNascimento = usuario.dataNascimento?.slice(0, 10) ?? ''
   form.idPerfil = usuario.idPerfil
   mensagem.value = ''
   erro.value = ''
@@ -967,6 +975,7 @@ function limparForm() {
   form.nome = ''
   form.email = ''
   form.telefone = ''
+  form.dataNascimento = ''
   form.idPerfil = getDefaultPerfilId(perfis.value, auth.usuario)
   notificacaoForm.titulo = ''
   notificacaoForm.mensagem = ''
@@ -1061,7 +1070,8 @@ function montarPayload(): UsuarioCreate | UsuarioUpdate {
   const payload: UsuarioUpdate = {
     nome: form.nome.trim(),
     email: form.email.trim(),
-    telefone: normalizeBrazilPhoneForApi(form.telefone)
+    telefone: normalizeBrazilPhoneForApi(form.telefone),
+    dataNascimento: form.dataNascimento || null
   }
 
   if (!editandoId.value || canChangeUsuarioPerfil(auth.usuario)) {

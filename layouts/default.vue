@@ -165,6 +165,7 @@ const notificacoesNaoLidas = computed(() => notificacoes.value.filter((notificac
 const tituloPagina = computed(() => {
   if (route.path.startsWith('/usuarios')) return 'Gestao de Usuarios'
   if (route.path.startsWith('/caderneta-digital')) return 'Caderneta Digital'
+  if (route.path.startsWith('/calendario-escolar')) return 'Calendario Escolar'
   if (route.path.startsWith('/qr-code-bancario')) return 'QR Code Bancario'
   if (route.path.startsWith('/alterar-senha')) return 'Alterar senha'
 

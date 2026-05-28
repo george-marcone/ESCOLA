@@ -192,6 +192,13 @@
             <span class="text-xs font-extrabold text-slate-500">{{ form.telefone.length }}/{{ BRAZIL_PHONE_MASK_MAX_LENGTH }}</span>
           </label>
 
+          <DatePicker
+            v-model="form.dataNascimento"
+            label="Data de aniversario"
+            hint="Digite no formato dd/mm/aaaa ou selecione no calendario."
+            :disabled="!editando"
+          />
+
           <label>
             <span>Tipo de usuario</span>
             <select v-model.number="form.idPerfil" required :disabled="!podeAlterarPerfil">
@@ -283,6 +290,7 @@ const form = reactive<UsuarioForm>({
   nome: '',
   email: '',
   telefone: '',
+  dataNascimento: '',
   idPerfil: 0
 })
 
@@ -416,6 +424,7 @@ function preencherForm(value: UsuarioSummary) {
   form.nome = value.nome
   form.email = value.email
   form.telefone = formatBrazilPhone(value.telefone)
+  form.dataNascimento = value.dataNascimento?.slice(0, 10) ?? ''
   form.idPerfil = value.idPerfil
 }
 
@@ -640,7 +649,8 @@ function montarPayload(): UsuarioUpdate {
   const payload: UsuarioUpdate = {
     nome: form.nome.trim(),
     email: form.email.trim(),
-    telefone: normalizeBrazilPhoneForApi(form.telefone)
+    telefone: normalizeBrazilPhoneForApi(form.telefone),
+    dataNascimento: form.dataNascimento || null
   }
 
   if (canChangeUsuarioPerfil(auth.usuario)) {

@@ -38,6 +38,12 @@
           <span class="text-xs font-extrabold text-slate-500">{{ form.telefone.length }}/{{ BRAZIL_PHONE_MASK_MAX_LENGTH }}</span>
         </label>
 
+        <DatePicker
+          v-model="form.dataNascimento"
+          label="Data de aniversario"
+          hint="Digite no formato dd/mm/aaaa ou selecione no calendario."
+        />
+
         <label>
           <span>Tipo de usuario</span>
           <select v-model.number="form.idPerfil" required :disabled="perfisDisponiveis.length <= 1">
@@ -106,6 +112,7 @@ const form = reactive<UsuarioForm>({
   nome: '',
   email: '',
   telefone: '',
+  dataNascimento: '',
   idPerfil: 0
 })
 const podeCadastrar = computed(() => canCreateAlunoUsuarios(auth.perfil))
@@ -170,6 +177,7 @@ function montarPayload(): UsuarioCreate {
     nome: form.nome.trim(),
     email: form.email.trim(),
     telefone: normalizeBrazilPhoneForApi(form.telefone),
+    dataNascimento: form.dataNascimento || null,
     tipoUsuario: getTipoUsuarioForApiByPerfilId(perfisDisponiveis.value, form.idPerfil)
   }
 }

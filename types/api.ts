@@ -3,6 +3,7 @@ export interface UsuarioSummary {
   nome: string
   email: string
   telefone: string
+  dataNascimento?: string | null
   fotoPerfilUrl?: string | null
   idPerfil: number
   descricaoPerfil: string
@@ -13,6 +14,7 @@ export interface UsuarioForm {
   nome: string
   email: string
   telefone: string
+  dataNascimento: string
   idPerfil: number
 }
 
@@ -20,6 +22,7 @@ export interface UsuarioCreate {
   nome: string
   email: string
   telefone: string
+  dataNascimento?: string | null
   tipoUsuario: string
 }
 
@@ -27,6 +30,7 @@ export interface UsuarioUpdate {
   nome: string
   email: string
   telefone: string
+  dataNascimento?: string | null
   tipoUsuario?: string
 }
 
