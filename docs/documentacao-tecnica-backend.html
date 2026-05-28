@@ -278,7 +278,8 @@
     <h1>Documentacao Tecnica do Backend</h1>
     <p class="subtitle">
       Projeto Escola High Tech: API REST em ASP.NET Core para autenticacao JWT, autorizacao por perfis,
-      CRUD escolar, caderneta digital, notificacoes, uploads, persistencia com Entity Framework Core, Swagger, Scalar, logs e testes.
+      CRUD escolar, caderneta digital, calendario escolar, agenda de avaliacoes e trabalhos, QR Code bancario ficticio,
+      notificacoes, uploads, persistencia com Entity Framework Core, Swagger, Scalar, logs e testes.
     </p>
     <div class="cover-box">
       <p><strong>Escopo:</strong> todo o backend localizado em <code>ESCOLA_API</code>, incluindo arquitetura, camadas, classes, regras de negocio, diagramas e tecnologias.</p>
@@ -287,7 +288,7 @@
     <div class="meta">
       <span>Projeto: <strong>ESCOLA_API</strong></span>
       <span>Repositorio: <strong>SPA-Vue / ESCOLA_API</strong></span>
-      <span>Data: <strong>27/05/2026</strong></span>
+      <span>Data: <strong>28/05/2026</strong></span>
       <span>Documento: <strong>ESCOLA_API/docs/documentacao-tecnica-backend.pdf</strong></span>
     </div>
   </section>
@@ -312,10 +313,11 @@
   <h2>1. Visao Geral do Backend</h2>
   <p>
     O backend <code>ESCOLA_API</code> e uma API REST para uma aplicacao escolar. Ele centraliza o cadastro
-    de usuarios, caderneta digital, disciplinas, notificacoes e arquivos de perfil, alem de cuidar da autenticacao e da autorizacao por perfis.
+    de usuarios, caderneta digital, disciplinas, calendario escolar, eventos de avaliacao/trabalho, QR Code bancario ficticio,
+    notificacoes e arquivos de perfil, alem de cuidar da autenticacao e da autorizacao por perfis.
   </p>
   <div class="grid-3">
-    <div class="card"><strong>Dominio</strong>Gestao escolar com usuarios, perfis, disciplinas, caderneta, notificacoes e arquivos.</div>
+    <div class="card"><strong>Dominio</strong>Gestao escolar com usuarios, perfis, disciplinas, caderneta, calendario, eventos, notificacoes e arquivos.</div>
     <div class="card"><strong>Interface externa</strong>Controllers HTTP documentados via Swagger/OpenAPI e Scalar.</div>
     <div class="card"><strong>Persistencia</strong>EF Core com SQL Server/Azure SQL e SQLite para desenvolvimento/testes.</div>
     <div class="card"><strong>Seguranca</strong>JWT Bearer, roles, hash de senha e troca obrigatoria da senha padrao.</div>
@@ -334,6 +336,7 @@
     <tr><td>FluentValidation.AspNetCore</td><td><code>11.3.1</code></td><td>Validacao automatica de ViewModels.</td></tr>
     <tr><td>Swashbuckle.AspNetCore</td><td><code>10.1.7</code></td><td>Swagger/OpenAPI e Swagger UI.</td></tr>
     <tr><td>Scalar.AspNetCore</td><td><code>2.14.14</code></td><td>Documentacao interativa alternativa em <code>/scalar</code>.</td></tr>
+    <tr><td>QRCoder</td><td><code>1.8.0</code></td><td>Geracao de QR Code PNG para dados bancarios ficticios do aluno.</td></tr>
     <tr><td>Azure.Messaging.ServiceBus</td><td><code>7.20.1</code></td><td>Consumo opcional de eventos de notificacao.</td></tr>
     <tr><td>Azure.Storage.Blobs</td><td><code>12.28.0</code></td><td>Storage de fotos de perfil e certificados PDF.</td></tr>
     <tr><td>SQL Server</td><td><code>2022-latest</code></td><td>Banco em Docker Compose.</td></tr>
@@ -448,26 +451,27 @@
   <h2>8. Diagrama de Classes</h2>
   <div class="grid-3">
     <div class="class-box"><h4>Perfil</h4><ul><li>IdPerfil</li><li>DescricaoPerfil</li><li>Usuarios</li></ul></div>
-    <div class="class-box"><h4>Usuario</h4><ul><li>IdUsuario</li><li>Nome</li><li>Email</li><li>Telefone</li><li>Senha</li><li>FotoPerfilUrl</li><li>IdPerfil</li><li>Arquivos/Notificacoes/Cadernetas</li></ul></div>
-    <div class="class-box"><h4>Disciplina</h4><ul><li>IdDisciplina</li><li>Nome</li><li>IdProfessorUsuario</li><li>ProfessorUsuario</li><li>Cadernetas</li></ul></div>
+    <div class="class-box"><h4>Usuario</h4><ul><li>IdUsuario</li><li>Nome</li><li>Email</li><li>Telefone</li><li>DataNascimento</li><li>Senha</li><li>FotoPerfilUrl</li><li>IdPerfil</li><li>Arquivos/Notificacoes/Cadernetas</li></ul></div>
+    <div class="class-box"><h4>Disciplina</h4><ul><li>IdDisciplina</li><li>Nome</li><li>IdProfessorUsuario</li><li>ProfessorUsuario</li><li>Cadernetas</li><li>Eventos</li></ul></div>
     <div class="class-box"><h4>CadernetaDigital</h4><ul><li>IdCadernetaDigital</li><li>IdAlunoUsuario</li><li>IdDisciplina</li><li>Notas</li><li>Presencas</li><li>Faltas</li></ul></div>
     <div class="class-box"><h4>UsuarioArquivo</h4><ul><li>IdArquivo</li><li>IdUsuario?</li><li>NomeBlob</li><li>TipoArquivo</li><li>NomeOriginal</li><li>Url</li><li>ContentType</li><li>TamanhoBytes</li></ul></div>
     <div class="class-box"><h4>Notificacao</h4><ul><li>IdNotificacao</li><li>IdUsuario</li><li>Tipo/Titulo/Mensagem</li><li>Link</li><li>MediaAritmetica</li><li>Situacao</li><li>Lida</li></ul></div>
     <div class="class-box"><h4>Professor</h4><ul><li>Id</li><li>Nome</li><li>IdUsuario?</li><li>Usuario</li><li>Alunos</li></ul></div>
     <div class="class-box"><h4>Aluno</h4><ul><li>Id</li><li>Nome</li><li>Sobrenome</li><li>DataNasc</li><li>ProfessorId</li><li>IdUsuario?</li></ul></div>
     <div class="class-box"><h4>Diretoria</h4><ul><li>Id</li><li>Nome</li><li>IdUsuario?</li><li>Usuario</li></ul></div>
-    <div class="class-box"><h4>Services</h4><ul><li>AuthService</li><li>UsuarioService</li><li>CadernetaDigitalService</li><li>NotificacaoService</li><li>UsuarioArquivoService</li><li>ServiceBusNotificacaoWorker</li></ul></div>
+    <div class="class-box"><h4>DisciplinaEvento</h4><ul><li>IdEventoDisciplina</li><li>IdDisciplina</li><li>Tipo</li><li>Titulo</li><li>Descricao</li><li>Data</li></ul></div>
+    <div class="class-box"><h4>Services</h4><ul><li>AuthService</li><li>UsuarioService</li><li>CadernetaDigitalService</li><li>DisciplinaEventoService</li><li>CalendarioEscolarService</li><li>AlunoQrCodeBancarioService</li><li>NotificacaoService</li><li>UsuarioArquivoService</li></ul></div>
   </div>
   <p>
     Relacionamentos principais: <code>Perfil 1:N Usuario</code>, <code>Usuario 1:N Disciplina</code>,
     <code>Usuario 1:N CadernetaDigital</code>, <code>Usuario 1:N UsuarioArquivo</code>,
-    <code>Usuario 1:N Notificacao</code> e <code>Disciplina 1:N CadernetaDigital</code>.
+    <code>Usuario 1:N Notificacao</code>, <code>Disciplina 1:N CadernetaDigital</code> e <code>Disciplina 1:N DisciplinaEvento</code>.
   </p>
 
   <h2>9. Modelo Entidade-Relacional</h2>
   <div class="grid-3">
     <div class="entity"><h4>PERFIL</h4><ul><li>IdPerfil PK</li><li>DescricaoPerfil</li></ul></div>
-    <div class="entity"><h4>USUARIO</h4><ul><li>IdUsuario PK</li><li>Nome</li><li>Email UK</li><li>Telefone</li><li>Senha</li><li>FotoPerfilUrl</li><li>IdPerfil FK</li></ul></div>
+    <div class="entity"><h4>USUARIO</h4><ul><li>IdUsuario PK</li><li>Nome</li><li>Email UK</li><li>Telefone</li><li>DataNascimento</li><li>Senha</li><li>FotoPerfilUrl</li><li>IdPerfil FK</li></ul></div>
     <div class="entity"><h4>DISCIPLINA</h4><ul><li>IdDisciplina PK</li><li>Nome</li><li>IdProfessorUsuario FK</li></ul></div>
     <div class="entity"><h4>CADERNETADIGITAL</h4><ul><li>IdCadernetaDigital PK</li><li>IdAlunoUsuario FK</li><li>IdDisciplina FK</li><li>Notas</li><li>Presencas</li><li>Faltas</li></ul></div>
     <div class="entity"><h4>ARQUIVO</h4><ul><li>IdArquivo PK</li><li>IdUsuario FK opcional</li><li>NomeBlob</li><li>TipoArquivo</li><li>Url</li><li>ContentType</li></ul></div>
@@ -475,6 +479,7 @@
     <div class="entity"><h4>PROFESSOR</h4><ul><li>Id PK</li><li>Nome</li><li>IdUsuario FK opcional</li></ul></div>
     <div class="entity"><h4>ALUNO</h4><ul><li>Id PK</li><li>Nome</li><li>Sobrenome</li><li>DataNasc</li><li>ProfessorId FK obrigatoria</li><li>IdUsuario FK opcional</li></ul></div>
     <div class="entity"><h4>DIRETORIA</h4><ul><li>Id PK</li><li>Nome</li><li>IdUsuario FK opcional</li></ul></div>
+    <div class="entity"><h4>DISCIPLINAEVENTO</h4><ul><li>IdEventoDisciplina PK</li><li>IdDisciplina FK</li><li>Tipo</li><li>Titulo</li><li>Descricao</li><li>Data</li><li>CriadoEmUtc</li></ul></div>
   </div>
   <table>
     <tr><th>Relacao</th><th>Cardinalidade</th><th>Delete behavior</th></tr>
@@ -485,6 +490,7 @@
     <tr><td>Usuario -> Diretoria</td><td>1:N opcional</td><td>SetNull</td></tr>
     <tr><td>Usuario -> Disciplina</td><td>1:N obrigatoria</td><td>Restrict</td></tr>
     <tr><td>Disciplina -> CadernetaDigital</td><td>1:N obrigatoria</td><td>Cascade</td></tr>
+    <tr><td>Disciplina -> DisciplinaEvento</td><td>1:N obrigatoria</td><td>Cascade</td></tr>
     <tr><td>Usuario -> CadernetaDigital</td><td>1:N obrigatoria</td><td>Restrict</td></tr>
     <tr><td>Usuario -> Arquivo</td><td>1:N opcional</td><td>SetNull</td></tr>
     <tr><td>Usuario -> Notificacao</td><td>1:N obrigatoria</td><td>Cascade</td></tr>
@@ -504,7 +510,9 @@
     <tr><td><code>ProfessorController</code></td><td>Endpoint HTTP de professores.</td><td>Listar, buscar por id, criar, atualizar e excluir professor.</td></tr>
     <tr><td><code>DiretoriaController</code></td><td>Endpoint HTTP da diretoria escolar.</td><td>Listar, buscar por id, criar, atualizar e excluir integrante da diretoria.</td></tr>
     <tr><td><code>UsuariosController</code></td><td>Endpoint HTTP de usuarios, perfis e arquivos.</td><td>Listar usuarios, buscar por id, listar perfis, criar, atualizar, excluir, enviar foto, listar/baixar certificados e excluir arquivos.</td></tr>
-    <tr><td><code>CadernetaDigitalController</code></td><td>Endpoint HTTP da caderneta digital.</td><td>Listar, buscar, criar, atualizar e excluir lancamentos; manter disciplinas do professor.</td></tr>
+    <tr><td><code>CadernetaDigitalController</code></td><td>Endpoint HTTP da caderneta digital.</td><td>Listar, buscar, criar, atualizar e excluir lancamentos; manter disciplinas e eventos de avaliacao/trabalho do professor.</td></tr>
+    <tr><td><code>CalendarioEscolarController</code></td><td>Endpoint HTTP do calendario escolar.</td><td>Retorna ano completo, mes selecionado e feriados nacionais brasileiros.</td></tr>
+    <tr><td><code>AlunoQrCodeBancarioController</code></td><td>Endpoint HTTP do QR Code bancario ficticio.</td><td>Gera dados bancarios ficticios, QR Code PNG em base64 e links de compartilhamento para o aluno logado.</td></tr>
     <tr><td><code>NotificacoesController</code></td><td>Endpoint HTTP de notificacoes.</td><td>Listar minhas notificacoes, contar nao lidas, criar notificacao manual e marcar como lida.</td></tr>
     <tr><td><code>AuthController</code></td><td>Endpoint HTTP de autenticacao.</td><td>Login, usuario atual, validacao simples de token, validacao admin e alteracao de senha.</td></tr>
   </table>
@@ -522,6 +530,12 @@
     <tr><td><code>UsuarioService</code></td><td>Regra de aplicacao para usuarios.</td><td>Valida email unico, perfil existente, define senha padrao, aplica permissoes por perfil e gera notificacoes de cadastro/atualizacao.</td></tr>
     <tr><td><code>ICadernetaDigitalService</code></td><td>Contrato da caderneta digital.</td><td>Define operacoes de disciplinas e lancamentos com base no usuario logado.</td></tr>
     <tr><td><code>CadernetaDigitalService</code></td><td>Regra da caderneta digital.</td><td>Aplica regras de professor/aluno, impede associacao duplicada, calcula media/situacao e gera notificacoes.</td></tr>
+    <tr><td><code>IDisciplinaEventoService</code></td><td>Contrato de eventos de disciplina.</td><td>Define listagem e CRUD de avaliacoes e trabalhos escolares por disciplina.</td></tr>
+    <tr><td><code>DisciplinaEventoService</code></td><td>Regra de eventos de disciplina.</td><td>Garante que professor altere apenas eventos das proprias disciplinas e que aluno veja apenas disciplinas associadas.</td></tr>
+    <tr><td><code>ICalendarioEscolarService</code></td><td>Contrato de calendario escolar.</td><td>Define geracao do calendario anual com mes selecionado e feriados nacionais.</td></tr>
+    <tr><td><code>CalendarioEscolarService</code></td><td>Regra de calendario escolar.</td><td>Calcula meses, dias, finais de semana, Paixao de Cristo e feriados nacionais fixos.</td></tr>
+    <tr><td><code>IAlunoQrCodeBancarioService</code></td><td>Contrato de QR Code bancario ficticio.</td><td>Define geracao dos dados ficticios e links de compartilhamento.</td></tr>
+    <tr><td><code>AlunoQrCodeBancarioService</code></td><td>Regra de QR Code bancario ficticio.</td><td>Gera dados deterministas por aluno, QR Code PNG, Data URL, mailto e link do WhatsApp.</td></tr>
     <tr><td><code>INotificacaoService</code></td><td>Contrato de notificacoes.</td><td>Lista, conta e marca notificacoes como lidas.</td></tr>
     <tr><td><code>NotificacaoService</code></td><td>Regra de notificacoes.</td><td>Controla notificacoes por usuario e permite envio manual por administrador/professor.</td></tr>
     <tr><td><code>IUsuarioArquivoService</code></td><td>Contrato de arquivos de usuario.</td><td>Define upload/download/listagem/remocao de foto e certificados.</td></tr>
@@ -547,9 +561,10 @@
     <tr><td><code>Aluno</code></td><td>Entidade persistida de aluno.</td><td>Nome, Sobrenome, DataNasc, ProfessorId, IdUsuario.</td></tr>
     <tr><td><code>Professor</code></td><td>Entidade persistida de professor.</td><td>Nome, IdUsuario, lista de Alunos.</td></tr>
     <tr><td><code>Diretoria</code></td><td>Entidade persistida de pessoa da administracao escolar.</td><td>Nome e IdUsuario opcional.</td></tr>
-    <tr><td><code>Usuario</code></td><td>Entidade autenticavel.</td><td>Nome, Email, Telefone, Senha hash, FotoPerfilUrl, IdPerfil e vinculos de arquivos/notificacoes/caderneta.</td></tr>
+    <tr><td><code>Usuario</code></td><td>Entidade autenticavel.</td><td>Nome, Email, Telefone, DataNascimento, Senha hash, FotoPerfilUrl, IdPerfil e vinculos de arquivos/notificacoes/caderneta.</td></tr>
     <tr><td><code>Perfil</code></td><td>Entidade de autorizacao.</td><td>Administrador, Professor e Aluno.</td></tr>
-    <tr><td><code>Disciplina</code></td><td>Entidade de disciplina da caderneta.</td><td>Nome e professor responsavel.</td></tr>
+    <tr><td><code>Disciplina</code></td><td>Entidade de disciplina da caderneta.</td><td>Nome, professor responsavel, cadernetas e eventos.</td></tr>
+    <tr><td><code>DisciplinaEvento</code></td><td>Entidade de evento escolar.</td><td>Disciplina, tipo, titulo, descricao, data, criacao e atualizacao.</td></tr>
     <tr><td><code>CadernetaDigital</code></td><td>Entidade de notas e frequencia.</td><td>Aluno, disciplina, notas serializadas, presencas e faltas.</td></tr>
     <tr><td><code>UsuarioArquivo</code></td><td>Entidade de metadados de arquivo.</td><td>NomeBlob, TipoArquivo, NomeOriginal, Url, ContentType, tamanho e data.</td></tr>
     <tr><td><code>Notificacao</code></td><td>Entidade de notificacao.</td><td>Titulo, mensagem, link, situacao, media, flags de leitura e origem.</td></tr>
@@ -573,6 +588,10 @@
     <tr><td><code>CadernetaDigitalViewModel</code></td><td>Resposta da caderneta com aluno, email, disciplina, notas, media aritmetica, situacao e cor.</td></tr>
     <tr><td><code>DisciplinaCreateUpdateViewModel</code></td><td>Payload de cadastro/edicao de disciplina.</td></tr>
     <tr><td><code>DisciplinaViewModel</code></td><td>Resposta de disciplina com professor responsavel.</td></tr>
+    <tr><td><code>DisciplinaEventoCreateUpdateViewModel</code></td><td>Payload de cadastro/edicao de avaliacao ou trabalho escolar.</td></tr>
+    <tr><td><code>DisciplinaEventoViewModel</code></td><td>Resposta de evento escolar vinculado a disciplina e professor.</td></tr>
+    <tr><td><code>CalendarioEscolarAnoViewModel</code></td><td>Resposta do calendario anual com meses, dias e feriados nacionais.</td></tr>
+    <tr><td><code>AlunoQrCodeBancarioViewModel</code></td><td>Resposta com dados bancarios ficticios, QR Code e links de compartilhamento.</td></tr>
     <tr><td><code>NotificacaoCreateViewModel</code></td><td>Payload de notificacao manual.</td></tr>
     <tr><td><code>NotificacaoViewModel</code></td><td>Resposta de notificacao para o painel do usuario.</td></tr>
     <tr><td><code>PerfilViewModel</code></td><td>Contrato de saida para perfis.</td></tr>
@@ -591,6 +610,7 @@
     <tr><td><code>UsuarioCreateViewModelValidator</code></td><td>Valida usuario.</td><td>Nome, email valido, telefone e perfil positivo.</td></tr>
     <tr><td><code>UsuarioUpdateViewModelValidator</code></td><td>Valida edicao de usuario.</td><td>Nome, email, telefone e perfil conforme permissao do usuario logado.</td></tr>
     <tr><td><code>DisciplinaCreateUpdateViewModelValidator</code></td><td>Valida disciplina.</td><td>Nome obrigatorio com limite de tamanho.</td></tr>
+    <tr><td><code>DisciplinaEventoCreateUpdateViewModelValidator</code></td><td>Valida evento de disciplina.</td><td>Tipo Avaliacao/Trabalho, titulo, descricao e data obrigatoria.</td></tr>
     <tr><td><code>CadernetaDigitalCreateUpdateViewModelValidator</code></td><td>Valida lancamento da caderneta.</td><td>Aluno, disciplina, notas, presencas e faltas com limites validos.</td></tr>
     <tr><td><code>LoginRequestViewModelValidator</code></td><td>Valida login.</td><td>Email valido e senha obrigatoria.</td></tr>
     <tr><td><code>AlterarSenhaViewModelValidator</code></td><td>Valida troca de senha.</td><td>Senha atual, nova senha forte, confirmacao e bloqueio da senha padrao.</td></tr>
@@ -612,9 +632,9 @@
   <h2 class="page-break">11. Regras de Negocio</h2>
   <ul>
     <li>Todo endpoint de negocio exige token JWT valido.</li>
-    <li><span class="badge">Administrador</span> cadastra, edita e exclui usuarios; visualiza caderneta digital, mas nao altera lancamentos.</li>
-    <li><span class="badge">Professor</span> consulta alunos e professores, edita apenas o proprio perfil, cadastra disciplinas e lanca notas/frequencia na caderneta.</li>
-    <li><span class="badge">Aluno</span> consulta e edita apenas o proprio perfil e visualiza somente cadernetas associadas ao seu usuario.</li>
+    <li><span class="badge">Administrador</span> cadastra, edita e exclui usuarios; visualiza caderneta digital, disciplinas, eventos e calendario escolar.</li>
+    <li><span class="badge">Professor</span> consulta alunos e professores, edita apenas o proprio perfil, cadastra disciplinas, lanca notas/frequencia e agenda avaliacoes/trabalhos.</li>
+    <li><span class="badge">Aluno</span> consulta e edita apenas o proprio perfil, visualiza somente cadernetas/eventos associados ao seu usuario e gera QR Code bancario ficticio proprio.</li>
     <li>Somente administrador cria e exclui usuarios.</li>
     <li>Somente administrador lista perfis para cadastro de usuario.</li>
     <li>Quando um administrador cadastra usuario, o usuario criado recebe notificacao com os dados cadastrados.</li>
@@ -625,13 +645,18 @@
     <li>Email de usuario e unico; duplicidade gera erro de regra de negocio.</li>
     <li>Perfil informado no cadastro/edicao de usuario precisa existir.</li>
     <li>Disciplina nao pode ser duplicada para o mesmo professor, mesmo com diferenca de maiusculas/minusculas.</li>
+    <li>Professor pode criar, editar e excluir eventos apenas das proprias disciplinas; os tipos aceitos sao <code>Avaliacao</code> e <code>Trabalho</code>.</li>
+    <li>Eventos de disciplina usam datas ISO <code>yyyy-MM-dd</code>, adequadas para Datepicker com digitacao ou selecao visual.</li>
     <li>Aluno pode ser associado a varias disciplinas, desde que a associacao aluno/disciplina seja unica.</li>
+    <li>Aluno visualiza eventos somente das disciplinas associadas a ele pela caderneta digital.</li>
+    <li>Calendario escolar retorna ano completo, mes selecionado e feriados nacionais brasileiros.</li>
+    <li>QR Code bancario do aluno usa dados ficticios e links de compartilhamento; nao executa pagamento real nem envio direto por provedor externo.</li>
     <li>A caderneta calcula media aritmetica das notas e retorna situacao/cor: reprovado, recuperacao, aprovado ou reprovado por faltas quando atingir 10 faltas.</li>
     <li>Fotos e certificados sao salvos em storage local ou Azure Blob; no banco ficam apenas URL e metadados do arquivo.</li>
     <li>Notificacoes ficam persistidas na tabela <code>Notificacao</code>; o Service Bus e opcional para consumo de mensagens externas.</li>
     <li>Aluno precisa apontar para professor valido.</li>
     <li><code>IdUsuario</code> em aluno, professor e diretoria e opcional; quando informado deve ser positivo.</li>
-    <li>Data de nascimento de aluno deve usar <code>dd/MM/yyyy</code>.</li>
+    <li>Data de nascimento de usuario e opcional, nao pode ser futura e deve trafegar no JSON como <code>yyyy-MM-dd</code>.</li>
     <li>Ao excluir usuario, vinculos opcionais em aluno, professor e diretoria ficam nulos.</li>
     <li>Ao excluir professor, os alunos vinculados seguem cascade conforme configurado no relacionamento obrigatorio.</li>
   </ul>
@@ -646,9 +671,12 @@
     <tr><td>Usuarios</td><td>GET/POST/PUT/DELETE <code>/api/usuarios</code></td><td>Admin gerencia; professor consulta alunos/professores e edita proprio perfil; aluno edita proprio perfil.</td><td>CRUD centralizado de usuarios.</td></tr>
     <tr><td>Perfis</td><td>GET <code>/api/usuarios/perfis</code></td><td>Administrador</td><td>Lista perfis disponiveis.</td></tr>
     <tr><td>Arquivos</td><td>GET/POST/DELETE <code>/api/usuarios/{id}/foto</code> e <code>/api/usuarios/{id}/arquivos</code></td><td>Proprio usuario, administrador e leituras permitidas por perfil.</td><td>Upload/download/listagem de foto e certificados.</td></tr>
+    <tr><td>QR Code bancario</td><td>GET <code>/api/alunos/me/qr-code-bancario</code></td><td>Aluno</td><td>Gera dados bancarios ficticios, QR Code PNG e links de compartilhamento do aluno logado.</td></tr>
+    <tr><td>Calendario escolar</td><td>GET <code>/api/calendario-escolar?ano=2026&amp;mesSelecionado=5</code></td><td>Autenticado</td><td>Retorna calendario anual com mes destacado e feriados nacionais brasileiros.</td></tr>
     <tr><td>Caderneta</td><td>GET <code>/api/caderneta-digital</code></td><td>Admin visualiza tudo; professor visualiza seus lancamentos; aluno apenas os seus.</td><td>Lista lancamentos conforme perfil.</td></tr>
     <tr><td>Caderneta</td><td>POST/PUT/DELETE <code>/api/caderneta-digital</code></td><td>Professor</td><td>Cria, altera e remove lancamentos de notas/frequencia.</td></tr>
     <tr><td>Disciplinas</td><td>GET/POST/PUT/DELETE <code>/api/caderneta-digital/disciplinas</code></td><td>Professor escreve; admin/aluno consultam conforme permissao.</td><td>Mantem disciplinas vinculadas aos professores.</td></tr>
+    <tr><td>Eventos de disciplinas</td><td>GET/POST/PUT/DELETE <code>/api/caderneta-digital/disciplinas/eventos</code> e <code>/api/caderneta-digital/disciplinas/{disciplinaId}/eventos</code></td><td>Professor escreve; admin/aluno consultam conforme permissao.</td><td>Agenda avaliacoes e entregas de trabalhos por disciplina.</td></tr>
     <tr><td>Notificacoes</td><td>GET/PATCH <code>/api/notificacoes</code></td><td>Autenticado</td><td>Lista, conta e marca notificacoes do usuario logado.</td></tr>
     <tr><td>Notificacoes</td><td>POST <code>/api/notificacoes</code></td><td>Administrador e Professor</td><td>Envia notificacao manual para um usuario.</td></tr>
   </table>
@@ -663,6 +691,7 @@
     <tr><td><code>20260526204546_AddNotificacoesArquivosUsuario</code></td><td>Adiciona notificacoes, arquivos de usuario e foto de perfil.</td></tr>
     <tr><td><code>20260526212447_AjustaTabelaArquivos</code></td><td>Ajusta a tabela <code>Arquivo</code> para metadados flexiveis.</td></tr>
     <tr><td><code>20260527182246_AddUsuarioCriadorNotificacoes</code></td><td>Registra o administrador criador do usuario para notificacoes de atualizacao.</td></tr>
+    <tr><td><code>20260528180602_AddUsuarioDataNascimentoDisciplinaEventos</code></td><td>Adiciona data de nascimento em usuario e tabela de eventos de disciplina.</td></tr>
   </table>
   <p>
     No startup, a API aplica migrations automaticamente quando usa SQL Server. Para SQLite, a API usa <code>EnsureCreated</code>.
@@ -685,6 +714,8 @@
   <p>
     Swagger e Scalar documentam rotas, payloads, status codes e seguranca Bearer usando o mesmo documento OpenAPI.
     O filtro <code>AuthorizeOperationFilter</code> identifica endpoints protegidos e anexa o esquema JWT.
+    Os comentarios XML dos controllers e ViewModels descrevem os contratos novos de calendario, eventos de disciplina,
+    data de nascimento e QR Code bancario ficticio.
   </p>
   <table>
     <tr><th>Interface</th><th>Rota</th></tr>
@@ -704,8 +735,8 @@
   <table>
     <tr><th>Grupo</th><th>O que valida</th></tr>
     <tr><td>Controllers</td><td>Respostas principais de Aluno e Usuarios.</td></tr>
-    <tr><td>Services</td><td>Criacao, hash de senha, duplicidade de email, login e troca de senha.</td></tr>
-    <tr><td>Validators</td><td>Regras de entrada de aluno, professor, usuario e senha.</td></tr>
+    <tr><td>Services</td><td>Criacao, hash de senha, duplicidade de email, login, troca de senha, QR Code, calendario e eventos de disciplina.</td></tr>
+    <tr><td>Validators</td><td>Regras de entrada de aluno, professor, usuario, eventos de disciplina e senha.</td></tr>
     <tr><td>Security</td><td>Protecao contra uso de SQL bruto.</td></tr>
   </table>
   <p>Comando: <code>dotnet test ESCOLA_API.Tests/ESCOLA_API.Tests.csproj</code>.</p>

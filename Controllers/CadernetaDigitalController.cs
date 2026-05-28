@@ -274,6 +274,12 @@ namespace ESCOLA_API.Controllers
             }
         }
 
+        /// <summary>
+        /// Lista eventos de disciplinas, como avaliacoes e entregas de trabalhos, filtrando por disciplina, ano e mes.
+        /// </summary>
+        /// <param name="idDisciplina">Identificador da disciplina para filtrar. Quando omitido, retorna as disciplinas permitidas ao usuario.</param>
+        /// <param name="ano">Ano dos eventos desejados.</param>
+        /// <param name="mes">Mes dos eventos desejados.</param>
         [HttpGet("disciplinas/eventos")]
         [ProducesResponseType(typeof(DisciplinaEventoViewModel[]), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -303,6 +309,11 @@ namespace ESCOLA_API.Controllers
             }
         }
 
+        /// <summary>
+        /// Cria uma data de avaliacao ou entrega de trabalho para uma disciplina do professor logado.
+        /// </summary>
+        /// <param name="disciplinaId">Identificador da disciplina do professor.</param>
+        /// <param name="model">Dados do evento escolar.</param>
         [HttpPost("disciplinas/{disciplinaId:int}/eventos")]
         [ProducesResponseType(typeof(DisciplinaEventoViewModel), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -334,6 +345,12 @@ namespace ESCOLA_API.Controllers
             }
         }
 
+        /// <summary>
+        /// Atualiza uma data de avaliacao ou entrega de trabalho de uma disciplina do professor logado.
+        /// </summary>
+        /// <param name="disciplinaId">Identificador da disciplina do professor.</param>
+        /// <param name="eventoId">Identificador do evento da disciplina.</param>
+        /// <param name="model">Novos dados do evento escolar.</param>
         [HttpPut("disciplinas/{disciplinaId:int}/eventos/{eventoId:int}")]
         [ProducesResponseType(typeof(DisciplinaEventoViewModel), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -369,6 +386,11 @@ namespace ESCOLA_API.Controllers
             }
         }
 
+        /// <summary>
+        /// Remove uma data de avaliacao ou entrega de trabalho de uma disciplina do professor logado.
+        /// </summary>
+        /// <param name="disciplinaId">Identificador da disciplina do professor.</param>
+        /// <param name="eventoId">Identificador do evento da disciplina.</param>
         [HttpDelete("disciplinas/{disciplinaId:int}/eventos/{eventoId:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]

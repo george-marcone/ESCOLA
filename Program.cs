@@ -87,7 +87,7 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "ESCOLA_API - Escola High Tech",
         Version = "v1",
-        Description = "API para gerenciamento escolar com usuarios, caderneta digital, notificacoes, uploads de arquivos e autenticacao JWT."
+        Description = "API para gerenciamento escolar com usuarios, caderneta digital, disciplinas, agenda de avaliacoes e trabalhos, calendario escolar, QR Code bancario ficticio, notificacoes, uploads de arquivos e autenticacao JWT."
     });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

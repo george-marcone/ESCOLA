@@ -25,6 +25,11 @@ namespace ESCOLA_API.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Retorna o calendario escolar anual com todos os meses, destacando feriados nacionais brasileiros e o mes selecionado.
+        /// </summary>
+        /// <param name="ano">Ano desejado. Quando omitido, usa o ano atual.</param>
+        /// <param name="mesSelecionado">Mes que o front deve destacar inicialmente. Quando omitido, usa o mes atual no ano vigente.</param>
         [HttpGet]
         [ProducesResponseType(typeof(CalendarioEscolarAnoViewModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

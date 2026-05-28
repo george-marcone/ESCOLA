@@ -1,6 +1,6 @@
 # ESCOLA_API - Escola High Tech
 
-API REST em ASP.NET Core 10 para gerenciamento escolar com autenticacao JWT, autorizacao por perfis e CRUD centralizado de usuarios.
+API REST em ASP.NET Core 10 para gerenciamento escolar com autenticacao JWT, autorizacao por perfis, CRUD centralizado de usuarios, caderneta digital, calendario escolar, agenda de avaliacoes/trabalhos e QR Code bancario ficticio para alunos.
 
 ## Tecnologias
 
@@ -10,6 +10,7 @@ API REST em ASP.NET Core 10 para gerenciamento escolar com autenticacao JWT, aut
 - JWT Bearer
 - FluentValidation
 - Swagger/OpenAPI e Scalar
+- QRCoder para geracao de QR Code PNG
 - Azure Blob Storage para fotos e certificados
 - Azure Service Bus para consumo opcional de notificacoes
 - xUnit, Moq e FluentValidation.TestHelper
@@ -151,17 +152,33 @@ O backend usa arquitetura em camadas:
 | Auth | `POST /api/Auth/login`, `GET /api/Auth/me`, `GET /api/Auth/autorizar`, `GET /api/Auth/autorizar/admin`, `POST /api/Auth/alterar-senha`, `POST /api/Auth/esqueci-senha` |
 | Usuarios | `GET /api/usuarios`, `GET /api/usuarios/{id}`, `GET /api/usuarios/perfis`, `POST /api/usuarios`, `PUT /api/usuarios/{id}`, `DELETE /api/usuarios/{id}` |
 | Arquivos de usuario | `GET /api/usuarios/{id}/foto`, `POST /api/usuarios/{id}/foto`, `GET /api/usuarios/{id}/arquivos`, `GET /api/usuarios/{id}/arquivos/{arquivoId}/download`, `POST /api/usuarios/{id}/certificados`, `DELETE /api/usuarios/{id}/arquivos/{arquivoId}` |
+| QR Code bancario ficticio | `GET /api/alunos/me/qr-code-bancario` |
+| Calendario Escolar | `GET /api/calendario-escolar?ano=2026&mesSelecionado=5` |
 | Caderneta Digital | `GET /api/caderneta-digital`, `GET /api/caderneta-digital/{id}`, `POST /api/caderneta-digital`, `PUT /api/caderneta-digital/{id}`, `DELETE /api/caderneta-digital/{id}` |
 | Disciplinas | `GET /api/caderneta-digital/disciplinas`, `POST /api/caderneta-digital/disciplinas`, `PUT /api/caderneta-digital/disciplinas/{id}`, `DELETE /api/caderneta-digital/disciplinas/{id}` |
+| Eventos de disciplinas | `GET /api/caderneta-digital/disciplinas/eventos`, `POST /api/caderneta-digital/disciplinas/{disciplinaId}/eventos`, `PUT /api/caderneta-digital/disciplinas/{disciplinaId}/eventos/{eventoId}`, `DELETE /api/caderneta-digital/disciplinas/{disciplinaId}/eventos/{eventoId}` |
 | Notificacoes | `GET /api/notificacoes`, `GET /api/notificacoes/nao-lidas/contador`, `POST /api/notificacoes`, `PATCH /api/notificacoes/{id}/lida`, `PATCH /api/notificacoes/lidas` |
 
 ## Autorizacao
 
-- `Administrador`: cadastra, edita e exclui usuarios; envia notificacoes manuais; gerencia arquivos de qualquer usuario; visualiza a caderneta digital sem alterar lancamentos.
-- `Professor`: visualiza alunos e professores cadastrados; edita apenas o proprio perfil; cadastra disciplinas e faz lancamentos de notas, presencas e faltas na caderneta.
-- `Aluno`: visualiza e edita apenas o proprio perfil; visualiza somente cadernetas associadas a ele; recebe notificacoes quando notas e frequencia sao publicadas.
+- `Administrador`: cadastra, edita e exclui usuarios; envia notificacoes manuais; gerencia arquivos de qualquer usuario; visualiza caderneta, disciplinas, eventos e calendario escolar.
+- `Professor`: visualiza alunos e professores cadastrados; edita apenas o proprio perfil; cadastra disciplinas; faz lancamentos de notas, presencas e faltas; agenda avaliacoes e entregas de trabalhos nas suas disciplinas.
+- `Aluno`: visualiza e edita apenas o proprio perfil; visualiza somente cadernetas e eventos das disciplinas associadas; gera QR Code bancario ficticio do proprio usuario; recebe notificacoes quando notas e frequencia sao publicadas.
 
-No cadastro de usuario, informe `tipoUsuario` como `Aluno`, `Professor` ou `Administrador`. Os campos `nome`, `email` e `telefone` sao obrigatorios.
+No cadastro de usuario, informe `tipoUsuario` como `Aluno`, `Professor` ou `Administrador`. Os campos `nome`, `email` e `telefone` sao obrigatorios. O campo opcional `dataNascimento` usa formato ISO `yyyy-MM-dd`, adequado para Datepicker que permita digitar ou selecionar a data.
+
+Exemplo de evento de disciplina:
+
+```json
+{
+  "tipo": "Avaliacao",
+  "titulo": "Prova bimestral",
+  "descricao": "Capitulos 1 e 2",
+  "data": "2026-06-10"
+}
+```
+
+O endpoint de QR Code retorna dados bancarios ficticios, `qrCodeBase64`, `qrCodeDataUrl`, texto de compartilhamento e links prontos para `mailto:` e WhatsApp. Ele nao realiza pagamento real nem envia mensagens diretamente por provedores externos.
 
 ## Testes
 
