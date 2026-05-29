@@ -1,0 +1,26 @@
+.DS_Store
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.rsuser
+
+# Local settings and secrets
+.env
+.env.*
+!.env.example
+.local/
+
+# Local SQLite development database
+escola-dev.db*
+
+# Logs
+logs/*
+!logs/.gitkeep
+
+# Editor directories and files
+.idea/
+.vscode/
+*.sw?

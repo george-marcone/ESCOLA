@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+ESCOLA_API.Tests/
+TestResults/
+logs/
+
+*.db
+*.db-shm
+*.db-wal
+escola-dev.db*
+
+.git/
+.github/

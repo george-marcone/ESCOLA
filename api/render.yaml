@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: escola-high-tech-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: PORT
+        value: "10000"
+      - key: Jwt__Issuer
+        value: escola-api
+      - key: Jwt__Audience
+        value: escola-client
+      - key: Jwt__ExpirationMinutes
+        value: "120"
+      - key: Jwt__Key
+        generateValue: true
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: Uploads__Provider
+        value: AzureBlob
+      - key: AzureBlob__ConnectionString
+        sync: false
+      - key: AzureBlob__ContainerName
+        value: arquivos
+      - key: AzureBlob__PublicBaseUrl
+        sync: false
+      - key: ServiceBus__ConnectionString
+        sync: false
+      - key: ServiceBus__QueueName
+        value: notificacoes
+      - key: ServiceBus__ConsumerEnabled
+        value: "true"
