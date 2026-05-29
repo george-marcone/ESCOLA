@@ -2,6 +2,7 @@ services:
   - type: web
     name: escola-conectada-api
     runtime: docker
+    rootDir: api
     dockerfilePath: ./Dockerfile
     autoDeploy: true
     envVars:
@@ -33,3 +34,17 @@ services:
         value: notificacoes
       - key: ServiceBus__ConsumerEnabled
         value: "true"
+
+  - type: web
+    name: escola-conectada-front
+    runtime: static
+    rootDir: front
+    buildCommand: npm run generate
+    staticPublishPath: .output/public
+    envVars:
+      - key: NUXT_PUBLIC_API_BASE
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

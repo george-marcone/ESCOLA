@@ -283,14 +283,14 @@
       Scalar, logs e testes.
     </p>
     <div class="cover-box">
-      <p><strong>Escopo:</strong> todo o backend localizado em <code>ESCOLA_API</code>, incluindo arquitetura, camadas, classes, regras de negocio, diagramas e tecnologias.</p>
+      <p><strong>Escopo:</strong> todo o backend localizado em <code>api/</code> no monorepo, incluindo arquitetura, camadas, classes, regras de negocio, diagramas e tecnologias.</p>
       <p><strong>Formato:</strong> documentacao tecnica em PDF gerada a partir deste HTML.</p>
     </div>
     <div class="meta">
       <span>Projeto: <strong>ESCOLA_API</strong></span>
-      <span>Repositorio: <strong>SPA-Vue / ESCOLA_API</strong></span>
+      <span>Repositorio: <strong>ESCOLA</strong></span>
       <span>Data: <strong>28/05/2026</strong></span>
-      <span>Documento: <strong>ESCOLA_API/docs/documentacao-tecnica-backend.pdf</strong></span>
+      <span>Documento: <strong>api/docs/documentacao-tecnica-backend.pdf</strong></span>
     </div>
   </section>
 
@@ -426,7 +426,7 @@
       <span class="node wide">Pipeline</span><span class="arrow">-></span>
       <span class="node wide">ILogger</span><span class="arrow">-></span>
       <span class="node wide">DailyFileLogger</span><span class="arrow">-></span>
-      <span class="node wide">ESCOLA_API/logs</span>
+      <span class="node wide">api/logs</span>
     </div>
   </div>
 
@@ -721,8 +721,8 @@
 
   <h2>14. Logging</h2>
   <p>
-    Logs ficam em <code>ESCOLA_API/logs/escola-api-YYYYMMDD.log</code>. No Docker Compose, o volume
-    <code>../ESCOLA_API/logs:/app/logs</code> grava os logs do container na pasta do projeto.
+    Logs ficam em <code>api/logs/escola-api-YYYYMMDD.log</code>. No Docker Compose, o volume
+    <code>./logs:/app/logs</code> grava os logs do container na pasta do projeto.
   </p>
   <table>
     <tr><th>Origem</th><th>Evento</th></tr>
@@ -753,7 +753,7 @@
   </ol>
 
   <h2>16. Testes Unitarios</h2>
-  <p>Os testes ficam em <code>ESCOLA_API/ESCOLA_API.Tests</code>.</p>
+  <p>Os testes ficam em <code>api/ESCOLA_API.Tests</code>.</p>
   <table>
     <tr><th>Grupo</th><th>O que valida</th></tr>
     <tr><td>Controllers</td><td>Respostas principais de Aluno e Usuarios.</td></tr>

@@ -1,6 +1,6 @@
 # Escola Conectada - Frontend
 
-Frontend da aplicacao Escola Conectada, construido em Nuxt 3. Este README cobre somente o projeto do front, separado do backend/API.
+Frontend da aplicacao Escola Conectada, construido em Nuxt 3. Este README cobre somente o projeto do front localizado em `front/` dentro do monorepo.
 
 ## Visao geral
 
@@ -29,7 +29,7 @@ O layout usa fundo claro, cards brancos, destaque laranja para marca/secao, boto
 ## Estrutura principal
 
 ```text
-ESCOLA_FRONT/
+front/
 |-- assets/css/main.css              # Tailwind e estilos globais
 |-- components/                      # Componentes reutilizaveis
 |   `-- DatePicker.vue               # Campo de data com digitacao e calendario
@@ -74,7 +74,7 @@ Tambem adicione uma regra de rewrite para a SPA:
 | --- | --- | --- |
 | Rewrite | `/*` | `/index.html` |
 
-O repositorio inclui `render.yaml` com essa configuracao. Se o servico ja existir no Render, ajuste os mesmos campos em `Settings` e execute `Manual Deploy > Clear build cache & deploy`.
+O monorepo inclui `render.yaml` na raiz com `rootDir: front`, e este diretorio tambem mantem um `render.yaml` especifico do front. Se o servico ja existir no Render, ajuste os mesmos campos em `Settings` e execute `Manual Deploy > Clear build cache & deploy`.
 
 ## Como executar
 
@@ -250,7 +250,7 @@ A tela permite:
 - Informar valor ficticio.
 - Gerar QR Code.
 - Compartilhar texto por WhatsApp.
-- Abrir e-mail via `mailto`.
+- Abrir composicao web de e-mail.
 - Copiar dados.
 - Baixar imagem PNG do QR.
 
@@ -290,7 +290,7 @@ Integracao com API:
 - `DELETE /holerites/usuarios/{usuarioId}/{holeriteId}`: administrador exclui holerite.
 - `POST /holerites/me/{holeriteId}/compartilhamento` e `POST /holerites/usuarios/{usuarioId}/{holeriteId}/compartilhamento`: criam link temporario para compartilhamento externo quando suportado pela API/storage.
 
-O compartilhamento por e-mail e WhatsApp abre o cliente externo com mensagem e link temporario retornado pela API. Ao lancar holerite, a API cria a notificacao para o funcionario informando quem lancou, competencia, arquivo e link para `/holerite`.
+O compartilhamento por e-mail abre uma composicao web com mensagem e link temporario retornado pela API; o WhatsApp abre a conversa web com o texto preenchido. Ao lancar holerite, a API cria notificacoes para os professores informando quem lancou, competencia, arquivo e funcionario do holerite.
 
 ### Calendario Escolar
 

@@ -56,7 +56,7 @@ Quando `Uploads__Provider=AzureBlob`, a API grava fotos, certificados e holerite
 
 ## Docker Compose
 
-Na raiz do repositorio:
+Na pasta `api/` do monorepo:
 
 ```bash
 cp .env.example .env
@@ -80,7 +80,7 @@ Acessos padrao:
 - Scalar: `http://localhost:5001/scalar`
 - SQL Server: `localhost,1433`
 
-O SQL Server usa o volume nomeado `escola-high-tech-mssql-data`, montado em `/var/opt/mssql` dentro do container. Esse volume preserva os dados entre rebuilds, restarts e recriacoes dos containers.
+O SQL Server usa o volume nomeado `escola-conectada-mssql-data`, montado em `/var/opt/mssql` dentro do container. Esse volume preserva os dados entre rebuilds, restarts e recriacoes dos containers.
 
 Para parar sem perder dados:
 
@@ -94,7 +94,7 @@ Para subir novamente usando o mesmo banco:
 docker compose up -d --build
 ```
 
-Evite `docker compose down -v`, `docker volume rm escola-high-tech-mssql-data` ou trocar `MSSQL_DATABASE` se quiser manter os dados existentes. Esses comandos/configuracoes removem ou apontam para outro banco.
+Evite `docker compose down -v`, `docker volume rm escola-conectada-mssql-data` ou trocar `MSSQL_DATABASE` se quiser manter os dados existentes. Esses comandos/configuracoes removem ou apontam para outro banco.
 
 A API executa `Database.Migrate()` no startup. Com o volume persistido, o Entity Framework consulta a tabela `__EFMigrationsHistory` e aplica apenas migrations pendentes; ele nao recria o banco nem apaga dados ja inseridos. Se o volume for removido, o SQL Server iniciara vazio e as migrations/seed iniciais serao aplicadas como primeira criacao.
 
@@ -117,7 +117,7 @@ Senha@252525
 Os logs ficam na raiz do projeto backend:
 
 ```text
-ESCOLA_API/logs/escola-api-YYYYMMDD.log
+api/logs/escola-api-YYYYMMDD.log
 ```
 
 O provider `DailyFileLoggerProvider` registra:
@@ -129,7 +129,7 @@ O provider `DailyFileLoggerProvider` registra:
 - Erros capturados pelos controllers.
 - Tentativas de login recusadas, login bem-sucedido e troca de senha.
 
-No Docker Compose, o volume `../ESCOLA_API/logs:/app/logs` mantem os logs do container nessa mesma pasta.
+No Docker Compose, o volume `./logs:/app/logs` mantem os logs do container nessa mesma pasta.
 
 ## Arquitetura
 

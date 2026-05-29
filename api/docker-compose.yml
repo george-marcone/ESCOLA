@@ -1,4 +1,4 @@
-name: escola-high-tech
+name: escola-conectada
 
 services:
   db:
@@ -48,4 +48,4 @@ services:
 
 volumes:
   escola-mssql-data:
-    name: escola-high-tech-mssql-data
+    name: escola-conectada-mssql-data
