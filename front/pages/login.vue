@@ -15,22 +15,28 @@
       <PasswordInput v-model="form.senha" label="Senha" autocomplete="current-password" required />
 
       <p v-if="auth.error" class="alert alert-error">{{ auth.error }}</p>
-      <p v-if="mensagemReset" class="alert alert-success">{{ mensagemReset }}</p>
       <p v-if="erroReset" class="alert alert-error">{{ erroReset }}</p>
 
       <button class="inline-flex min-h-12 items-center justify-center rounded-md bg-[#147f72] px-4 text-sm font-extrabold text-white transition hover:bg-[#0f6c61] disabled:cursor-wait disabled:opacity-70" type="submit" :disabled="auth.loading">
         {{ auth.loading ? 'Entrando...' : 'Entrar' }}
       </button>
 
-      <button class="inline-flex min-h-10 items-center justify-center rounded-md border border-[#147f72] bg-white px-4 text-sm font-extrabold text-[#147f72] transition hover:bg-[#e9f7f5] disabled:cursor-wait disabled:opacity-70" type="button" :disabled="auth.loading" @click="resetarSenhaPadrao">
+      <button class="inline-flex min-h-10 items-center justify-center rounded-md border border-[#147f72] bg-white px-4 text-sm font-extrabold text-[#147f72] transition hover:bg-[#e9f7f5] disabled:cursor-wait disabled:opacity-70" type="button" :disabled="auth.loading" @click="abrirTrocaSenha">
         Esqueceu a senha?
       </button>
     </form>
 
     <form v-else class="mt-8 grid gap-5" @submit.prevent="alterarSenha">
       <p class="alert alert-warning">
-        Sua conta ainda usa a senha padrao. Defina uma nova senha para continuar.
+        {{ mensagemTrocaSenha }}
       </p>
+
+      <label v-if="trocaSolicitada" class="grid gap-2 text-sm font-extrabold text-[#071d3b]">
+        <span>Email</span>
+        <input v-model.trim="form.email" class="min-h-11 rounded-md border border-[#ccd8e5] px-3 text-[#071d3b] outline-none focus:border-[#147f72] focus:ring-4 focus:ring-[#147f72]/10" type="email" autocomplete="email" required />
+      </label>
+
+      <PasswordInput v-if="trocaSolicitada" v-model="form.senha" label="Senha atual ou senha padrao" autocomplete="current-password" required />
 
       <PasswordInput v-model="senhaForm.novaSenha" label="Nova senha" autocomplete="new-password" required />
 
@@ -40,9 +46,15 @@
 
       <p v-if="erroAlteracao" class="alert alert-error">{{ erroAlteracao }}</p>
 
-      <button class="inline-flex min-h-12 items-center justify-center rounded-md bg-[#147f72] px-4 text-sm font-extrabold text-white transition hover:bg-[#0f6c61] disabled:cursor-wait disabled:opacity-70" type="submit" :disabled="auth.loading">
-        {{ auth.loading ? 'Alterando...' : 'Alterar senha e continuar' }}
-      </button>
+      <div class="grid gap-3">
+        <button class="inline-flex min-h-12 items-center justify-center rounded-md bg-[#147f72] px-4 text-sm font-extrabold text-white transition hover:bg-[#0f6c61] disabled:cursor-wait disabled:opacity-70" type="submit" :disabled="auth.loading">
+          {{ auth.loading ? 'Alterando...' : 'Alterar senha e continuar' }}
+        </button>
+
+        <button v-if="trocaSolicitada" class="inline-flex min-h-10 items-center justify-center rounded-md border border-[#147f72] bg-white px-4 text-sm font-extrabold text-[#147f72] transition hover:bg-[#e9f7f5] disabled:cursor-wait disabled:opacity-70" type="button" :disabled="auth.loading" @click="voltarLogin">
+          Voltar para login
+        </button>
+      </div>
     </form>
   </section>
 </template>
@@ -65,13 +77,18 @@ const senhaForm = reactive({
   confirmacaoSenha: ''
 })
 const mostrarAlteracaoSenha = ref(false)
+const trocaSolicitada = ref(false)
 const erroAlteracao = ref('')
-const mensagemReset = ref('')
 const erroReset = ref('')
+const mensagemTrocaSenha = computed(() =>
+  trocaSolicitada.value
+    ? 'Informe sua senha atual ou a senha padrao para definir uma nova senha.'
+    : 'Sua conta ainda usa a senha padrao. Defina uma nova senha para continuar.'
+)
 
 async function entrar() {
-  mensagemReset.value = ''
   erroReset.value = ''
+  trocaSolicitada.value = false
 
   const response = await auth.login(form)
   if (response.deveAlterarSenhaPadrao) {
@@ -82,28 +99,36 @@ async function entrar() {
   await navigateTo('/')
 }
 
-async function resetarSenhaPadrao() {
-  mensagemReset.value = ''
+function abrirTrocaSenha() {
   erroReset.value = ''
+  erroAlteracao.value = ''
 
   if (!form.email) {
-    erroReset.value = 'Informe o email para redefinir a senha.'
+    erroReset.value = 'Informe o email para alterar a senha.'
     return
   }
 
-  try {
-    const response = await auth.resetarSenhaPadrao({ email: form.email })
-    mensagemReset.value = response.mensagem
-    form.senha = ''
-  } catch (err) {
-    erroReset.value = normalizeApiError(err)
-  }
+  trocaSolicitada.value = true
+  mostrarAlteracaoSenha.value = true
+}
+
+function voltarLogin() {
+  mostrarAlteracaoSenha.value = false
+  trocaSolicitada.value = false
+  erroAlteracao.value = ''
+  erroReset.value = ''
+  senhaForm.novaSenha = ''
+  senhaForm.confirmacaoSenha = ''
 }
 
 async function alterarSenha() {
   erroAlteracao.value = ''
 
   try {
+    if (trocaSolicitada.value && !auth.isAuthenticated) {
+      await auth.login(form)
+    }
+
     await auth.alterarSenha({
       senhaAtual: form.senha,
       novaSenha: senhaForm.novaSenha,
